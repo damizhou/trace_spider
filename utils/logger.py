@@ -1,17 +1,29 @@
+from datetime import datetime
 from utils import project_path
+from utils.config import config
 import logging
 import logging.handlers
 import os
 
 
 # 配置日志基本设置
-def setup_logging(filename="defult.log"):
+def setup_logging():
+    allowed_domain = config["spider"]["allowed_domain"]
+    logs_dir = os.path.join(project_path, "logs", allowed_domain)
+    os.makedirs(logs_dir, exist_ok=True)
+
+    # 获取当前时间
+    current_time = datetime.now()
+    # 格式化输出
+    formatted_time = current_time.strftime("%Y%m%d%H%M%S")
+
+    filename = formatted_time + "-" + allowed_domain + ".log"
     # 创建一个logger
     logger = logging.getLogger(filename.split(".")[0])
     logger.setLevel(logging.DEBUG)  # 可以根据需要设置不同的日志级别
 
     # 创建一个handler，用于写入日志文件
-    log_file = os.path.join(project_path, "logs", filename)
+    log_file = os.path.join(logs_dir, filename)
 
     # 用于写入日志文件，当文件大小超过500MB时进行滚动
     file_handler = logging.handlers.RotatingFileHandler(log_file, maxBytes=50 * 1024 * 1024,
@@ -34,6 +46,5 @@ def setup_logging(filename="defult.log"):
     logger.addHandler(console_handler)
 
     return logger
-
 
 logger = setup_logging()

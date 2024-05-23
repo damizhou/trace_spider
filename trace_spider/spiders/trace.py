@@ -1,12 +1,12 @@
 import scrapy
 # 导入 logger 模块
 from utils.logger import logger
-
+from utils.config import config
 
 class TraceSpider(scrapy.Spider):
     name = "trace"
-    allowed_domains = ["douban.com"]
-    start_urls = ["https://movie.douban.com/chart"]
+    allowed_domains = [config["spider"]["allowed_domain"]]
+    start_urls = [config["spider"]["start_url"]]
 
     def parse(self, response):
         # 打印页面内容
