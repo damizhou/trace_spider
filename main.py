@@ -77,7 +77,6 @@ def start_task():
     # 关流量收集
     logger.info(f"关流量收集")
     stop_capture()
-    time.sleep(10)
 
 
 def main():
