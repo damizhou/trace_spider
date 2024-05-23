@@ -4,3 +4,5 @@ traffic/__pycache__/
 utils/__pycache__/
 trace_spider/spiders/__pycache__/
 trace_spider/__pycache__/
+logs/
+data/

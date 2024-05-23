@@ -1,14 +1,14 @@
 from datetime import datetime
 from utils import project_path
-from utils.config import config
 import logging
 import logging.handlers
 import os
+from utils.task import task_instance
 
 
 # 配置日志基本设置
 def setup_logging():
-    allowed_domain = config["spider"]["allowed_domain"]
+    allowed_domain = task_instance.current_allowed_domain
     logs_dir = os.path.join(project_path, "logs", allowed_domain)
     os.makedirs(logs_dir, exist_ok=True)
 

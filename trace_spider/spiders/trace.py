@@ -2,15 +2,17 @@ import scrapy
 # 导入 logger 模块
 from utils.logger import logger
 from utils.config import config
+from utils.task import task_instance
+
 
 class TraceSpider(scrapy.Spider):
     name = "trace"
-    allowed_domains = [config["spider"]["allowed_domain"]]
-    start_urls = [config["spider"]["start_url"]]
+    allowed_domains = [task_instance.current_allowed_domain]
+    start_urls = [task_instance.current_start_url]
 
     def parse(self, response):
         # 打印页面内容
-        logger.info(f"Srart link:{response.url}")
+        logger.info(f"responseURL:{response.url}")
         # logger.info(response.text)
 
         # 提取页面中的链接
@@ -21,10 +23,4 @@ class TraceSpider(scrapy.Spider):
 
             if "http" in full_url:
                 # 跟随提取的链接
-                logger.info(f"Full URL:{full_url}")
-                # yield response.follow(full_url, self.parse_link)
-
-    def parse_link(self, response):
-        # 打印跟随链接后的页面内容
-        logger.info(f"Followed link:{response.url}")
-        # logger.info(fresponse.text)
+                yield response.follow(full_url, self.parse)

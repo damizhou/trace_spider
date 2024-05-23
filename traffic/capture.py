@@ -1,7 +1,5 @@
-from utils.config import config
 from utils.logger import logger
 import os
-from datetime import datetime
 import time
 import shutil
 from utils import project_path
@@ -10,11 +8,11 @@ import subprocess
 should_stop_capture = False
 
 
-def capture(TASK_NAME, VPS_NAME, formatted_time):
-    traffic_dir = os.path.join(project_path, "data", TASK_NAME, "row_pcap")
+def capture(TASK_NAME, formatted_time):
+    traffic_dir = os.path.join(project_path, "data", TASK_NAME)
     os.makedirs(traffic_dir, exist_ok=True)
 
-    traffic_name = os.path.join(traffic_dir, f"{formatted_time}_{VPS_NAME}.pcap")
+    traffic_name = os.path.join(traffic_dir, f"{formatted_time}_{TASK_NAME}.pcap")
 
     # 设置tcpdump命令的参数
     tcpdump_command = [
