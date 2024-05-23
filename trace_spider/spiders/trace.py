@@ -11,10 +11,7 @@ class TraceSpider(scrapy.Spider):
     start_urls = [task_instance.current_start_url]
 
     def parse(self, response):
-        # 打印页面内容
-        logger.info(f"responseURL:{response.url}")
         # logger.info(response.text)
-
         # 提取页面中的链接
         links = response.css('a::attr(href)').getall()
         for link in links:

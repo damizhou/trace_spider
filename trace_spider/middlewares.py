@@ -88,6 +88,8 @@ class TraceSpiderDownloaderMiddleware:
         # - or return a Request object
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
+        # 打印页面内容
+        logger.info(f"requestURL:{request.url}")
         self.browser.get(request.url)
         return HtmlResponse(url=request.url, body=self.browser.page_source, encoding='utf-8', request=request)
 

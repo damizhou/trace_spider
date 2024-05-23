@@ -50,8 +50,6 @@ def start_spider():
     # 添加你要运行的爬虫
     process.crawl(TraceSpider)
 
-    duration = int(config["spider"]["duration"])
-
     logger.info(f"开始爬取数据")
     stop_crawlers_after_delay(process, duration)
     # 启动爬虫
@@ -68,8 +66,8 @@ def start_task():
     time.sleep(1)
 
     start_spider()
-    logger.info(f"爬取数据结束")
-    time.sleep(1)
+    logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面")
+    time.sleep(10)
 
     logger.info(f"清理浏览器进程")
     kill_chrome_processes()
