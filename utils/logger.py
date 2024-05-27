@@ -4,7 +4,6 @@ import logging.handlers
 import os
 
 
-
 # 配置日志基本设置
 def setup_logging(filename='default.log'):
     logs_dir = os.path.join(project_path, "logs")
@@ -18,7 +17,8 @@ def setup_logging(filename='default.log'):
     log_file = os.path.join(logs_dir, filename)
 
     # 用于写入日志文件，当文件大小超过500MB时进行滚动
-    file_handler = logging.handlers.RotatingFileHandler(log_file, maxBytes=50 * 1024 * 1024, backupCount=3, encoding='utf-8')
+    file_handler = logging.handlers.RotatingFileHandler(log_file, maxBytes=50 * 1024 * 1024, backupCount=3,
+                                                        encoding='utf-8')
     file_handler.setLevel(logging.DEBUG)
 
     # 创建一个handler，用于将日志输出到控制台
