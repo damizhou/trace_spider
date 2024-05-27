@@ -1,24 +1,15 @@
-from datetime import datetime
 from utils import project_path
 import logging
 import logging.handlers
 import os
 
-from utils.task import task_instance
 
 
 # 配置日志基本设置
-def setup_logging():
-    allowed_domain = task_instance.current_allowed_domain
-    logs_dir = os.path.join(project_path, "logs", allowed_domain)
+def setup_logging(filename='default.log'):
+    logs_dir = os.path.join(project_path, "logs")
     os.makedirs(logs_dir, exist_ok=True)
 
-    # 获取当前时间
-    current_time = datetime.now()
-    # 格式化输出
-    formatted_time = current_time.strftime("%Y%m%d%H%M%S")
-
-    filename = formatted_time + "-" + allowed_domain + ".log"
     # 创建一个logger
     logger = logging.getLogger(filename.split(".")[0])
     logger.setLevel(logging.DEBUG)  # 可以根据需要设置不同的日志级别

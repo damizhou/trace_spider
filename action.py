@@ -1,4 +1,6 @@
 import subprocess
+import sys
+
 from utils.logger import logger
 from utils.config import config
 from scrapy.crawler import CrawlerProcess
@@ -63,7 +65,6 @@ def start_task():
     traffic_thread = threading.Thread(target=traffic)
 
     traffic_thread.start()
-    time.sleep(1)
 
     start_spider()
     logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面")
@@ -75,20 +76,6 @@ def start_task():
     # 关流量收集
     logger.info(f"关流量收集")
     stop_capture()
-
-
-# def main():
-#     logger.info(f"开始任务")
-#     logger.info(
-#         f"本次任务共计采集{len(task_instance.urls)}个页面，预计采集时间{len(task_instance.urls) * duration / 60}分钟")
-#     logger.info(f"任务URL列表：{task_instance.urls}")
-#     while task_instance.current_index != len(task_instance.urls):
-#         logger.info(f"当前第{task_instance.current_index + 1}个任务，任务URL为{task_instance.current_start_url}，"
-#                     f"剩余时间{(len(task_instance.urls) - task_instance.current_index) * duration / 60}分钟")
-#         start_task()
-#         task_instance.current_index += 1
-#
-#     logger.info(f"任务完成")
 
 
 if __name__ == "__main__":

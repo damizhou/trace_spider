@@ -1,7 +1,5 @@
 import scrapy
 # 导入 logger 模块
-from utils.logger import logger
-from utils.config import config
 from utils.task import task_instance
 
 

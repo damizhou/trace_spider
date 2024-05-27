@@ -1,3 +1,9 @@
+import multiprocessing
+import json
+import os
+import fcntl
+
+
 class Task:
     _instance = None
 
@@ -11,7 +17,9 @@ class Task:
         if not self._initialized:
             self.file_path = 'url_list.txt'
             self.urls = self.read_file()
-            self.current_index = 0
+            with open('./utils/running.json', 'r') as f:
+                params = json.load(f)
+                self.current_index = params['currentIndex']
             self._initialized = True
 
     def read_file(self):
