@@ -16,8 +16,7 @@ docker pull chuanzhoupan/trace_spider:0527
 ```
 docker run --volume F:\trace_spider:/app --privileged -itd --name my_trace_spider chuanzhoupan/trace_spider:0527 /bin/bash
 ```
-5. 关闭网卡合并包
-
+5. 关闭物理机网卡合并包，要找到自己的docker和对应的物理机桥接网卡
 ```
 sudo ethtool -K docker0 tso off gso off gro off
 ```

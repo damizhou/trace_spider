@@ -6,3 +6,4 @@ trace_spider/spiders/__pycache__/
 trace_spider/__pycache__/
 logs/
 data/
+utils/running.json

@@ -128,7 +128,7 @@ def flows_packets_count(file_name):
 
             # 统计UDP流量
             if isinstance(ip.data, dpkt.udp.UDP):
-                tcp_txt = "UDP"
+                pro_txt = "UDP"
                 Statistic_type = "UDP"
                 global udp_packet_num
                 udp_packet_num += 1
