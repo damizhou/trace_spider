@@ -1,3 +1,4 @@
+from datetime import datetime
 from utils import project_path
 import logging
 import logging.handlers
@@ -5,9 +6,16 @@ import os
 
 
 # 配置日志基本设置
-def setup_logging(filename='default.log'):
+def setup_logging():
     logs_dir = os.path.join(project_path, "logs")
     os.makedirs(logs_dir, exist_ok=True)
+
+    # 获取当前时间
+    current_time = datetime.now()
+    # 格式化输出
+    formatted_time = current_time.strftime("%Y%m%d")
+
+    filename = formatted_time + ".log"
 
     # 创建一个logger
     logger = logging.getLogger(filename.split(".")[0])
