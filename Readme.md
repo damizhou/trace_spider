@@ -7,7 +7,7 @@
 ```
 git clone https://github.com/damizhou/trace_spider.git
 ```
-2. 修改配置文件`config.ini`文件，主要修改其中单个URL爬取时间。
+2. 修改配置文件**config.ini**文件，主要修改其中单个URL爬取时间。
 3. 下载Dokcer镜像
 ```
 docker pull chuanzhoupan/trace_spider:0527
@@ -30,3 +30,8 @@ sudo ethtool -K eth0 tso off gso off gro off
 ```
 python main.py
 ```
+10. `logs`目录下是日志，日志以日期分割。例如`20240528.log`、`20240529.log`
+11. 数据储存在`data`目录下，不同的URL分别有一个文件夹保存。
+    - 数据文件命名格式为**时间_URL.pacp**。例如**20240528102026_douban.com.pcap**为**2024年5月28日10点20分26秒**开始采集的**douban.com**流量。
+12. `analyze`目录下是流量分析脚本
+    - `flows_packets`需要修改代码中的本机IP，改为实际的本机IP

@@ -190,9 +190,9 @@ def flows_packets_count(file_name):
 
 
 # 读取pcap文件
-def pcap_file_path(current_directory=os.getcwd()):
-    # # 获取当前工作目录
-    # current_directory = os.getcwd()
+def pcap_file_path():
+    # 获取当前工作目录
+    current_directory = os.getcwd()
     # 使用glob.glob寻找当前目录中的第一个.pcapng文件
     pcapng_files = glob.glob(os.path.join(current_directory, '*.pcap'))
     # 检查是否找到.pcapng文件
@@ -205,8 +205,8 @@ def pcap_file_path(current_directory=os.getcwd()):
 
 
 if __name__ == "__main__":
-    pcap_file = pcap_file_path(r'..\data\xhamster.com')
-    csv_output_path = pcap_file.split('\\')[-1] + 'flows_packets_statistics.csv'
+    pcap_file = pcap_file_path()
+    csv_output_path = 'flows_packets_statistics.csv'
 
     # 初始化packet数量
     all_packet_num = 0
@@ -223,7 +223,7 @@ if __name__ == "__main__":
     # 创建字典，统计每个ip的流数量
     bi_flow_ip_count = collections.defaultdict(int)
     # 本地ip
-    local_ip = '172.17.0.2'
+    local_ip = '192.168.192.128'
 
     tcp_bi_flows_count, udp_bi_flows_count, tls_bi_flows_count, quic_bi_flows_count = flows_packets_count(pcap_file)
     all_flows_count = tcp_bi_flows_count + udp_bi_flows_count
@@ -250,3 +250,4 @@ if __name__ == "__main__":
              max_flow_ip_percentage])
 
     print(f'Statistics have been written to {csv_output_path}')
+
