@@ -1,7 +1,4 @@
-import multiprocessing
 import json
-import os
-import fcntl
 
 
 class Task:
@@ -17,6 +14,7 @@ class Task:
         if not self._initialized:
             self.file_path = 'url_list.txt'
             self.urls = self.read_file()
+            self.requesturlNum = 0
             with open('./utils/running.json', 'r') as f:
                 params = json.load(f)
                 self.current_index = params['currentIndex']
@@ -30,11 +28,11 @@ class Task:
 
     @property
     def current_start_url(self):
-        return self.urls[self.current_index]
+        return r'https://' + self.urls[self.current_index]
 
     @property
     def current_allowed_domain(self):
-        return self.urls[self.current_index].split("//")[-1]
+        return self.urls[self.current_index]
 
 
 # 单例实例

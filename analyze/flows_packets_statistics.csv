@@ -1,2 +1,0 @@
-all_Flow Count,all_packet count,tcp_flow Count,tcp_Packet Count,tls_flow Count,tls_Packet Count,udp_flow Count,udp_Packet Count,quic_flow Count,quic_Packet Count,max_flow_ip,max_flow_ip_percentage(%)
-333,43775,288,43655,115,3579,45,120,0,30,81.70.124.99,19.51951951951952

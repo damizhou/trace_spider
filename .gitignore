@@ -7,3 +7,4 @@ trace_spider/__pycache__/
 logs/
 data/
 utils/running.json
+*.csv

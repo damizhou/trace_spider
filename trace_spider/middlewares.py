@@ -10,6 +10,8 @@ from utils.chrome import create_chrome_driver
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
 
+from utils.task import task_instance
+
 
 class TraceSpiderSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
@@ -90,6 +92,7 @@ class TraceSpiderDownloaderMiddleware:
         #   installed downloader middleware will be called
         # 打印页面内容
         logger.info(f"requestURL:{request.url}")
+        task_instance.requesturlNum += 1
         self.browser.get(request.url)
         return HtmlResponse(url=request.url, body=self.browser.page_source, encoding='utf-8', request=request)
 

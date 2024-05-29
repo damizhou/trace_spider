@@ -1,6 +1,4 @@
 import subprocess
-import sys
-
 from utils.logger import logger
 from utils.config import config
 from scrapy.crawler import CrawlerProcess
@@ -76,6 +74,7 @@ def start_task():
     # 关流量收集
     logger.info(f"关流量收集")
     stop_capture()
+    logger.info(f"{task_instance.current_start_url}流量收集结束，共爬取{task_instance.requesturlNum}个页面")
 
 
 if __name__ == "__main__":

@@ -205,8 +205,8 @@ def pcap_file_path(current_directory=os.getcwd()):
 
 
 if __name__ == "__main__":
-    pcap_file = pcap_file_path(r'C:\Study\Code\trace_spider\trace_spider\data\douban.com')
-    csv_output_path = 'flows_packets_statistics.csv'
+    pcap_file = pcap_file_path(r'..\data\xhamster.com')
+    csv_output_path = pcap_file.split('\\')[-1] + 'flows_packets_statistics.csv'
 
     # 初始化packet数量
     all_packet_num = 0
