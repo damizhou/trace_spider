@@ -6,6 +6,8 @@
 #     https://docs.scrapy.org/en/latest/topics/settings.html
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+import os
+from datetime import datetime
 
 BOT_NAME = "trace_spider"
 
@@ -28,6 +30,24 @@ ROBOTSTXT_OBEY = False
 DOWNLOAD_DELAY = 60
 RANDOMIZE_DOWNLOAD_DELAY = True
 LOG_LEVEL = 'WARNING'  # 可选值有 'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'
+# 获取日志文件的目录
+log_dir = os.path.join(os.path.dirname(__file__), 'logs')
+
+# 确保日志目录存在
+os.makedirs(log_dir, exist_ok=True)
+to_day = datetime.now()
+log_file_name = 'scrapy_{}_{}_{}.log'.format(to_day.year, to_day.month, to_day.day)
+# 设置日志文件路径
+log_file_path = os.path.join(log_dir, log_file_name)
+
+# 检查日志文件是否存在，如果不存在则创建一个空文件
+if not os.path.exists(log_file_path):
+    with open(log_file_path, 'w') as f:
+        pass
+
+# 设置日志文件路径
+LOG_FILE = log_file_path
+print('LOG_FILE', LOG_FILE)
 # The download delay setting will honor only one of:
 # CONCURRENT_REQUESTS_PER_DOMAIN = 16
 # CONCURRENT_REQUESTS_PER_IP = 16
