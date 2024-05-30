@@ -16,6 +16,7 @@ class TraceSpider(scrapy.Spider):
             # 拼接相对 URL 为绝对 URL
             full_url = response.urljoin(link)
 
-            if "http" in full_url:
+            # 检查 URL 是否以 http 或 https 开头
+            if full_url.startswith('http'):
                 # 跟随提取的链接
                 yield response.follow(full_url, self.parse)
