@@ -70,10 +70,13 @@ def start_task():
 
     logger.info(f"清理浏览器进程")
     kill_chrome_processes()
+    logger.info(f"等待TCP结束挥手完成")
+    time.sleep(60)
 
     # 关流量收集
     logger.info(f"关流量收集")
     stop_capture()
+
     logger.info(f"{task_instance.current_start_url}流量收集结束，共爬取{task_instance.requesturlNum}个页面")
 
 

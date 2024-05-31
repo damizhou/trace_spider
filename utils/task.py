@@ -23,7 +23,7 @@ class Task:
     def read_file(self):
         with open(self.file_path, 'r') as file:
             lines = file.readlines()
-        urls = [line.strip() for line in lines]
+        urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
         return urls
 
     @property
