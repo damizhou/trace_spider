@@ -12,9 +12,9 @@ git clone https://github.com/damizhou/trace_spider.git
 ```
 docker pull chuanzhoupan/trace_spider:0527
 ```
-4. 运行docker, 根据自己的实际情况修改`--volume`参数，`/home/dataset/xxx/trace_spider`为克隆项目的路径。挂载部分包含脚本代码，不挂载脚本无法正常运行。
+4. 运行docker, 根据自己的实际情况修改`--volume`参数，`your_code_path`为克隆项目的路径。挂载部分包含脚本代码，不挂载脚本无法正常运行。和`--name`参数，`your_container_name`是容器名称
 ```
-docker run --volume /home/dataset/xxx/trace_spider:/app --privileged -itd --name xxx_trace_spider chuanzhoupan/trace_spider:0527 /bin/bash
+docker run --volume your_code_path:/app --privileged -itd --name your_container_name chuanzhoupan/trace_spider:0527 /bin/bash
 ```
 5. 关闭物理机网卡合并包，要找到自己的docker和对应的物理机桥接网卡
 ```
@@ -22,7 +22,7 @@ sudo ethtool -K docker0 tso off gso off gro off
 ```
 6. 进入容器
 ```
-docker exec -it xxx_trace_spider /bin/bash  
+docker exec -it your_container_name /bin/bash  
 ```
 7. 关闭docker网卡合并包
 ```
@@ -38,7 +38,6 @@ python main.py
 ## 注意事项
 
 1. 数据储存在`data`目录下，不同的URL分别有一个文件夹保存。
-
 	- 数据文件命名格式为**时间_URL.pacp**。例如**20240528102026_douban.com.pcap**为**2024年5月28日10点20分26秒**开始采集的**douban.com**流量。
 2. `analyze`目录下是流量分析脚本
    - `flows_packets`需要修改代码中的本机IP，改为实际的本机IP
