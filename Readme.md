@@ -42,7 +42,7 @@ python main.py
 	- 数据文件命名格式为**时间_URL.pacp**。例如**20240528102026_douban.com.pcap**为**2024年5月28日10点20分26秒**开始采集的**douban.com**流量。
 2. `analyze`目录下是流量分析脚本
    - `flows_packets`需要修改代码中的本机IP，改为实际的本机IP
-3. 关闭docker网卡合并包，每次启动docker都要重新运行。
+3. 关闭网卡合并包，每次启动linux都要重新运行。包括第物理机和docker
 
 ## 代码更新
 
@@ -50,3 +50,4 @@ python main.py
   1. 优化打印，现在`trace_spider/logs`下会保存爬虫的错误日志，例如网络请求失败等。也是按日期进行保存。
   2. 优化爬取代码，解决连续爬取时上一个URL可能会有一些TCP请求被下一次的tcpdump捕获。
   3. 配置文件`config.ini`，现在爬虫的连续获取URL延迟也可以在配置文件中修改。
+  4. 优化url_list文件的读取逻辑，#开头的url不会进行爬取。
