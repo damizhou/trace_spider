@@ -2,10 +2,11 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 
-def create_chrome_driver():
+def create_chrome_driver(*, headless=True):
     # 创建 ChromeOptions 实例
     chrome_options = Options()
-    chrome_options.add_argument("--headless")  # 无界面模式
+    if headless:
+        chrome_options.add_argument('--headless')  # 无界面模式
     chrome_options.add_argument("--disable-gpu")  # 禁用 GPU 加速
     chrome_options.add_argument("--no-sandbox")  # 禁用沙盒（在某些系统中需要）
     chrome_options.add_argument("--disable-dev-shm-usage")  # 限制使用/dev/shm
