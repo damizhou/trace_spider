@@ -1,4 +1,11 @@
+import os
 import subprocess
+
+from selenium.webdriver import Keys
+from selenium.webdriver.common.by import By
+
+from utils import project_path
+from utils.chrome import create_chrome_driver
 from utils.logger import logger
 from utils.config import config
 from scrapy.crawler import CrawlerProcess
@@ -72,6 +79,33 @@ def start_spider():
     process.start()
 
 
+def start_search():
+
+    logger.info(f"开始google关键词搜索流量获取任务")
+    keyword_list_path = os.path.join(project_path, "google_search_keyword_list")
+    print('keyword_list_path', keyword_list_path)
+    with open(keyword_list_path, "r", encoding='utf-8') as file:
+        keyword_list = set(line.strip() for line in file)
+    # 打印集合内容
+    print(keyword_list)
+    logger.info(f"已从{keyword_list_path}中获取关键词列表")
+    logger.info(f"{keyword_list}")
+
+    driver = create_chrome_driver(headless=False)
+    driver.get(r'https://www.google.com')
+    for keyword in keyword_list:
+        search_box = driver.find_element(By.NAME, 'q')
+        search_box.clear()
+        search_box.send_keys(keyword)
+        search_box.send_keys(Keys.RETURN)
+        logger.info(f'搜索内容: {driver.title}')
+        # 向下滚动6次
+        for i in range(6):
+            # 页面滑到最下方
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(3)
+
+
 def start_task():
     logger.info(f"清理浏览器进程")
     kill_chrome_processes()
@@ -79,8 +113,12 @@ def start_task():
     traffic_thread = threading.Thread(target=traffic)
 
     traffic_thread.start()
+    mode = config["spider"]["mode"]
+    if mode == 'browser':
+        start_spider()
+    elif mode == 'search':
+        start_search()
 
-    start_spider()
     logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面")
     time.sleep(10)
 
@@ -95,6 +133,7 @@ def start_task():
 
     logger.info(f"{task_instance.current_start_url}流量收集结束，共爬取{task_instance.requesturlNum}个页面")
     cancel_timer()
+
 
 if __name__ == "__main__":
     start_task()
