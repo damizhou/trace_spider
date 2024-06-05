@@ -1,5 +1,10 @@
 import json
+import os
+import random
 import subprocess
+import time
+
+from utils import project_path
 from utils.config import config
 from utils.logger import setup_logging, logger
 import threading
@@ -9,6 +14,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from pytrends.request import TrendReq
 import pandas as pd
+
 
 # duration = int(config["spider"]["duration"])
 
@@ -41,101 +47,31 @@ import pandas as pd
 #
 #     logger.info(f"任务完成")
 
-def get_words():
-    # 创建 TrendReq 对象
-    pytrends = TrendReq(hl='en-US', tz=360)
-
-    # 获取实时热门搜索词
-    trending_searches_df = pytrends.trending_searches(pn='united_states')  # 可以根据需要更改地区
-
-    # 打印热门搜索词
-    print(trending_searches_df)
-
-    # 保存到 CSV 文件
-    trending_searches_df.to_csv('trending_searches.csv', index=False)
-
 
 def main():
-    driver = create_chrome_driver()
-    driver.get(r'https://www.google.com')
-    print(f'页面标题 1111 : {driver.title}')
-    search_box = driver.find_element(By.NAME, 'q')
-    search_box.send_keys('Selenium Python')
-    search_box.send_keys(Keys.RETURN)
-    driver.implicitly_wait(5)  # 简单的等待5秒
-    print(f'页面标题 2222 : {driver.title}')
+    keyword_list_path = os.path.join(project_path, "google_search_keyword_list")
+    print('keyword_list_path', keyword_list_path)
+    with open(keyword_list_path, "r", encoding='utf-8') as file:
+        keyword_list = set(line.strip() for line in file)
+    # 打印集合内容
+    print(keyword_list)
+    logger.info(f"已从{keyword_list_path}中获取关键词列表")
+    # random.shuffle(google_search_keyword_list)  # 洗牌url列表
 
-    search_box = driver.find_element(By.NAME, 'q')
-    search_box.clear()
-    search_box.send_keys('Dallas Mavericks')
-    search_box.send_keys(Keys.RETURN)
-    driver.implicitly_wait(5)  # 简单的等待5秒
-    print(f'页面标题 3333 : {driver.title}')
-    pass
+    driver = create_chrome_driver(headless=False)
+    driver.get(r'https://www.google.com')
+    for keyword in keyword_list:
+        search_box = driver.find_element(By.NAME, 'q')
+        search_box.clear()
+        search_box.send_keys(keyword)
+        search_box.send_keys(Keys.RETURN)
+        logger.info(f'页面标题 : {driver.title}')
+        # 向下滚动6次
+        for i in range(6):
+            # 页面滑到最下方
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(3)
 
 
 if __name__ == "__main__":
     main()
-    # get_words()
-
-
-# Bharatiya Janata Party
-# England vs Bosnia and Herzegovina
-# Afghanistan vs Uganda
-# Tamilnadu Election Result 2024
-# Djokovic
-# Venom: The Last Dance
-# England football
-# AP Election Results 2024
-# Sensex today
-# Kanlaon Volcano
-# Nvidia and AMD square off in fight to take control of AI
-# India election results
-# Sri Lanka vs South Africa
-# Berkshire Hathaway
-# GameStop
-# David Yong
-# Sensex
-# Nvidia
-# Claudia Sheinbaum
-# Nifty 50
-# Rob Burrow
-# Aneurysm
-# Maldives
-# Rupert Murdoch
-# Mbappe
-# Gaza ceasefire
-# Chee Hong Tat
-# Champions League
-# Champions League final
-# UFC 302
-# Zelensky
-# Narendra Modi
-# UEFA
-# Jose Mourinho
-# Trump
-# Lennart Thy
-# In-N-Out Singapore
-# Salesforce
-# Rafah
-# Ticketmaster
-# Dallas Mavericks
-# Mavs
-# All Eyes on Rafah meaning
-# Bill Walton
-# Singapore Open
-# Pope Francis
-# Palestine
-# Djokovic
-# Celtics
-# Gaza
-# Rafah
-# Johnny Wactor
-# Enzo Maresca
-# Rafael Nadal
-# Seatrium
-# Memorial Day
-# Papua New Guinea
-# Dallas Mavericks
-# Rishi Sunak
-# T20 World Cup

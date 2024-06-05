@@ -1,0 +1,211 @@
+Domain Adaptation
+Heterogeneous Domains
+Heterogeneous Domain Adaptation
+Feature Space
+Class Labels
+Latent Space
+Data Streams
+Target Domain
+Common Space
+Data Instances
+Source Domain
+Data Sources
+Training Data
+Changes In Distribution
+Network Output
+Domain Data
+Target Data
+Problem Setting
+Multi-task Learning
+Concept Drift
+Source Domain Data
+Target Domain Data
+Denoising Autoencoder
+System Calls
+Dark Web
+Maximum Mean Discrepancy
+Reconstruction Loss
+Change Point Detection
+Encoder Network
+Cyber-physical Systems
+False Positive Rate
+F1 Score
+Closed-loop System
+False Negative Rate
+False-positive And False-negative
+Autonomous Vehicles
+Increase In Accuracy
+System Context
+Average Prediction Accuracy
+Temporal Logic
+Control System
+Active Control
+Machine Learning Models
+Health-related Quality Of Life
+Fault-tolerant
+Chain Structure
+Consensus Protocol
+Block Generation
+Byzantine Fault Tolerance
+Throughput
+Hash Function
+Current View
+Higher Height
+Chain Rule
+Public Key
+Complex Communication
+Processing Protocols
+Threat Model
+Current Leadership
+Network Delay
+Total Execution Time
+Bitcoin
+Payload Size
+Proof Of Work
+Longest Chain
+Dotted Box
+Long Short-term Memory
+Multilayer Perceptron
+Control Software
+Model Predictive Control
+Anomaly Detection
+Trace Data
+Hazard Mitigation
+Faulty Data
+Lead Vehicle
+Occurrence Of Hazards
+Mitigation Actions
+Time Headway
+Adversarial Examples
+Adversarial Training
+Train Machine Learning Models
+Universal Adversarial Perturbations
+Microphone
+Large-scale Analysis
+Successful Rate
+Speech Signal
+Speaker Recognition
+Digital Domain
+Training Set
+White Noise
+Videoconferencing
+Reverberation
+Beamforming
+Sound Level Meter
+Distortion Levels
+Speech Content
+Virtual Assistant
+Word Error Rate
+Voice Calls
+Jamming Signal
+Privacy Threats
+Denoising Methods
+Pink Noise
+LSTM-based Model
+General Data Protection Regulation
+Contextual Information
+Smartphone
+Raw Data
+Computational Cost
+Plaintext
+Baseline Methods
+Feature Concatenation
+Inference Attacks
+Neural Network
+Local Data
+Stochastic Gradient Descent
+Information Leakage
+Data Sharing
+Types Of Attacks
+Training Speed
+Central Server
+Main Procedure
+Multi-party Computation
+Privacy Level
+Differential Privacy
+Federated Learning
+CNN Layers
+Fraud Detection
+Collaborative Training
+Security Domain
+MNIST Dataset
+Secret Sharing
+Decoding
+Access Structure
+Disc Space
+Subset Of Nodes
+Improvement In Size
+Storage Nodes
+Random Variables
+Lower Bound
+Authentication
+Pieces Of Information
+Undirected
+Set Of Elements
+Base Case
+Random Values
+Nodes In The Graph
+Linear Time
+Root Of The Tree
+Weak Form
+Case Of Graphs
+Types Of Graphs
+Adjacent Nodes
+Secure Channel
+Entropy Function
+Input Graph
+Security Protocols
+Dummy Points
+Shuffle Model
+Histogram
+Model Estimates
+User Identification
+User Side
+Mean Square Error
+Upper Bound
+Theoretical Analysis
+Theoretical Results
+Estimation Results
+User Data
+Sensitive Data
+Negative Binomial Distribution
+Supplementary Material Online
+Domain Size
+Real-world Datasets
+Communication Overhead
+Privacy Protection
+Detailed Algorithm
+Random Responses
+Range Query
+Weak Assumptions
+Frequency Estimation
+Noisy Results
+Bit Length
+Collusion
+Access Control
+External Supply
+Cloud Providers
+Policy Change
+Mixing Process
+Mixed Strategy
+Secret Key
+Data Owner
+Original Content
+Complete Mixing
+Policy Update
+Previous Rounds
+Encryption Key
+One-way Hash
+Input Bits
+Brute-force Attacks
+Cryptographic Function
+Output Bits
+Block Cipher
+Sequence Of Bits
+Possible Combinations Of Values
+Attribute-based Encryption
+Number Of Power
+Security Parameter
+Block Size
+Process In Fig
+Output Size
