@@ -38,7 +38,7 @@ def traffic():
     # 获取当前时间
     current_time = datetime.now()
     # 格式化输出
-    formatted_time = current_time.strftime("%Y%m%d%H%M%S")
+    formatted_time = current_time.strftime("%Y%m%d_%H_%M_%S")
     allowed_domain = task_instance.current_allowed_domain
     capture(allowed_domain, formatted_time)
 
@@ -83,15 +83,13 @@ def start_search():
 
     logger.info(f"开始google关键词搜索流量获取任务")
     keyword_list_path = os.path.join(project_path, "google_search_keyword_list")
-    print('keyword_list_path', keyword_list_path)
     with open(keyword_list_path, "r", encoding='utf-8') as file:
         keyword_list = set(line.strip() for line in file)
     # 打印集合内容
-    print(keyword_list)
     logger.info(f"已从{keyword_list_path}中获取关键词列表")
     logger.info(f"{keyword_list}")
 
-    driver = create_chrome_driver(headless=False)
+    driver = create_chrome_driver()
     driver.get(r'https://www.google.com')
     for keyword in keyword_list:
         search_box = driver.find_element(By.NAME, 'q')
@@ -111,8 +109,8 @@ def start_task():
     kill_chrome_processes()
     # 开流量收集
     traffic_thread = threading.Thread(target=traffic)
-
     traffic_thread.start()
+
     mode = config["spider"]["mode"]
     if mode == 'browser':
         start_spider()
