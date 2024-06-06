@@ -102,6 +102,7 @@ def start_search():
             # 页面滑到最下方
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             time.sleep(3)
+    return len(keyword_list)
 
 
 def start_task():
@@ -114,10 +115,11 @@ def start_task():
     mode = config["spider"]["mode"]
     if mode == 'browser':
         start_spider()
+        logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面，共爬取{task_instance.requesturlNum}个页面")
     elif mode == 'search':
-        start_search()
+        count = start_search()
+        logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面，共搜索{count}个关键词")
 
-    logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面")
     time.sleep(10)
 
     logger.info(f"清理浏览器进程")
@@ -129,7 +131,7 @@ def start_task():
     logger.info(f"关流量收集")
     stop_capture()
 
-    logger.info(f"{task_instance.current_start_url}流量收集结束，共爬取{task_instance.requesturlNum}个页面")
+    logger.info(f"{task_instance.current_start_url}流量收集结束")
     cancel_timer()
 
 
