@@ -81,8 +81,8 @@ def start_spider():
 
 def start_search():
 
-    logger.info(f"开始google关键词搜索流量获取任务")
-    keyword_list_path = os.path.join(project_path, "google_search_keyword_list")
+    logger.info(f"开始scholar.google.com关键词搜索流量获取任务")
+    keyword_list_path = os.path.join(project_path, "google_scholar_search_keyword_list")
     with open(keyword_list_path, "r", encoding='utf-8') as file:
         keyword_list = set(line.strip() for line in file)
     # 打印集合内容
@@ -90,7 +90,7 @@ def start_search():
     logger.info(f"{keyword_list}")
 
     driver = create_chrome_driver()
-    driver.get(r'https://www.google.com')
+    driver.get(r'https://scholar.google.com/')
     for keyword in keyword_list:
         search_box = driver.find_element(By.NAME, 'q')
         search_box.clear()
@@ -98,7 +98,7 @@ def start_search():
         search_box.send_keys(Keys.RETURN)
         logger.info(f'搜索内容: {driver.title}')
         # 向下滚动6次
-        for i in range(6):
+        for i in range(3):
             # 页面滑到最下方
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             time.sleep(3)

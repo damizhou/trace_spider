@@ -1,10 +1,30 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+import os
+
+
+def is_docker():
+    # 检查cgroup文件
+    try:
+        with open('/proc/1/cgroup', 'r') as f:
+            for line in f:
+                if 'docker' in line or 'kubepods' in line:
+                    return True
+    except FileNotFoundError:
+        pass
+
+    # 检查环境变量
+    if os.path.exists('/.dockerenv'):
+        return True
+
+    return False
 
 
 def create_chrome_driver(*, headless=True):
     # 创建 ChromeOptions 实例
     chrome_options = Options()
+    if is_docker():
+        headless = True
     if headless:
         chrome_options.add_argument('--headless')  # 无界面模式
     chrome_options.add_argument("--disable-gpu")  # 禁用 GPU 加速
