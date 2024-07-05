@@ -11,7 +11,9 @@ class TraceSpider(scrapy.Spider):
     def parse(self, response):
         # logger.info(response.text)
         # 提取页面中的链接
-        links = response.css('a::attr(href)').getall()
+        a_links = response.css('a::attr(href)').getall()
+        link_tags = response.css('link::attr(href)').getall()
+        links = a_links + link_tags
         for link in links:
             # 拼接相对 URL 为绝对 URL
             full_url = response.urljoin(link)
