@@ -9,14 +9,11 @@ class TraceSpider(scrapy.Spider):
     start_urls = [task_instance.current_start_url]
 
     def parse(self, response):
-        # logger.info(response.text)
-        # 提取页面中的链接
-        links = response.css('a::attr(href)').getall()
-        for link in links:
-            # 拼接相对 URL 为绝对 URL
-            full_url = response.urljoin(link)
+        url_set_Str = response.body.decode('utf-8').split(' ')
 
+        for link in url_set_Str:
             # 检查 URL 是否以 http 或 https 开头
-            if full_url.startswith('http'):
+            if link.startswith('http'):
                 # 跟随提取的链接
-                yield response.follow(full_url, self.parse)
+                yield response.follow(link, self.parse)
+                pass

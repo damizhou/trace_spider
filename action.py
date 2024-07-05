@@ -96,5 +96,7 @@ def start_task():
     logger.info(f"{task_instance.current_start_url}流量收集结束，共爬取{task_instance.requesturlNum}个页面")
     cancel_timer()
 
+
 if __name__ == "__main__":
     start_task()
+    # start_spider()

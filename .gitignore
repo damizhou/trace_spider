@@ -8,3 +8,5 @@ logs/
 data/
 utils/running.json
 *.csv
+test.py
+clash/

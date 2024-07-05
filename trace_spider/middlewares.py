@@ -2,16 +2,12 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-
 from scrapy import signals
 from scrapy.http import HtmlResponse
 from utils.logger import logger
 from utils.chrome import create_chrome_driver
-# useful for handling different item types with a single interface
-from itemadapter import is_item, ItemAdapter
-
 from utils.task import task_instance
-
+import utils.archive as archive
 
 class TraceSpiderSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
@@ -94,7 +90,14 @@ class TraceSpiderDownloaderMiddleware:
         logger.info(f"requestURL:{request.url}")
         task_instance.requesturlNum += 1
         self.browser.get(request.url)
-        return HtmlResponse(url=request.url, body=self.browser.page_source, encoding='utf-8', request=request)
+        if 'details' not in request.url:
+            url_set = archive.get_main_url(self.browser)
+        else:
+            url_set = archive.get_details_url(self.browser)
+        combined_html = ' '.join(url_set)
+        # 将字符串编码为字节类型
+        combined_html_bytes = combined_html.encode('utf-8')
+        return HtmlResponse(url=request.url, body=combined_html_bytes, encoding='utf-8', request=request)
 
     def process_response(self, request, response, spider):
         # Called with the response returned from the downloader.
@@ -117,3 +120,4 @@ class TraceSpiderDownloaderMiddleware:
 
     def spider_opened(self, spider):
         spider.logger.info("Spider opened: %s" % spider.name)
+
