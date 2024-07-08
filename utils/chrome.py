@@ -1,11 +1,35 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+import os
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
+
+def is_docker():
+    # 检查cgroup文件
+    try:
+        with open('/proc/1/cgroup', 'r') as f:
+            for line in f:
+                if 'docker' in line or 'kubepods' in line:
+                    return True
+    except FileNotFoundError:
+        pass
+
+    # 检查环境变量
+    if os.path.exists('/.dockerenv'):
+        return True
+
+    return False
 
 
 def create_chrome_driver():
     # 创建 ChromeOptions 实例
     chrome_options = Options()
-    chrome_options.add_argument("--headless")  # 无界面模式
+    if is_docker():
+        headless = True
+    else:
+        headless = False
+    if headless:
+        chrome_options.add_argument('--headless')  # 无界面模式
     chrome_options.add_argument("--disable-gpu")  # 禁用 GPU 加速
     chrome_options.add_argument("--no-sandbox")  # 禁用沙盒（在某些系统中需要）
     chrome_options.add_argument("--disable-dev-shm-usage")  # 限制使用/dev/shm
@@ -17,11 +41,13 @@ def create_chrome_driver():
     # 设置实验性首选项
     prefs = {
         "profile.default_content_settings.popups": 0,
-        "download.default_directory": "/path/to/download/directory",
         "credentials_enable_service": False,  # 禁用密码管理器弹窗
         "profile.password_manager_enabled": False  # 禁用密码管理器
     }
     chrome_options.add_experimental_option("prefs", prefs)
+
+    # 启用性能日志记录
+    chrome_options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
 
     # 创建 WebDriver 实例
     browser = webdriver.Chrome(options=chrome_options)
