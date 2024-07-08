@@ -1,6 +1,5 @@
 import json
 
-
 class Task:
     _instance = None
 
@@ -28,11 +27,22 @@ class Task:
 
     @property
     def current_start_url(self):
-        return r'https://' + self.urls[self.current_index]
+        print('self.urls', self.urls)
+        url_str = self.urls[self.current_index]
+        if '{' in url_str:
+            url_dict = json.loads(url_str)
+            return url_dict['start_urls']
+        else:
+            return r'https://' + self.urls[self.current_index]
 
     @property
     def current_allowed_domain(self):
-        return self.urls[self.current_index]
+        url_str = self.urls[self.current_index]
+        if '{' in url_str:
+            url_dict = json.loads(url_str)
+            return url_dict['allowed_domains']
+        else:
+            return self.urls[self.current_index]
 
 
 # 单例实例

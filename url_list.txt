@@ -1,1 +1,2 @@
-pinterest.com
+{"allowed_domains": "pinterest.com", "start_urls": "https://www.pinterest.com/ideas/"}
+douban.com

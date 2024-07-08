@@ -47,8 +47,9 @@ if not os.path.exists(log_file_path):
     with open(log_file_path, 'w') as f:
         pass
 
-# 设置日志文件路径
-LOG_FILE = log_file_path
+if LOG_LEVEL == 'WARNING':
+    # 设置日志文件路径
+    LOG_FILE = log_file_path
 
 # The download delay setting will honor only one of:
 # CONCURRENT_REQUESTS_PER_DOMAIN = 16

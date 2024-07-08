@@ -98,5 +98,5 @@ def start_task():
 
 
 if __name__ == "__main__":
-    # start_task()
-    start_spider()
+    start_task()
+    # start_spider()
