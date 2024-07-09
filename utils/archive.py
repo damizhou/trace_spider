@@ -1,7 +1,7 @@
 import time
 from selenium.webdriver.support.wait import WebDriverWait
 
-maxNum = 20
+maxNum = 100
 
 
 def get_main_url(driver):
