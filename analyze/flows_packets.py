@@ -248,6 +248,7 @@ if __name__ == "__main__":
             [all_flows_count, all_packet_num, tcp_bi_flows_count, tcp_packet_num, tls_bi_flows_count, tls_packet_num,
              udp_bi_flows_count, udp_packet_num, quic_bi_flows_count, quic_packet_num, max_flow_ip,
              max_flow_ip_percentage])
+        os.chown(csv_output_path, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
 
     print(f'Statistics have been written to {csv_output_path}')
 

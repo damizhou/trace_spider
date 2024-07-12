@@ -9,7 +9,7 @@ import os
 def setup_logging():
     logs_dir = os.path.join(project_path, "logs")
     os.makedirs(logs_dir, exist_ok=True)
-
+    os.chown(logs_dir, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
     # 获取当前时间
     current_time = datetime.now()
     # 格式化输出
@@ -43,6 +43,7 @@ def setup_logging():
     # 给logger添加handler
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
+    os.chown(log_file, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
 
     return logger
 

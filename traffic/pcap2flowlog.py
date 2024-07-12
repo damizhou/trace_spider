@@ -48,7 +48,7 @@ def read_pcap_and_write_csv(result, output_file):
             if result[1][i] == 0:
                 result[0][i] = -result[0][i]
             csvwriter.writerow([result[2][i], result[0][i]])
-
+    os.chown(output_file, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
 
 def getIP(datalink, pkt):
     IP = False
