@@ -21,7 +21,6 @@ def kill_chrome_processes():
         # Run the command to kill all processes containing 'chrome'
         result = subprocess.run(['sudo', 'pkill', '-f', 'chrome'], check=True, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
-        print(result.stdout.decode('utf-8'))
     except subprocess.CalledProcessError as e:
         print(f"Error occurred: {e.stderr.decode('utf-8')}")
 

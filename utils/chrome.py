@@ -1,7 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import os
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.support.wait import WebDriverWait
 
 
 def is_docker():
@@ -54,3 +54,28 @@ def create_chrome_driver():
     browser.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument',
                             {'source': 'Object.defineProperty(navigator,"webdriver",{get:()=>undefined})'})
     return browser
+
+
+# 定义一个函数来滚动页面
+def scroll_to_bottom(driver, pause_time=2):
+    times = 0
+    last_height = driver.execute_script("return document.body.scrollHeight")
+    is_continue = True
+    while is_continue:
+        times += 1
+        # 滚动到页面底部
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+        # 使用显式等待等待页面加载新内容
+        try:
+            WebDriverWait(driver, pause_time).until(
+                lambda d: d.execute_script("return document.body.scrollHeight") > last_height
+            )
+        except:
+            is_continue = False
+
+        # 计算新的滚动高度并与最后的高度进行比较
+        new_height = driver.execute_script("return document.body.scrollHeight")
+        if new_height == last_height or times == 100:
+            is_continue = False
+        last_height = new_height

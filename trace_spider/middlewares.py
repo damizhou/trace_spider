@@ -2,11 +2,12 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+import time
 
 from scrapy import signals
 from scrapy.http import HtmlResponse
 from utils.logger import logger
-from utils.chrome import create_chrome_driver
+from utils.chrome import create_chrome_driver, scroll_to_bottom
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
 
@@ -94,6 +95,7 @@ class TraceSpiderDownloaderMiddleware:
         logger.info(f"requestURL:{request.url}")
         task_instance.requesturlNum += 1
         self.browser.get(request.url)
+        scroll_to_bottom(self.browser)
         return HtmlResponse(url=request.url, body=self.browser.page_source, encoding='utf-8', request=request)
 
     def process_response(self, request, response, spider):

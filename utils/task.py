@@ -27,11 +27,10 @@ class Task:
 
     @property
     def current_start_url(self):
-        print('self.urls', self.urls)
         url_str = self.urls[self.current_index]
         if '{' in url_str:
             url_dict = json.loads(url_str)
-            return url_dict['start_urls']
+            return r'https://' + url_dict['start_urls']
         else:
             return r'https://' + self.urls[self.current_index]
 
