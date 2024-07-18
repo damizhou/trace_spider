@@ -16,5 +16,7 @@ class TraceSpider(scrapy.Spider):
 
             # 检查 URL 是否以 http 或 https 开头
             if full_url.startswith('http'):
+                if 'analytics' in full_url:
+                    continue
                 # 跟随提取的链接
                 yield response.follow(full_url, self.parse)

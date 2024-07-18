@@ -7,10 +7,10 @@ import time
 from scrapy import signals
 from scrapy.http import HtmlResponse
 from utils.logger import logger
-from utils.chrome import create_chrome_driver, scroll_to_bottom
+from utils.chrome import create_chrome_driver, scroll_to_bottom, add_cookies
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
-
+import json
 from utils.task import task_instance
 
 
@@ -76,6 +76,12 @@ class TraceSpiderDownloaderMiddleware:
     def __init__(self):
         logger.info(f"创建浏览器")
         self.browser = create_chrome_driver()
+        self.browser.get('https://x.com')
+        # Retrieve all cookies
+        add_cookies(self.browser)
+        self.browser.get('https://x.com/home')
+        with open('cookie.txt', 'w') as file:
+            json.dump(self.browser.get_cookies(), file)
 
     def __del__(self):
         logger.info(f"销毁浏览器")
@@ -96,6 +102,8 @@ class TraceSpiderDownloaderMiddleware:
         task_instance.requesturlNum += 1
         self.browser.get(request.url)
         scroll_to_bottom(self.browser)
+        with open('cookie.txt', 'w') as file:
+            json.dump(self.browser.get_cookies(), file)
         return HtmlResponse(url=request.url, body=self.browser.page_source, encoding='utf-8', request=request)
 
     def process_response(self, request, response, spider):
