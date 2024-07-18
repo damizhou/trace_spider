@@ -13,9 +13,14 @@ git clone https://github.com/damizhou/trace_spider.git
 docker pull chuanzhoupan/trace_spider:0527
 ```
 4. 运行docker, 根据自己的实际情况修改`--volume`参数，`your_code_path`为克隆项目的路径。挂载部分包含脚本代码，不挂载脚本无法正常运行。和`--name`参数，`your_container_name`是容器名称
-```
-docker run --volume your_code_path:/app --privileged -itd --name your_container_name chuanzhoupan/trace_spider:0527 /bin/bash
-```
+  - windows
+    ```
+    docker run --volume your_code_path:/app --privileged -itd --name your_container_name chuanzhoupan/trace_spider:0712 /bin/bash
+    ```
+  - linux
+    ```
+    docker run --volume your_code_path:/app -e HOST_UID=$(id -u $USER) -e HOST_GID=$(id -g $USER) --privileged -itd --name your_container_name chuanzhoupan/trace_spider:0712 /bin/bash
+    ```
 5. 关闭物理机网卡合并包，要找到自己的docker和对应的物理机桥接网卡
 ```
 sudo ethtool -K docker0 tso off gso off gro off
@@ -54,3 +59,7 @@ python main.py
 - 2024年6月3日
   1. 优化参数路径
   2. 修改定时器逻辑。如果爬虫提前结束，定时器也会结束。不会等到设定时间再触发。
+
+- 2024年7月12日
+  1. 修改数据和日志文件用户权限问题。
+  2. 优化代码逻辑。

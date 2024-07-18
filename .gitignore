@@ -10,3 +10,4 @@ utils/running.json
 *.csv
 test.py
 clash/
+test1.py
