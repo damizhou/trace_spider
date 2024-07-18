@@ -81,6 +81,7 @@ class TraceSpiderDownloaderMiddleware:
         self.browser.get('https://www.youtube.com/')
         # Retrieve all cookies
         add_cookies(self.browser)
+        self.browser.get('https://www.youtube.com/')
 
     def __del__(self):
         logger.info(f"销毁浏览器")
