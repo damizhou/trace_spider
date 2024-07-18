@@ -10,6 +10,8 @@ class TraceSpider(scrapy.Spider):
 
     def parse(self, response):
         a_links = response.css('a::attr(href)').getall()
+        if len(a_links) == 0:
+            print(f'{response.url} 没有提取到 URL')
         for link in a_links:
             # 拼接相对 URL 为绝对 URL
             full_url = response.urljoin(link)

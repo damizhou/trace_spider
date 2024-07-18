@@ -91,7 +91,7 @@ def scroll_to_bottom(driver):
 
 
 def add_cookies(browser):
-    with open('cookie.txt', 'r') as file:
+    with open('youtube_cookie.txt', 'r') as file:
         cookies = json.load(file)
         for cookie in cookies:
             if cookie['secure']:
