@@ -6,6 +6,7 @@ import time
 
 from scrapy import signals
 from scrapy.http import HtmlResponse
+from selenium.webdriver.common.by import By
 
 from tools.math_tool import generate_normal_random
 from utils.logger import logger
@@ -103,11 +104,25 @@ class TraceSpiderDownloaderMiddleware:
         self.browser.get(request.url)
         scroll_to_bottom(self.browser)
         if 'watch' in request.url:
-            for i in range(3):
-                time.sleep(40 + generate_normal_random())
-                scroll_to_bottom(self.browser)
+            video_element = self.browser.find_element(By.TAG_NAME, "video")
+            self.browser.execute_script("arguments[0].play();", video_element)
+            video_duration = self.browser.execute_script("return arguments[0].duration;", video_element)
+            print("视频总时长:", video_duration, "秒")
+            current_time = 0
+            i = 0
+            while current_time < video_duration and current_time < 180 and i < 5:
+                i += 1
+                current_time = self.browser.execute_script("return arguments[0].currentTime;", video_element)
+                if current_time == 0:
+                    self.browser.execute_script("arguments[0].play();", video_element)
+                    time.sleep(20)
+                else:
+                    time.sleep(40 + generate_normal_random())
+                    scroll_to_bottom(self.browser)
 
-        with open('cookie.txt', 'w') as file:
+                print("当前播放时长:", current_time, "秒")
+
+        with open('youtube_cookie.txt', 'w') as file:
             json.dump(self.browser.get_cookies(), file)
         return HtmlResponse(url=request.url, body=self.browser.page_source, encoding='utf-8', request=request)
 
