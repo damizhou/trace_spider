@@ -11,3 +11,4 @@ utils/running.json
 clash/
 test.py
 test1.py
+tools/__pycache__/
