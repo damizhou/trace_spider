@@ -1,2 +1,5 @@
-{"allowed_domains": "pinterest.com", "start_urls": "https://www.pinterest.com/ideas/"}
-douban.com
+#{"allowed_domains": "pinterest.com", "start_urls": "https://www.pinterest.com/ideas/"}
+#douban.com
+#x.com
+youtube.com
+#{"allowed_domains": "x.com", "start_urls": "https://x.com/home"}

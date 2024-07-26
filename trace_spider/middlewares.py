@@ -6,11 +6,14 @@ import time
 
 from scrapy import signals
 from scrapy.http import HtmlResponse
+from selenium.webdriver.common.by import By
+
+from tools.math_tool import generate_normal_random
 from utils.logger import logger
-from utils.chrome import create_chrome_driver, scroll_to_bottom
+from utils.chrome import create_chrome_driver, scroll_to_bottom, add_cookies
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
-
+import json
 from utils.task import task_instance
 
 
@@ -76,6 +79,11 @@ class TraceSpiderDownloaderMiddleware:
     def __init__(self):
         logger.info(f"创建浏览器")
         self.browser = create_chrome_driver()
+        if 'youtube' in task_instance.current_allowed_domain:
+            self.browser.get('https://www.youtube.com/')
+            # Retrieve all cookies
+            add_cookies(self.browser)
+            self.browser.get('https://www.youtube.com/')
 
     def __del__(self):
         logger.info(f"销毁浏览器")
@@ -96,6 +104,28 @@ class TraceSpiderDownloaderMiddleware:
         task_instance.requesturlNum += 1
         self.browser.get(request.url)
         scroll_to_bottom(self.browser)
+        if 'youtube' in task_instance.current_allowed_domain:
+            if 'watch' in request.url:
+                video_element = self.browser.find_element(By.TAG_NAME, "video")
+                self.browser.execute_script("arguments[0].play();", video_element)
+                video_duration = self.browser.execute_script("return arguments[0].duration;", video_element)
+                print("视频总时长:", video_duration, "秒")
+                current_time = 0
+                i = 0
+                while current_time < video_duration and current_time < 180 and i < 5:
+                    i += 1
+                    current_time = self.browser.execute_script("return arguments[0].currentTime;", video_element)
+                    if current_time == 0:
+                        self.browser.execute_script("arguments[0].play();", video_element)
+                        time.sleep(20)
+                    else:
+                        time.sleep(40 + generate_normal_random())
+                        scroll_to_bottom(self.browser)
+
+                    print("当前播放时长:", current_time, "秒")
+
+            with open('youtube_cookie.txt', 'w') as file:
+                json.dump(self.browser.get_cookies(), file)
         return HtmlResponse(url=request.url, body=self.browser.page_source, encoding='utf-8', request=request)
 
     def process_response(self, request, response, spider):

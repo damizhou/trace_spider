@@ -1,7 +1,11 @@
+import json
+import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import os
 from selenium.webdriver.support.wait import WebDriverWait
+
+from tools.math_tool import generate_normal_random
 
 
 def is_docker():
@@ -37,6 +41,8 @@ def create_chrome_driver():
     chrome_options.add_argument("--disable-application-cache")  # 禁用应用缓存
     chrome_options.add_argument("--disable-extensions")  # 禁用扩展
     chrome_options.add_argument("--disable-infobars")  # 禁用信息栏
+    chrome_options.add_argument("--disable-software-rasterizer")  # 禁用软件光栅化
+    chrome_options.add_argument("--autoplay-policy=no-user-gesture-required")  # 允许自动播放
 
     # 设置实验性首选项
     prefs = {
@@ -57,18 +63,23 @@ def create_chrome_driver():
 
 
 # 定义一个函数来滚动页面
-def scroll_to_bottom(driver, pause_time=2):
+def scroll_to_bottom(driver):
     times = 0
     last_height = driver.execute_script("return document.body.scrollHeight")
     is_continue = True
     while is_continue:
         times += 1
+
+        delay = generate_normal_random() / times
+        print(f'加载等待延时:{delay}')
+        time.sleep(delay)
+
         # 滚动到页面底部
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
         # 使用显式等待等待页面加载新内容
         try:
-            WebDriverWait(driver, pause_time).until(
+            WebDriverWait(driver, 2).until(
                 lambda d: d.execute_script("return document.body.scrollHeight") > last_height
             )
         except:
@@ -79,3 +90,11 @@ def scroll_to_bottom(driver, pause_time=2):
         if new_height == last_height or times == 100:
             is_continue = False
         last_height = new_height
+
+
+def add_cookies(browser):
+    with open('youtube_cookie.txt', 'r') as file:
+        cookies = json.load(file)
+        for cookie in cookies:
+            if cookie['secure']:
+                browser.add_cookie(cookie)
