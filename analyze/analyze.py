@@ -20,6 +20,13 @@ def extract_sni(clean_tls_describe):
     return None
 
 
+def normalize_conversation_key(src_ip, src_port, dst_ip, dst_port, protocol):
+    if (src_ip, src_port) > (dst_ip, dst_port):
+        src_ip, dst_ip = dst_ip, src_ip
+        src_port, dst_port = dst_port, src_port
+    return (src_ip, src_port, dst_ip, dst_port, protocol)
+
+
 def analyze_pcap(file_path):
     capture = pyshark.FileCapture(file_path)
     unique_snis = set()
@@ -56,7 +63,7 @@ def analyze_pcap(file_path):
                 dst_port = packet.tcp.dstport
                 tcp_packets += 1
 
-                conversation_key = tuple(sorted([(src_ip, src_port), (dst_ip, dst_port)]))
+                conversation_key = normalize_conversation_key(src_ip, src_port, dst_ip, dst_port, protocol)
                 conversations[conversation_key] += 1
 
                 # Check if the packet is part of a TLS session
@@ -79,7 +86,7 @@ def analyze_pcap(file_path):
                 if dst_port == '443' or src_port == '443':
                     quic_packets += 1
 
-                conversation_key = tuple(sorted([(src_ip, src_port), (dst_ip, dst_port)]))
+                conversation_key = normalize_conversation_key(src_ip, src_port, dst_ip, dst_port, protocol)
                 conversations[conversation_key] += 1
 
                 if conversations[conversation_key] == 1:
@@ -128,6 +135,7 @@ def analyze_pcap(file_path):
 
 
 # Example usage
-pcap_file = r"C:\Study\Code\trace_spider\trace_spider\analyze\20240725_17_55_04_youtube.com.pcap"
+pcap_file = r"20240726_11_27_49_www.cztc.edu.cn.pcap"
+# pcap_file = r"20240725_17_55_04_youtube.com.pcap"
 results = analyze_pcap(pcap_file)
 print(results)

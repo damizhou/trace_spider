@@ -3,3 +3,4 @@
 #x.com
 #youtube.com
 #{"allowed_domains": "x.com", "start_urls": "https://x.com/home"}
+www.cztc.edu.cn
