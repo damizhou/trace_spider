@@ -4,7 +4,6 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import os
 from selenium.webdriver.support.wait import WebDriverWait
-
 from tools.math_tool import generate_normal_random
 
 

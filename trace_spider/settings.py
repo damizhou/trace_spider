@@ -25,7 +25,7 @@ USER_AGENT = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHT
 ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-# CONCURRENT_REQUESTS = 32
+CONCURRENT_REQUESTS = 16
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
@@ -50,7 +50,6 @@ log_file_path = os.path.join(log_dir, log_file_name)
 if not os.path.exists(log_file_path):
     with open(log_file_path, 'w') as f:
         pass
-
     if is_docker():
         os.chown(log_file_path, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
 

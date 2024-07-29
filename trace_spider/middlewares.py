@@ -2,20 +2,27 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+<<<<<<< .merge_file_4GZehp
 import time
 
+=======
+>>>>>>> .merge_file_93J3ki
 from scrapy import signals
 from scrapy.http import HtmlResponse
 from selenium.webdriver.common.by import By
 
 from tools.math_tool import generate_normal_random
 from utils.logger import logger
+<<<<<<< .merge_file_4GZehp
 from utils.chrome import create_chrome_driver, scroll_to_bottom, add_cookies
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
 import json
+=======
+from utils.chrome import create_chrome_driver
+>>>>>>> .merge_file_93J3ki
 from utils.task import task_instance
-
+import utils.archive as archive
 
 class TraceSpiderSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
@@ -103,6 +110,7 @@ class TraceSpiderDownloaderMiddleware:
         logger.info(f"requestURL:{request.url}")
         task_instance.requesturlNum += 1
         self.browser.get(request.url)
+<<<<<<< .merge_file_4GZehp
         scroll_to_bottom(self.browser)
         if 'youtube' in task_instance.current_allowed_domain:
             if 'watch' in request.url:
@@ -127,6 +135,16 @@ class TraceSpiderDownloaderMiddleware:
             with open('youtube_cookie.txt', 'w') as file:
                 json.dump(self.browser.get_cookies(), file)
         return HtmlResponse(url=request.url, body=self.browser.page_source, encoding='utf-8', request=request)
+=======
+        if 'details' not in request.url:
+            url_set = archive.get_main_url(self.browser)
+        else:
+            url_set = archive.get_details_url(self.browser)
+        combined_html = ' '.join(url_set)
+        # 将字符串编码为字节类型
+        combined_html_bytes = combined_html.encode('utf-8')
+        return HtmlResponse(url=request.url, body=combined_html_bytes, encoding='utf-8', request=request)
+>>>>>>> .merge_file_93J3ki
 
     def process_response(self, request, response, spider):
         # Called with the response returned from the downloader.
@@ -149,3 +167,4 @@ class TraceSpiderDownloaderMiddleware:
 
     def spider_opened(self, spider):
         spider.logger.info("Spider opened: %s" % spider.name)
+
