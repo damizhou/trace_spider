@@ -191,5 +191,5 @@ def monitor_system_and_run(directory):
 
 
 if __name__ == "__main__":
-    directory = r"C:\Study\Code\trace_spider\trace_spider\analyze"
+    directory = r"/home/dataCollection/pcz/pcz/7.26"
     monitor_system_and_run(directory)

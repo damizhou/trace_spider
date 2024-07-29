@@ -40,7 +40,7 @@ def copy_data(source_root, destination_root):
 
 
 # 使用示例
-source_root = '/home/dataCollection/data/7.12'
+source_root = '/home/dataCollection/pcz/pcz/7.26'
 destination_root = '/home/dataCollection'
 
 
