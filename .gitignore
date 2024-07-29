@@ -11,3 +11,4 @@ test1.py
 cookie.txt
 analyze/20240725_17_55_04_youtube.com.pcap
 *.pcap
+*.json

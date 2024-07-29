@@ -1,8 +1,11 @@
 import pyshark
 import json
 import re
+import os
 from collections import defaultdict
 from tqdm import tqdm
+import concurrent.futures
+import psutil
 
 
 def eliminate_ANSI(tls_describe):
@@ -29,10 +32,11 @@ def normalize_conversation_key(src_ip, src_port, dst_ip, dst_port, protocol):
 
 def analyze_pcap(file_path):
     capture = pyshark.FileCapture(file_path)
-    unique_snis = set()
+    unique_snis = []
     unique_ipv4 = set()
     ip_packet_counts = defaultdict(int)
     conversations = defaultdict(int)
+    conversation_details = []
     tls_flags = defaultdict(bool)
     total_packets = 0
     tcp_packets = 0
@@ -67,13 +71,16 @@ def analyze_pcap(file_path):
                 conversations[conversation_key] += 1
 
                 # Check if the packet is part of a TLS session
-                if hasattr(packet, 'tls') and 'handshake' in packet.tls.field_names:
-                    if packet.tls.handshake_type == '1':  # Client Hello
+                try:
+                    if hasattr(packet,
+                               'tls') and 'handshake' in packet.tls.field_names and packet.tls.handshake_type == '1':  # Client Hello
                         clean_tls_describe = eliminate_ANSI(packet.tls)
                         sni = extract_sni(clean_tls_describe)
                         if sni:
-                            unique_snis.add(sni)
+                            unique_snis.append({'address': dst_ip, 'sni': sni})
                         tls_flags[conversation_key] = True
+                except AttributeError:
+                    pass
 
                 # Count the packet as TLS if the conversation is marked as TLS
                 if tls_flags[conversation_key]:
@@ -106,21 +113,34 @@ def analyze_pcap(file_path):
     capture.close()
 
     unique_ipv4_count = len(unique_ipv4)
-    unique_sni_count = len(unique_snis)
+    unique_sni_count = len(set(s['sni'] for s in unique_snis))
 
     total_ip_packets = sum(ip_packet_counts.values())
-    ip_packet_percentage = [(ip, (count / total_ip_packets) * 100) for ip, count in ip_packet_counts.items()]
-    top_ip_packet_percentage = sorted(ip_packet_percentage, key=lambda x: x[1], reverse=True)[:5]
+    ip_packet_percentage = [
+        {"address": ip, "percent": (count / total_ip_packets) * 100}
+        for ip, count in ip_packet_counts.items()
+        if (count / total_ip_packets) * 100 < 50  # Exclude local IP if its count is 50% or more
+    ]
+    top_ip_packet_percentage = sorted(ip_packet_percentage, key=lambda x: x['percent'], reverse=True)[:5]
 
-    conversation_packet_counts = {str(k): v for k, v in conversations.items()}
+    for (src_ip, src_port, dst_ip, dst_port, protocol), count in conversations.items():
+        conversation_details.append({
+            "addressA": src_ip,
+            "portA": src_port,
+            "addressB": dst_ip,
+            "portB": dst_port,
+            "protocol": protocol,
+            "packet_count": count
+        })
 
     results = {
         "unique_sni_count": unique_sni_count,
+        "unique_snis": unique_snis,
         "unique_ipv4_count": unique_ipv4_count,
         "top_ip_packet_percentage": top_ip_packet_percentage,
-        "total_conversations": len(conversation_packet_counts),
+        "total_conversations": len(conversation_details),
         "total_packets": total_packets,
-        "conversation_packet_counts": conversation_packet_counts,
+        "conversation_packet_counts": conversation_details,
         "tcp_conversations": tcp_conversations,
         "tcp_packets": tcp_packets,
         "tls_conversations": tls_conversations,
@@ -131,11 +151,45 @@ def analyze_pcap(file_path):
         "quic_packets": quic_packets
     }
 
-    return json.dumps(results, indent=4)
+    save_results_to_json(results, file_path)
 
 
-# Example usage
-pcap_file = r"20240726_11_27_49_www.cztc.edu.cn.pcap"
-# pcap_file = r"20240725_17_55_04_youtube.com.pcap"
-results = analyze_pcap(pcap_file)
-print(results)
+def save_results_to_json(results, pcap_file):
+    json_file_path = os.path.splitext(pcap_file)[0] + '.json'
+    with open(json_file_path, 'w') as json_file:
+        json.dump(results, json_file, indent=4)
+    print(f"Results saved to {json_file_path}")
+
+
+def get_all_pcap_files(directory):
+    pcap_files = []
+    for root, _, files in os.walk(directory):
+        for file in files:
+            if file.endswith('.pcap') or file.endswith('.pcapng'):
+                pcap_files.append(os.path.join(root, file))
+    return pcap_files
+
+
+def monitor_system_and_run(directory):
+    pcap_files = get_all_pcap_files(directory)
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = []
+        for pcap_file in pcap_files:
+            while True:
+                cpu_usage = psutil.cpu_percent(interval=1)
+                memory_usage = psutil.virtual_memory().percent
+                if cpu_usage < 60 and memory_usage < 60:
+                    futures.append(executor.submit(analyze_pcap, pcap_file))
+                    break
+                else:
+                    print(f"CPU usage: {cpu_usage}%, Memory usage: {memory_usage}% - Waiting to start new thread...")
+        for future in concurrent.futures.as_completed(futures):
+            try:
+                future.result()
+            except Exception as e:
+                print(f"An error occurred: {e}")
+
+
+if __name__ == "__main__":
+    directory = r"C:\Study\Code\trace_spider\trace_spider\analyze"
+    monitor_system_and_run(directory)
