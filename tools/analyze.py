@@ -30,7 +30,7 @@ def normalize_conversation_key(src_ip, src_port, dst_ip, dst_port, protocol):
     return (src_ip, src_port, dst_ip, dst_port, protocol)
 
 
-def analyze_pcap(file_path):
+def analyze_pcap(file_path, position):
     capture = pyshark.FileCapture(file_path)
     unique_snis = []
     unique_ipv4 = set()
@@ -47,9 +47,11 @@ def analyze_pcap(file_path):
     udp_conversations = 0
     tls_conversations = 0
     quic_conversations = 0
-
-    pbar = tqdm(desc="Processing packets", bar_format="{n_fmt} packets processed [{elapsed}, {rate_fmt}]")
-
+    file_name = file_path.split('_')[-1].split('.pcap')[0]
+    pbar = tqdm(desc=f"Processing packets for {file_name}",
+                bar_format="{desc}: {n_fmt} packets processed [{elapsed}, {rate_fmt}]",
+                leave=False,
+                position=position)
     for packet in capture:
         total_packets += 1
         pbar.update(1)
@@ -172,17 +174,26 @@ def get_all_pcap_files(directory):
 
 def monitor_system_and_run(directory):
     pcap_files = get_all_pcap_files(directory)
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    with concurrent.futures.ProcessPoolExecutor() as executor:
         futures = []
+        position = 0
+        undeal_pcaps = []
         for pcap_file in pcap_files:
+            json_file = os.path.splitext(pcap_file)[0] + '.json'
+            if os.path.exists(json_file):
+                print(f"Skipping {pcap_file} as it has already been analyzed.")
+                continue
+            undeal_pcaps.append(pcap_file)
+        for pcap_file in undeal_pcaps:
             while True:
                 cpu_usage = psutil.cpu_percent(interval=1)
                 memory_usage = psutil.virtual_memory().percent
                 if cpu_usage < 60 and memory_usage < 60:
-                    futures.append(executor.submit(analyze_pcap, pcap_file))
+                    futures.append(executor.submit(analyze_pcap, pcap_file, position))
+                    position += 1
                     break
                 else:
-                    print(f"CPU usage: {cpu_usage}%, Memory usage: {memory_usage}% - Waiting to start new thread...")
+                    print(f"CPU usage: {cpu_usage}%, Memory usage: {memory_usage}% - Waiting to start new process...")
         for future in concurrent.futures.as_completed(futures):
             try:
                 future.result()
