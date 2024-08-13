@@ -3,7 +3,7 @@ import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import os
-from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait  # 从selenium.webdriver.support.wait改为支持ui
 from tools.math_tool import generate_normal_random
 
 
@@ -25,16 +25,22 @@ def is_docker():
 
 
 def create_chrome_driver():
+    # 在当前目录中创建download文件夹
+    download_folder = os.path.join(os.getcwd(), 'download')
+    if not os.path.exists(download_folder):
+        os.makedirs(download_folder)
+
     # 创建 ChromeOptions 实例
     chrome_options = Options()
     if is_docker():
         headless = True
     else:
         headless = False
+
     if headless:
         chrome_options.add_argument('--headless')  # 无界面模式
     chrome_options.add_argument("--disable-gpu")  # 禁用 GPU 加速
-    chrome_options.add_argument("--no-sandbox")  # 禁用沙盒（在某些系统中需要）
+    chrome_options.add_argument("--no-sandbox")  # 禁用沙盒
     chrome_options.add_argument("--disable-dev-shm-usage")  # 限制使用/dev/shm
     chrome_options.add_argument("--incognito")  # 隐身模式
     chrome_options.add_argument("--disable-application-cache")  # 禁用应用缓存
@@ -47,7 +53,11 @@ def create_chrome_driver():
     prefs = {
         "profile.default_content_settings.popups": 0,
         "credentials_enable_service": False,  # 禁用密码管理器弹窗
-        "profile.password_manager_enabled": False  # 禁用密码管理器
+        "profile.password_manager_enabled": False,  # 禁用密码管理器
+        "download.default_directory": download_folder,  # 默认下载目录
+        "download.prompt_for_download": False,  # 不提示下载
+        "download.directory_upgrade": True,  # 升级下载目录
+        "safebrowsing.enabled": True  # 启用安全浏览
     }
     chrome_options.add_experimental_option("prefs", prefs)
 
@@ -70,7 +80,7 @@ def scroll_to_bottom(driver):
         times += 1
 
         delay = generate_normal_random() / times
-        print(f'加载等待延时:{delay}')
+        print(f'加载等待延时: {delay}')
         time.sleep(delay)
 
         # 滚动到页面底部
@@ -97,3 +107,9 @@ def add_cookies(browser):
         for cookie in cookies:
             if cookie['secure']:
                 browser.add_cookie(cookie)
+
+
+# 使用示例
+browser = create_chrome_driver()
+# ... 你的其他浏览器自动化任务
+browser.quit()
