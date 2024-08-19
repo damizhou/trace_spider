@@ -29,6 +29,9 @@ class TraceSpider(scrapy.Spider):
                 if full_url.startswith('http'):
                     if 'analytics' in full_url and 'x.com' in full_url:
                         continue
+                    # 剔除类似登录注册页面
+                    if any(keyword in full_url for keyword in task_instance.exclude_keywords):
+                        continue
                     # 跟随提取的链接
                     yield response.follow(full_url, self.parse)
 

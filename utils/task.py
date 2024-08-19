@@ -1,5 +1,6 @@
 import json
 
+
 class Task:
     _instance = None
 
@@ -17,6 +18,8 @@ class Task:
             with open('./utils/running.json', 'r') as f:
                 params = json.load(f)
                 self.current_index = params['currentIndex']
+            with open('exclude_keywords', 'r') as f:
+                self.exclude_keywords = [s.replace('\n', ' ') for s in f.readlines()]
             self._initialized = True
 
     def read_file(self):
@@ -32,7 +35,7 @@ class Task:
             url_dict = json.loads(url_str)
             return r'http://' + url_dict['start_urls']
         else:
-            return r'http://' + self.urls[self.current_index]
+            return r'https://' + self.urls[self.current_index]
 
     @property
     def current_allowed_domain(self):
@@ -44,5 +47,4 @@ class Task:
             return self.urls[self.current_index]
 
 
-# 单例实例
 task_instance = Task()
