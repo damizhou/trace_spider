@@ -33,7 +33,7 @@ class Task:
         url_str = self.urls[self.current_index]
         if '{' in url_str:
             url_dict = json.loads(url_str)
-            return r'http://' + url_dict['start_urls']
+            return url_dict['start_urls']
         else:
             return r'https://' + self.urls[self.current_index]
 
