@@ -12,6 +12,7 @@ from utils.chrome import create_chrome_driver, scroll_to_bottom, add_cookies
 import json
 from utils.task import task_instance
 import utils.archive as archive
+from utils.save_page import save_page
 
 
 class TraceSpiderSpiderMiddleware:
@@ -133,6 +134,12 @@ class TraceSpiderDownloaderMiddleware:
             # 将字符串编码为字节类型
             combined_html_bytes = combined_html.encode('utf-8')
             return HtmlResponse(url=request.url, body=combined_html_bytes, encoding='utf-8', request=request)
+        elif 'voanews' in task_instance.current_allowed_domain:
+            save_page(driver=self.browser)
+            return HtmlResponse(url=request.url, body=self.browser.page_source, encoding='utf-8', request=request)
+        # elif 'douban' in task_instance.current_allowed_domain:
+        #     save_page(driver=self.browser)
+        #     return HtmlResponse(url=request.url, body=self.browser.page_source, encoding='utf-8', request=request)
         else:
             return HtmlResponse(url=request.url, body=self.browser.page_source, encoding='utf-8', request=request)
 
