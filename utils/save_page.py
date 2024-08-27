@@ -1,12 +1,9 @@
 import os
 import pyautogui
 import time
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from utils.chrome import create_chrome_driver
 import hashlib
 from utils.task import task_instance
+
 
 def get_directory_size(directory):
     """计算指定目录的总大小（单位：字节）"""
@@ -18,6 +15,7 @@ def get_directory_size(directory):
             if os.path.exists(file_path):
                 total_size += os.path.getsize(file_path)
     return total_size
+
 
 def wait_for_download_to_finish(download_dir, old_size, timeout=60):
     end_time = time.time() + timeout
@@ -32,8 +30,8 @@ def wait_for_download_to_finish(download_dir, old_size, timeout=60):
     return False
 
 
-def hash_and_store(input_string, file_path='hash_results.txt'):
-    # 计算输入字符串的哈希值（使用SHA-256算法）
+def hash_url(input_string):
+    # 计算输入字符串的哈希值（使用SHA-256 算法）
     hash_object = hashlib.sha256(input_string.encode('utf-8'))
     hash_value = hash_object.hexdigest()
 
@@ -43,49 +41,56 @@ def hash_and_store(input_string, file_path='hash_results.txt'):
 
 def save_page(driver):
     # 指定要检查的目录路径
-    downloads_dir = r"C:\Users\Administrator\Downloads"
+    downloads_dir = r"C:\Users\59806\Downloads"
 
     hash_results_file = os.path.join(os.getcwd(), task_instance.current_allowed_domain + '_hash_file')
 
-    url_hash = hash_and_store(driver.current_url, hash_results_file)
+    url_hash = hash_url(driver.current_url)
 
     file_path = os.path.join(downloads_dir, url_hash)
-    
-    if not os.path.isfile(file_path + '.htm'):
-        # 将原字符串和哈希值写入文本文件
-        with open(file_path, 'a') as file:  # 使用 'a' 模式附加内容到文件中
-            file.write(f"{driver.current_url}SHA-256TO{url_hash}\n")
+    file_content = ''
+    with open(hash_results_file, 'r', encoding='utf-8') as file:
+        # 读取整个文件内容为字符串
+        file_content = file.read()
 
-        # 模拟 Ctrl+S 保存页面操作
-        pyautogui.hotkey('ctrl', 's')
-        
-        # 等待保存对话框弹出
-        time.sleep(2)
+    print('file_path', file_path)
 
-        # 输入保存的文件路径和文件名
-        pyautogui.write(url_hash)
+    if file_path not in file_content:
+        print('文本文件重复')
+        if not os.path.isfile(file_path + '.htm'):
+            # 将原字符串和哈希值写入文本文件
+            with open(hash_results_file, 'a') as file:  # 使用 'a' 模式附加内容到文件中
+                file.write(f"{driver.current_url}SHA-256TO{url_hash}\n")
 
-        # 选择保存类型：通过 Tab 键切换焦点到保存类型选择框
-        # 如果焦点默认在保存文件名框，则需要多次 Tab 键切换
-        pyautogui.press('tab')  # 切换到保存类型的下拉框
-        time.sleep(1)
+            # 模拟 Ctrl+S 保存页面操作
+            pyautogui.hotkey('ctrl', 's')
 
-        # 通过向上或向下箭头选择 .mhtml 选项
-        # 假设需要按 'down' 键来选择正确的格式
-        pyautogui.press('down')  # 视保存格式选项数量而定，调整按键次数
-        time.sleep(1)
+            # 等待保存对话框弹出
+            time.sleep(2)
 
-        pyautogui.press('down')  # 视保存格式选项数量而定，调整按键次数
-        time.sleep(1)
+            # 输入保存的文件路径和文件名
+            pyautogui.write(url_hash)
 
-        # 模拟回车以确认xuanxiang
-        pyautogui.press('enter')
+            # 选择保存类型：通过 Tab 键切换焦点到保存类型选择框
+            # 如果焦点默认在保存文件名框，则需要多次 Tab 键切换
+            pyautogui.press('tab')  # 切换到保存类型的下拉框
+            time.sleep(1)
 
-        old_size_in_bytes = get_directory_size(downloads_dir)
+            # 通过向上或向下箭头选择 .mhtml 选项
+            # 假设需要按 'down' 键来选择正确的格式
+            pyautogui.press('down')  # 视保存格式选项数量而定，调整按键次数
+            time.sleep(1)
 
-        # 模拟回车以确认保存
-        pyautogui.press('enter')
+            pyautogui.press('down')  # 视保存格式选项数量而定，调整按键次数
+            time.sleep(1)
 
-        wait_for_download_to_finish(downloads_dir, old_size_in_bytes)
-        time.sleep(1)
+            # 模拟回车以确认xuanxiang
+            pyautogui.press('enter')
 
+            old_size_in_bytes = get_directory_size(downloads_dir)
+
+            # 模拟回车以确认保存
+            pyautogui.press('enter')
+
+            wait_for_download_to_finish(downloads_dir, old_size_in_bytes)
+            time.sleep(1)

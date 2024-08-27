@@ -1,6 +1,7 @@
 import scrapy
 # 导入 logger 模块
 from utils.task import task_instance
+from utils.voa_extract import extract_from_voa
 
 
 class TraceSpider(scrapy.Spider):
@@ -18,6 +19,11 @@ class TraceSpider(scrapy.Spider):
                     # 跟随提取的链接
                     yield response.follow(link, self.parse)
         else:
+            print('response.url', response.url)
+            if r'www.voachinese.com/a' in response.url:
+                print('提取内容')
+                extract_from_voa(response)
+                return
             a_links = response.css('a::attr(href)').getall()
             if len(a_links) == 0:
                 print(f'{response.url} 没有提取到 URL')
@@ -34,5 +40,3 @@ class TraceSpider(scrapy.Spider):
                         continue
                     # 跟随提取的链接
                     yield response.follow(full_url, self.parse)
-
-

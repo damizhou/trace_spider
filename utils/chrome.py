@@ -39,14 +39,14 @@ def create_chrome_driver():
 
     if headless:
         chrome_options.add_argument('--headless')  # 无界面模式
-    # chrome_options.add_argument("--disable-gpu")  # 禁用 GPU 加速
-    # chrome_options.add_argument("--no-sandbox")  # 禁用沙盒
-    # chrome_options.add_argument("--disable-dev-shm-usage")  # 限制使用/dev/shm
-    # chrome_options.add_argument("--incognito")  # 隐身模式
-    # chrome_options.add_argument("--disable-application-cache")  # 禁用应用缓存
-    # chrome_options.add_argument("--disable-extensions")  # 禁用扩展
-    # chrome_options.add_argument("--disable-infobars")  # 禁用信息栏
-    # chrome_options.add_argument("--disable-software-rasterizer")  # 禁用软件光栅化
+    chrome_options.add_argument("--disable-gpu")  # 禁用 GPU 加速
+    chrome_options.add_argument("--no-sandbox")  # 禁用沙盒
+    chrome_options.add_argument("--disable-dev-shm-usage")  # 限制使用/dev/shm
+    chrome_options.add_argument("--incognito")  # 隐身模式
+    chrome_options.add_argument("--disable-application-cache")  # 禁用应用缓存
+    chrome_options.add_argument("--disable-extensions")  # 禁用扩展
+    chrome_options.add_argument("--disable-infobars")  # 禁用信息栏
+    chrome_options.add_argument("--disable-software-rasterizer")  # 禁用软件光栅化
     chrome_options.add_argument("--autoplay-policy=no-user-gesture-required")  # 允许自动播放
     chrome_options.add_argument('--save-page-as-mhtml')
 
