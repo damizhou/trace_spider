@@ -20,7 +20,7 @@ class TraceSpider(scrapy.Spider):
                     yield response.follow(link, self.parse)
         else:
             print('response.url', response.url)
-            if r'www.voachinese.com/a' in response.url:
+            if r'www.voachinese.com/a' in response.url or r'voacantonese.com/a' in response.url:
                 print('提取内容')
                 extract_from_voa(response)
                 return
