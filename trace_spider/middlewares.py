@@ -12,7 +12,6 @@ from utils.chrome import create_chrome_driver, scroll_to_bottom, add_cookies
 import json
 from utils.task import task_instance
 import utils.archive as archive
-from utils.save_page import save_page
 
 
 class TraceSpiderSpiderMiddleware:
