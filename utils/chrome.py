@@ -107,9 +107,3 @@ def add_cookies(browser):
         for cookie in cookies:
             if cookie['secure']:
                 browser.add_cookie(cookie)
-
-
-# 使用示例
-browser = create_chrome_driver()
-# ... 你的其他浏览器自动化任务
-browser.quit()
