@@ -1,4 +1,3 @@
-
 import json
 import os
 from datetime import datetime
@@ -21,7 +20,7 @@ def hash_url(input_string):
 
 def extract_info_for_wikipedia(response):
     # 标题
-    title = response.xpath('//h1[@id="firstHeading"]//span[@class="mw-page-title-main"]/text()').get()
+    title = response.xpath('//h1[@id="firstHeading"]/text()').get()
 
     # url
     url = response.url
@@ -199,3 +198,9 @@ def extract_info_for_wikipedia(response):
 
     with open(hash_results_file, 'a') as file:  # 使用 'a' 模式附加内容到文件中
         file.write(f"{url}SHA-256TO{url_hash}\n")
+
+
+def extract_wiki_url(response):
+    next_page_url = response.xpath('//div[@class="mw-allpages-nav"]/a/@href').getall()[-1]
+    wiki_links = response.xpath('//div[@class="mw-allpages-body"]//ul[@class="mw-allpages-chunk"]/li/a/@href').getall()
+    return wiki_links, next_page_url
