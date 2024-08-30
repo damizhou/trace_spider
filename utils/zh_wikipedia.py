@@ -20,7 +20,9 @@ def hash_url(input_string):
 
 def extract_info_for_wikipedia(response):
     # 标题
-    title = response.xpath('//h1[@id="firstHeading"]/text()').get()
+    title = response.xpath('//h1[@id="firstHeading"]//span[@class="mw-page-title-main"]/text()').get()
+    if title is None:
+        title = response.xpath('//h1[@id="firstHeading"]/text()').get()
 
     # url
     url = response.url
