@@ -8,6 +8,10 @@ import hashlib
 
 from utils.task import task_instance
 
+wikipedia_data_folder = os.path.join(os.getcwd(), 'wikipedia_data')
+if not os.path.exists(wikipedia_data_folder):
+    os.makedirs(wikipedia_data_folder)
+
 
 def hash_url(input_string):
     # 计算输入字符串的哈希值（使用SHA-256 算法）
@@ -188,9 +192,6 @@ def extract_info_for_wikipedia(response):
         'categories': categories
     }
 
-    wikipedia_data_folder = os.path.join(os.getcwd(), 'wikipedia_data')
-    if not os.path.exists(wikipedia_data_folder):
-        os.makedirs(wikipedia_data_folder)
     file_path = os.path.join(wikipedia_data_folder, f'{url_hash}.json')
 
     with open(file_path, 'w', encoding='utf-8') as f:
@@ -205,4 +206,52 @@ def extract_info_for_wikipedia(response):
 def extract_wiki_url(response):
     next_page_url = response.xpath('//div[@class="mw-allpages-nav"]/a/@href').getall()[-1]
     wiki_links = response.xpath('//div[@class="mw-allpages-body"]//ul[@class="mw-allpages-chunk"]/li/a/@href').getall()
-    return wiki_links, next_page_url
+    full_wiki_links = []
+    for wiki_url in wiki_links:
+        full_wiki_url = response.urljoin(wiki_url)
+        full_wiki_links.append(full_wiki_url)
+    write_data_to_files(full_wiki_links)
+    return full_wiki_links, next_page_url
+
+
+def write_data_to_files(new_data):
+    """
+    将数据写入多个文本文件，每达到指定行数就新建一个文件。
+    如果文件已经存在，则追加数据；如果不存在则创建新文件。
+    文件保存在指定的文件夹路径下。
+    :param new_data: 要写入的新行数据列表
+    """
+    base_filename = 'wiki_url_list'
+    lines_per_file = 20000
+
+    # 确保文件夹存在
+    if not os.path.exists(wikipedia_data_folder):
+        os.makedirs(wikipedia_data_folder)
+
+    # 初始化文件计数器
+    file_count = 0
+    current_file_lines = 0
+
+    # 检查是否有已存在的文件来确定当前文件计数器
+    while os.path.exists(os.path.join(wikipedia_data_folder, f"{base_filename}_{file_count}.txt")):
+        file_count += 1
+        # 读取最后一个文件以确定当前文件中的行数
+        if file_count > 0:
+            with open(os.path.join(wikipedia_data_folder, f"{base_filename}_{file_count - 1}.txt"), "r",
+                      encoding="utf-8") as last_file:
+                current_file_lines = sum(1 for _ in last_file)
+
+    if file_count != 0:
+        file_count -= 1
+    # 打开或创建文件
+    with open(os.path.join(wikipedia_data_folder, f"{base_filename}_{file_count}.txt"), "a", encoding="utf-8") as f:
+        for i, line in enumerate(new_data):
+            f.write(line + "\n")
+            current_file_lines += 1
+            # 当达到每文件的最大行数时，关闭当前文件并打开新文件
+            if current_file_lines >= lines_per_file:
+                f.close()
+                file_count += 1
+                current_file_lines = 0
+                f = open(os.path.join(wikipedia_data_folder, f"{base_filename}_{file_count}.txt"), "w",
+                         encoding="utf-8")

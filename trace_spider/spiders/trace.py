@@ -17,10 +17,9 @@ class TraceSpider(scrapy.Spider):
         if 'wikipedia.org' in response.url:
             if r'zh.wikipedia.org/w/' in response.url:
                 wiki_urls, nav_url = extract_wiki_url(response)
-                for wiki_url in wiki_urls:
-                    full_wiki_url = response.urljoin(wiki_url)
-                    # 跟随提取的链接
-                    yield response.follow(full_wiki_url, self.parse)
+                # for wiki_url in wiki_urls:
+                #     # 跟随提取的链接
+                #     yield response.follow(wiki_url, self.parse)
                 full_nav_url = response.urljoin(nav_url)
                 # 跟随提取的链接
                 yield response.follow(full_nav_url, self.parse)
