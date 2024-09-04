@@ -33,7 +33,7 @@ def traffic():
     current_time = datetime.now()
     # 格式化输出
     formatted_time = current_time.strftime("%Y%m%d_%H_%M_%S")
-    allowed_domain = task_instance.current_allowed_domain
+    allowed_domain = "zh.wikipedia.org"
     capture(allowed_domain, formatted_time)
 
 
