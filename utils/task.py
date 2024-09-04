@@ -1,4 +1,5 @@
 import json
+import os
 
 
 class Task:
@@ -23,10 +24,26 @@ class Task:
             self._initialized = True
 
     def read_file(self):
-        with open(self.file_path, 'r') as file:
-            lines = file.readlines()
-        urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
-        return urls
+        # with open(self.file_path, 'r') as file:
+        #     lines = file.readlines()
+        # urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
+        # return urls
+        base_filename = 'wiki_url_list'
+        index = 0
+        all_need_spider_urls = []
+        for i in range(15):
+            wikipedia_data_folder = os.path.join(os.getcwd(), 'wikipedia_data')
+            url_file_path = os.path.join(wikipedia_data_folder, f"{base_filename}_{index+i}.txt")
+            with open(url_file_path, 'r') as file:
+                urls = file.readlines()
+                print('url_file_path', url_file_path)
+                print("urls[-1]", urls[-1])
+                print("urls[0]", urls[0])
+                all_need_spider_urls.extend(urls)
+        print("len(all_need_spider_urls)", len(all_need_spider_urls))
+        print("all_need_spider_urls[-1]", all_need_spider_urls[-1])
+        print("all_need_spider_urls[0]", all_need_spider_urls[0])
+        return all_need_spider_urls
 
     @property
     def current_start_url(self):

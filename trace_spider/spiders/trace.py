@@ -7,7 +7,7 @@ from utils.zh_wikipedia import extract_info_for_wikipedia, extract_wiki_url
 class TraceSpider(scrapy.Spider):
     name = "trace"
     allowed_domains = [task_instance.current_allowed_domain]
-    start_urls = [task_instance.current_start_url]
+    start_urls = task_instance.urls
     # start_urls = ["https://zh.wikipedia.org/wiki/Linux",
     #               "https://zh.wikipedia.org/wiki/Google_Chrome",
     #               "https://zh.wikipedia.org/wiki/Android"]
