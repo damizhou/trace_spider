@@ -100,7 +100,7 @@ class TraceSpiderDownloaderMiddleware:
         logger.info(f"requestURL:{request.url}")
         task_instance.requesturlNum += 1
         self.browser.get(request.url)
-        # scroll_to_bottom(self.browser)
+        scroll_to_bottom(self.browser)
         if 'youtube' in task_instance.current_allowed_domain:
             if 'watch' in request.url:
                 video_element = self.browser.find_element(By.TAG_NAME, "video")

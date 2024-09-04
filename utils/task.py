@@ -36,13 +36,7 @@ class Task:
             url_file_path = os.path.join(wikipedia_data_folder, f"{base_filename}_{index+i}.txt")
             with open(url_file_path, 'r') as file:
                 urls = file.readlines()
-                print('url_file_path', url_file_path)
-                print("urls[-1]", urls[-1])
-                print("urls[0]", urls[0])
                 all_need_spider_urls.extend(urls)
-        print("len(all_need_spider_urls)", len(all_need_spider_urls))
-        print("all_need_spider_urls[-1]", all_need_spider_urls[-1])
-        print("all_need_spider_urls[0]", all_need_spider_urls[0])
         return all_need_spider_urls
 
     @property
