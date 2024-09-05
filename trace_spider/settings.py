@@ -39,7 +39,7 @@ log_dir = os.path.join(os.path.dirname(__file__), 'logs')
 
 # 确保日志目录存在
 os.makedirs(log_dir, exist_ok=True)
-if is_docker():
+if os.getenv('HOST_UID') is not None:
     os.chown(log_dir, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
 to_day = datetime.now()
 log_file_name = 'scrapy_{}_{}_{}.log'.format(to_day.year, to_day.month, to_day.day)
@@ -50,7 +50,7 @@ log_file_path = os.path.join(log_dir, log_file_name)
 if not os.path.exists(log_file_path):
     with open(log_file_path, 'w') as f:
         pass
-    if is_docker():
+    if os.getenv('HOST_UID') is not None:
         os.chown(log_file_path, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
 
 if LOG_LEVEL == 'WARNING':

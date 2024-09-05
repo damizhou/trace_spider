@@ -11,7 +11,7 @@ from utils.chrome import is_docker
 def setup_logging():
     logs_dir = os.path.join(project_path, "logs")
     os.makedirs(logs_dir, exist_ok=True)
-    if is_docker():
+    if os.getenv('HOST_UID') is not None:
         os.chown(logs_dir, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
 
     # 获取当前时间
@@ -47,7 +47,7 @@ def setup_logging():
     # 给logger添加handler
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
-    if is_docker():
+    if os.getenv('HOST_UID') is not None:
         os.chown(logs_dir, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
 
     return logger
