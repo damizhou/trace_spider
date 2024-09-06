@@ -33,7 +33,7 @@ def extract_from_voa(response):
 
     if url in processed_urls:
         print(f"URL already processed, skipping: {url}")
-        return
+        return False
 
     # 使用 XPath 提取 class 为 'hdr-container' 的 div 元素
     header = response.xpath('//div[@class="hdr-container"]')
@@ -101,3 +101,5 @@ def extract_from_voa(response):
 
                     # 将 URL 加入到已处理的 URL 集合中
                 processed_urls.add(url)
+
+    return True

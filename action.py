@@ -67,8 +67,9 @@ def start_spider():
     process.crawl(TraceSpider)
 
     logger.info(f"开始爬取数据")
-    # 开启定时器
-    stop_crawlers_after_delay()
+    if duration > 0:
+        # 开启定时器
+        stop_crawlers_after_delay()
     # 启动爬虫
     process.start()
 
