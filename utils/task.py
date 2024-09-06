@@ -26,7 +26,8 @@ class Task:
         with open(self.file_path, 'r') as file:
             lines = file.readlines()
         urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
-        start = 0
+        index = 0
+        start = index * 100
         # url_len = len(urls)
         url_len = 100
         need_spider_urls = urls[start: start + url_len]
