@@ -7,7 +7,7 @@ from utils.voa_extract import extract_from_voa
 class TraceSpider(scrapy.Spider):
     name = "trace"
     allowed_domains = [task_instance.current_allowed_domain]
-    start_urls = [task_instance.current_start_url]
+    start_urls = ["https://www.voachinese.com/a/why-is-beijing-interested-in-a-mid-level-government-aide-in-new-york-state-20240905/7773593.html"]
 
     def parse(self, response):
         if 'archive' in response.url:

@@ -49,6 +49,8 @@ def extract_from_voa(response):
             head_image_item = ImageItem(img_src=headimgsrc, img_alt=headimgalt)
             head_item = HeadItem(title=title, head_img=head_image_item)
 
+            category = response.xpath('//a[contains(@class, "category")]/text()').get().strip()
+
             # 提取文章主体
             body = response.xpath('//div[@class="body-container"]')
             if body:  # 检查是否找到了匹配的元素
@@ -75,6 +77,7 @@ def extract_from_voa(response):
 
                 # 将 ArticleItem 转换为字典
                 article_item_dict = item_to_dict(article_item)
+                article_item_dict["category"] = category
 
                 # 根据当前日期生成文件名
                 current_date = datetime.now().strftime('%Y%m%d')
