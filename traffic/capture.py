@@ -7,16 +7,15 @@ import subprocess
 import psutil
 
 should_stop_capture = False
-process = ''
+
 
 def capture(TASK_NAME, formatted_time):
     dataDir = os.path.join(project_path, "data")
     os.makedirs(dataDir, exist_ok=True)
     traffic_dir = os.path.join(dataDir, TASK_NAME)
     os.makedirs(traffic_dir, exist_ok=True)
-    if os.getenv('HOST_UID') is not None:
-        os.chown(dataDir, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
-        os.chown(traffic_dir, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
+    os.chown(dataDir, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
+    os.chown(traffic_dir, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
 
     traffic_name = os.path.join(traffic_dir, f"{formatted_time}_{TASK_NAME}.pcap")
 
@@ -26,7 +25,7 @@ def capture(TASK_NAME, formatted_time):
         "-w",
         traffic_name,  # 输出文件的路径
     ]
-
+    global process
     # 开流量收集
     process = subprocess.Popen(tcpdump_command)
     #
@@ -35,6 +34,7 @@ def capture(TASK_NAME, formatted_time):
 
 
 def stop_capture():
+    global process
     # 获取当前进程的PID
     pid = process.pid
 
@@ -44,8 +44,7 @@ def stop_capture():
     # 获取进程的启动参数
     cmdline = p.cmdline()
     file_path = cmdline[-1]
-    if os.getenv('HOST_UID') is not None:
-        os.chown(file_path, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
+    os.chown(file_path, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
     process.terminate()
 
 
