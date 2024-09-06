@@ -26,7 +26,11 @@ class Task:
         with open(self.file_path, 'r') as file:
             lines = file.readlines()
         urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
-        return urls
+        start = 0
+        # url_len = len(urls)
+        url_len = 100
+        need_spider_urls = urls[start: start + url_len]
+        return need_spider_urls
 
     @property
     def current_start_url(self):
