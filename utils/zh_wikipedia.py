@@ -182,6 +182,8 @@ def extract_info_for_wikipedia(response):
 
     url = response.url
     url_hash = hash_url(url)
+    footer_text = response.xpath('//li[@id="footer-info-lastmod"]/text()').get().strip()
+    last_update_time = footer_text.split("本页面最后修订于")[-1].split("。")[0]
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     item = {
         'title': title,
@@ -189,10 +191,11 @@ def extract_info_for_wikipedia(response):
         'url': url,
         'info_box': info_box_list,
         'content': content,
-        'categories': categories
+        'categories': categories,
+        'last_update_time': last_update_time
     }
 
-    data_folder_date = datetime.now().strftime("%Y-%m-%d")
+    data_folder_date = datetime.now().strftime("%Y-%m-%d-%H")
     date_extract_data_folder = os.path.join(wikipedia_data_folder, data_folder_date)
     # 确保文件夹存在
     if not os.path.exists(date_extract_data_folder):
