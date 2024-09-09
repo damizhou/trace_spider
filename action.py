@@ -99,7 +99,4 @@ def start_task():
 
 
 if __name__ == "__main__":
-    if is_linux():
-        start_task()
-    else:
-        start_spider()
+    start_spider()
