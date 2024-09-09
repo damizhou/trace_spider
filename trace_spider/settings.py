@@ -30,8 +30,7 @@ CONCURRENT_REQUESTS = 16
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-download_delay = int(config["spider"]["download_delay"])
-DOWNLOAD_DELAY = download_delay
+DOWNLOAD_DELAY = 60
 RANDOMIZE_DOWNLOAD_DELAY = True
 LOG_LEVEL = 'WARNING'  # 可选值有 'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'
 # 获取日志文件的目录
