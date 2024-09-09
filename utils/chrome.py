@@ -8,21 +8,8 @@ from selenium.webdriver.support.ui import WebDriverWait  # 从selenium.webdriver
 from tools.math_tool import generate_normal_random
 
 
-def is_docker():
-    # 检查cgroup文件
-    try:
-        with open('/proc/1/cgroup', 'r') as f:
-            for line in f:
-                if 'docker' in line or 'kubepods' in line:
-                    return True
-    except FileNotFoundError:
-        pass
-
-    # 检查环境变量
-    if os.path.exists('/.dockerenv'):
-        return True
-
-    return False
+def is_linux():
+    return platform.system() == 'Linux'
 
 
 def create_chrome_driver():
@@ -33,9 +20,9 @@ def create_chrome_driver():
 
     # 创建 ChromeOptions 实例
     chrome_options = Options()
-    if is_docker() or platform.system() == 'Linux':
+    if is_linux():
         chrome_options.add_argument('--headless')  # 无界面模式
-        
+
     chrome_options.add_argument("--disable-gpu")  # 禁用 GPU 加速
     chrome_options.add_argument("--no-sandbox")  # 禁用沙盒
     chrome_options.add_argument("--disable-dev-shm-usage")  # 限制使用/dev/shm

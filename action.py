@@ -1,6 +1,5 @@
 import subprocess
-
-from utils.chrome import is_docker
+from utils.chrome import is_linux
 from utils.logger import logger
 from utils.config import config
 from scrapy.crawler import CrawlerProcess
@@ -100,7 +99,7 @@ def start_task():
 
 
 if __name__ == "__main__":
-    if is_docker():
+    if is_linux():
         start_task()
     else:
         start_spider()

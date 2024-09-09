@@ -9,7 +9,7 @@
 import os
 from datetime import datetime
 
-from utils.chrome import is_docker
+from utils.chrome import is_linux
 from utils.config import config
 
 BOT_NAME = "trace_spider"

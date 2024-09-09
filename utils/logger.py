@@ -4,8 +4,6 @@ import logging
 import logging.handlers
 import os
 
-from utils.chrome import is_docker
-
 
 # 配置日志基本设置
 def setup_logging():
