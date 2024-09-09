@@ -1,4 +1,5 @@
 import json
+import platform
 import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -32,13 +33,9 @@ def create_chrome_driver():
 
     # 创建 ChromeOptions 实例
     chrome_options = Options()
-    if is_docker():
-        headless = True
-    else:
-        headless = False
-
-    if headless:
+    if is_docker() or platform.system() == 'Linux':
         chrome_options.add_argument('--headless')  # 无界面模式
+        
     chrome_options.add_argument("--disable-gpu")  # 禁用 GPU 加速
     chrome_options.add_argument("--no-sandbox")  # 禁用沙盒
     chrome_options.add_argument("--disable-dev-shm-usage")  # 限制使用/dev/shm
