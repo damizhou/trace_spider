@@ -33,7 +33,7 @@ CONCURRENT_REQUESTS = 16
 download_delay = int(config["spider"]["download_delay"])
 DOWNLOAD_DELAY = download_delay
 RANDOMIZE_DOWNLOAD_DELAY = True
-LOG_LEVEL = 'WARNING'  # 可选值有 'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'
+LOG_LEVEL = 'DEBUG'  # 可选值有 'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'
 # 获取日志文件的目录
 log_dir = os.path.join(os.path.dirname(__file__), 'logs')
 
