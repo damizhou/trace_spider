@@ -31,7 +31,7 @@ def create_chrome_driver():
         os.makedirs(download_folder)
 
     # 创建 ChromeOptions 实例
-    chrome_options = Options()
+    chrome_options = webdriver.ChromeOptions()
     if is_docker():
         headless = True
     else:
