@@ -192,8 +192,12 @@ def extract_info_for_wikipedia(response):
         'categories': categories
     }
 
-    file_path = os.path.join(wikipedia_data_folder, f'{url_hash}.json')
-
+    data_folder_date = datetime.now().strftime("%Y-%m-%d")
+    date_extract_data_folder = os.path.join(wikipedia_data_folder, data_folder_date)
+    # 确保文件夹存在
+    if not os.path.exists(date_extract_data_folder):
+        os.makedirs(date_extract_data_folder)
+    file_path = os.path.join(date_extract_data_folder, f'{url_hash}.json')
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(item, f, ensure_ascii=False)
 
@@ -223,10 +227,6 @@ def write_data_to_files(new_data):
     """
     base_filename = 'wiki_url_list'
     lines_per_file = 20000
-
-    # 确保文件夹存在
-    if not os.path.exists(wikipedia_data_folder):
-        os.makedirs(wikipedia_data_folder)
 
     # 初始化文件计数器
     file_count = 0
