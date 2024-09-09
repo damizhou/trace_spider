@@ -1,6 +1,8 @@
 import json
 import os
 
+index = 0
+
 
 class Task:
     _instance = None
@@ -29,11 +31,10 @@ class Task:
         # urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
         # return urls
         base_filename = 'wiki_url_list'
-        index = 0
         all_need_spider_urls = []
         for i in range(4):
             wikipedia_data_folder = os.path.join(os.getcwd(), 'wikipedia_data')
-            url_file_path = os.path.join(wikipedia_data_folder, f"{base_filename}_{index+i}.txt")
+            url_file_path = os.path.join(wikipedia_data_folder, f"{base_filename}_{index + i}.txt")
             with open(url_file_path, 'r') as file:
                 urls = file.readlines()
                 all_need_spider_urls.extend(urls)
