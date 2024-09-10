@@ -32,7 +32,7 @@ class Task:
         # return urls
         base_filename = 'wiki_url_list'
         all_need_spider_urls = []
-        for i in range(4):
+        for i in range(2):
             wikipedia_data_folder = os.path.join(os.getcwd(), 'wikipedia_data')
             url_file_path = os.path.join(wikipedia_data_folder, f"{base_filename}_{index + i}.txt")
             with open(url_file_path, 'r') as file:

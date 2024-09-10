@@ -204,10 +204,10 @@ def extract_info_for_wikipedia(response):
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(item, f, ensure_ascii=False)
 
-    hash_results_file = os.path.join(wikipedia_data_folder, task_instance.current_allowed_domain + '_hash_file')
-
-    with open(hash_results_file, 'a') as file:  # 使用 'a' 模式附加内容到文件中
-        file.write(f"{url}SHA-256TO{url_hash}\n")
+    # hash_results_file = os.path.join(wikipedia_data_folder, task_instance.current_allowed_domain + '_hash_file')
+    #
+    # with open(hash_results_file, 'a') as file:  # 使用 'a' 模式附加内容到文件中
+    #     file.write(f"{url}SHA-256TO{url_hash}\n")
 
 
 def extract_wiki_url(response):
