@@ -30,15 +30,14 @@ class Task:
         #     lines = file.readlines()
         # urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
         # return urls
-        base_filename = 'wiki_url_list'
-        all_need_spider_urls = []
-        for i in range(2):
-            wikipedia_data_folder = os.path.join(os.getcwd(), 'wikipedia_data')
-            url_file_path = os.path.join(wikipedia_data_folder, f"{base_filename}_{index + i}.txt")
-            with open(url_file_path, 'r') as file:
-                urls = file.readlines()
-                all_need_spider_urls.extend(urls)
-        return all_need_spider_urls
+        # base_filename = 'wiki_url_list'
+        base_filename = 'wiki_remind_url_list'
+        wikipedia_data_folder = os.path.join(os.getcwd(), 'wikipedia_data')
+        recount_url_list_folder = os.path.join(wikipedia_data_folder, 'recount_url_list')
+        url_file_path = os.path.join(recount_url_list_folder, f"{base_filename}_{index}.txt")
+        with open(url_file_path, 'r') as file:
+            urls = file.readlines()
+        return urls
 
     @property
     def current_start_url(self):
