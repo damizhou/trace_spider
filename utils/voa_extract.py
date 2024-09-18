@@ -80,8 +80,8 @@ def extract_from_voa(response):
                 article_item_dict["category"] = category
 
                 # 根据当前日期生成文件名
-                current_date = datetime.now().strftime('%Y%m%d')
-                file_path = os.path.join(voa_data_folder, f'{current_date}_ova_articles.json')
+                current_datetime = datetime.now().strftime('%Y%m%d%H')
+                file_path = os.path.join(voa_data_folder, f'{current_datetime}_ova_articles.json')
 
                 # 如果文件不存在，创建一个空数组文件
                 if not os.path.exists(file_path):
