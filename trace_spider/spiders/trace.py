@@ -20,8 +20,7 @@ class TraceSpider(scrapy.Spider):
                     yield response.follow(link, self.parse)
         else:
             if r'www.voachinese.com/a' in response.url or r'voacantonese.com/a' in response.url:
-                if not extract_from_voa(response):
-                    return
+                extract_from_voa(response)
             a_links = response.css('a::attr(href)').getall()
             if len(a_links) == 0:
                 print(f'{response.url} 没有提取到 URL')
