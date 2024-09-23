@@ -22,18 +22,6 @@ def extract_from_voa(response):
     if not os.path.exists(voa_data_folder):
         os.makedirs(voa_data_folder)
 
-    processed_urls_file = os.path.join(voa_data_folder, 'processed_urls.txt')
-
-    # 加载已处理的 URL
-    if os.path.exists(processed_urls_file):
-        with open(processed_urls_file, 'r', encoding='utf-8') as f:
-            processed_urls = set(f.read().splitlines())
-    else:
-        processed_urls = set()
-
-    if url in processed_urls:
-        print(f"URL already processed, skipping: {url}")
-        return False
 
     # 使用 XPath 提取 class 为 'hdr-container' 的 div 元素
     header = response.xpath('//div[@class="hdr-container"]')
@@ -94,12 +82,5 @@ def extract_from_voa(response):
                     articles.append(article_item_dict)  # 添加新数据
                     f.seek(0)  # 将文件指针移动到文件开头
                     json.dump(articles, f, ensure_ascii=False, indent=4)  # 写回文件
-
-                    # 将已处理的 URL 添加到文件中
-                with open(processed_urls_file, 'a', encoding='utf-8') as f:
-                    f.write(url + '\n')
-
-                    # 将 URL 加入到已处理的 URL 集合中
-                processed_urls.add(url)
 
     return True
