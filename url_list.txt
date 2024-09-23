@@ -6,4 +6,4 @@
 #www.cztc.edu.cn
 
 
-{"allowed_domains": "voacantonese.com", "start_urls": "https://www.voacantonese.com"}
+{"allowed_domains": "voachinese.com", "start_urls": "https://www.voachinese.com"}
