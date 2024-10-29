@@ -14,3 +14,8 @@ analyze/20240725_17_55_04_youtube.com.pcap
 
 sever_info.py
 clash/.env
+clash/conf/config.yaml
+clash/temp/clash_config.yaml
+clash/temp/config.yaml
+clash/temp/proxy.txt
+clash/tools/subconverter/output.yml
