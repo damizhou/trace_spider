@@ -22,7 +22,7 @@ chmod +x $Server_Dir/tools/subconverter/subconverter
 
 Conf_Dir="$Server_Dir/conf"
 Temp_Dir="$Server_Dir/temp"
-Log_Dir="$Server_Dir/logs"
+Log_Dir="$Server_Dir/clashlogs"
 
 # 获取 CLASH_SECRET 值，如果不存在则生成一个随机数
 Secret=${CLASH_SECRET:-$(openssl rand -hex 32)}
