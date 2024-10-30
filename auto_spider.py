@@ -1,4 +1,8 @@
 import asyncio
+import json
+import re
+import time
+
 import paramiko
 import os
 from sever_info import servers_info
@@ -37,34 +41,69 @@ async def handle_server(server):
     password = os.environ.get('SERVER_PASSWORD', server["password"])
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    local_file = "./clash/conf/config.yaml"
-    remote_file = "/root/vpn_spider/clash/conf/config.yaml"
-
-    commands = [
-        'sudo apt update',
-        'sudo apt install -y docker.io',
-        'sudo ethtool -K docker0 tso off gso off gro off',
-        'docker run --volume /root/vpn_spider:/app -e HOST_UID=$(id -u $USER) -e HOST_GID=$(id -g $USER) --privileged '
-        '-d --name vpn_spider chuanzhoupan/trace_spider:0712 tail -f /dev/null',
-        'docker exec vpn_spider ethtool -K eth0 tso off gso off gro off',
-        'docker exec vpn_spider python /app/main.py'
-    ]
 
     try:
-        # 连接服务器
+        # 连接服务器,并初始化服务器
         client.connect(hostname, username='root', password=password)
         sftp = client.open_sftp()
-
         # 执行 git clone 命令
-        clone_command = 'git clone --branch vpn https://github.com/damizhou/trace_spider.git vpn_spider'
-        await async_exec_command(client, clone_command)
+        sever_commands = [
+            'sudo apt update',
+            'sudo apt install -y docker.io',
+            'sudo ethtool -K docker0 tso off gso off gro off',
+        ]
+        # for sever_command in sever_commands:
+        #     await async_exec_command(client, sever_command)
 
-        # 上传本地文件到服务器
-        await async_upload_file(sftp, local_file, remote_file)
+        # 初始化docker
+        for docker_info in server["docker_infos"]:
+            container_name = docker_info["docker_name"] + str(docker_info["docker_index"])
+            docker_run_command = (f'docker run --volume /root/{container_name}:/app -e HOST_UID=$(id -u $USER) '
+                                  f'-e HOST_GID=$(id -g $USER) --privileged -itd --name {container_name} '
+                                  f'chuanzhoupan/trace_spider:0712 /bin/bash')
+            init_docker_commands = [
+                f'git clone --branch vpn https://github.com/damizhou/trace_spider.git {container_name}',
+                docker_run_command
+            ]
+            for init_docker_command in init_docker_commands:
+                await async_exec_command(client, init_docker_command)
 
-        # 逐条执行命令
-        for command in commands:
-            await async_exec_command(client, command)
+            time.sleep(5)
+            # 获取vpn配置
+            vpn_info = docker_info["vpn_info"]
+            if vpn_info:
+                local_file = "./clash/conf/config.yaml"
+                vpn_info_str = json.dumps(vpn_info)
+                pattern = r"- \{ name: 'vpnnodename'.*?\}"
+                with open(local_file, 'r', encoding='utf-8') as file:
+                    yml_content = file.read()
+                updated_yml_content = re.sub(pattern, vpn_info_str, yml_content)
+                updated_yml_content = updated_yml_content.replace('vpnnodename', vpn_info['loaction'])
+                # 将处理后的内容写入文件
+                upload_file = "./clash/conf/upload_config.yaml"
+                with open(upload_file, 'w', encoding='utf-8') as file:
+                    file.write(updated_yml_content)
+                remote_file = f"/root/{container_name}/clash/conf/config.yaml"
+                # vpn配置上传到服务器
+                await async_upload_file(sftp, upload_file, remote_file)
+
+                # 开启vpn
+                open_vpn_commands = [
+                    f'docker exec {container_name} sudo bash /app/clash/start.sh',
+                    f'docker exec {container_name} bash source /etc/profile.d/clash.sh',
+                    f'docker exec {container_name} bash proxy_on',
+                ]
+                for open_vpn_command in open_vpn_commands:
+                    await async_exec_command(client, open_vpn_command)
+
+            # 开启爬虫命令
+            spider_commands = [
+                f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off',
+                f'docker exec {container_name} python /app/main.py'
+            ]
+            for spider_command in spider_commands:
+                print('command', spider_command)
+                await async_exec_command(client, spider_command)
 
     except Exception as e:
         print(f"Error handling server {hostname}: {e}")
