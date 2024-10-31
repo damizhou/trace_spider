@@ -1,5 +1,7 @@
 import json
 import shutil
+import sys
+
 from utils.config import config
 from utils.logger import setup_logging, logger
 import threading
@@ -39,9 +41,21 @@ def main():
 
 
 if __name__ == "__main__":
+    new_url = sys.argv[1] if len(sys.argv) > 1 else None
+    with open('/app/clash-for-linux/.env', 'r') as file:
+        lines = file.readlines()
+
+    # 修改内容
+    with open('/app/clash-for-linux/.env', 'w') as file:
+        for line in lines:
+            # 检查是否为 CLASH_URL 行
+            if line.startswith("export CLASH_URL="):
+                file.write(f"export CLASH_URL='{new_url}'\n")
+            else:
+                file.write(line)
+
     # 执行带有 sudo 权限的 bash 脚本
     try:
-        shutil.copyfile('/app/clash/.env', '/app/clash-for-linux/.env')
         # 使用 sudo 权限执行 start.sh
         subprocess.run(['sudo', 'bash', '/app/clash-for-linux/start.sh'], check=True)
 
