@@ -1,9 +1,9 @@
 import json
-import subprocess
 from utils.config import config
 from utils.logger import setup_logging, logger
 import threading
 from utils.task import task_instance
+import subprocess
 
 duration = int(config["spider"]["duration"])
 
@@ -38,4 +38,20 @@ def main():
 
 
 if __name__ == "__main__":
+    # 执行带有 sudo 权限的 bash 脚本
+    try:
+        # 使用 sudo 权限执行 start.sh
+        subprocess.run(['sudo', 'bash', '/app/clash/start.sh'], check=True)
+
+        # 使用 source 命令加载环境变量 (需要在 shell 中执行)
+        subprocess.run('source /etc/profile.d/clash.sh', shell=True, executable='/bin/bash', check=True)
+
+        # 开启代理
+        subprocess.run(['proxy_on'], shell=True, check=True)
+
+        print("Commands executed successfully.")
+
+    except subprocess.CalledProcessError as e:
+        print(f"An error occurred: {e}")
+
     main()
