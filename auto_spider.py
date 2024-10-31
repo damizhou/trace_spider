@@ -87,6 +87,10 @@ async def handle_server(server):
                 remote_file = f"/root/{container_name}/clash/config.yaml"
                 # vpn配置上传到服务器
                 await async_upload_file(sftp, upload_file, remote_file)
+                loacl_env_path = "./clash/.env"
+                remote__env_path = f"/root/{container_name}/clash/.env"
+                await async_upload_file(sftp, loacl_env_path, remote__env_path)
+
 
             # 开启爬虫命令
             spider_commands = [
