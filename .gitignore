@@ -13,6 +13,3 @@ analyze/20240725_17_55_04_youtube.com.pcap
 *.json
 
 sever_info.py
-clash/temp/proxy.txt
-*.yaml
-*.yml
