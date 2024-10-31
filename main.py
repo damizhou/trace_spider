@@ -40,14 +40,6 @@ def main():
 if __name__ == "__main__":
     # 执行带有 sudo 权限的 bash 脚本
     try:
-
-        # 拉取clash-for-linux
-        result = subprocess.run(["git", "clone", "https://github.com/damizhou/clash-for-linux.git",
-                                 "/app/clash-for-linux"], shell=True, executable='/bin/bash', check=True)
-
-        # 同步配置文件
-        subprocess.run(["cp", "/app/clash/config.yaml", "/app/clash-for-linux/conf/config.yaml"], shell=True, executable='/bin/bash', check=True)
-
         # 使用 sudo 权限执行 start.sh
         subprocess.run(['sudo', 'bash', '/app/clash-for-linux/start.sh'], check=True)
 
@@ -61,4 +53,4 @@ if __name__ == "__main__":
     except subprocess.CalledProcessError as e:
         print(f"An error occurred: {e}")
 
-    # main()
+    main()
