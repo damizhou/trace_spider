@@ -72,7 +72,7 @@ async def handle_server(server):
             # 获取vpn配置
             vpn_info = docker_info["vpn_info"]
             if vpn_info:
-                local_file = "./clash/conf/config.yaml"
+                local_file = "./clash/config.yaml"
                 vpn_info_str = json.dumps(vpn_info)
                 pattern = r"- \{ name: 'vpnnodename'.*?\}"
                 with open(local_file, 'r', encoding='utf-8') as file:
@@ -80,10 +80,10 @@ async def handle_server(server):
                 updated_yml_content = re.sub(pattern, vpn_info_str, yml_content)
                 updated_yml_content = updated_yml_content.replace('vpnnodename', vpn_info['loaction'])
                 # 将处理后的内容写入文件
-                upload_file = "./clash/conf/upload_config.yaml"
+                upload_file = "./clash/upload_config.yaml"
                 with open(upload_file, 'w', encoding='utf-8') as file:
                     file.write(updated_yml_content)
-                remote_file = f"/root/{container_name}/clash/conf/config.yaml"
+                remote_file = f"/root/{container_name}/clash/config.yaml"
                 # vpn配置上传到服务器
                 await async_upload_file(sftp, upload_file, remote_file)
 

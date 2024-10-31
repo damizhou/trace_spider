@@ -40,8 +40,16 @@ def main():
 if __name__ == "__main__":
     # 执行带有 sudo 权限的 bash 脚本
     try:
+
+        # 拉取clash-for-linux
+        result = subprocess.run(["git", "clone", "https://github.com/damizhou/clash-for-linux.git",
+                                 "/app/clash-for-linux"], shell=True, executable='/bin/bash', check=True)
+
+        # 同步配置文件
+        subprocess.run(["cp", "/app/clash/config.yaml", "/app/clash-for-linux/conf/config.yaml"], shell=True, executable='/bin/bash', check=True)
+
         # 使用 sudo 权限执行 start.sh
-        subprocess.run(['sudo', 'bash', '/app/clash/start.sh'], check=True)
+        subprocess.run(['sudo', 'bash', '/app/clash-for-linux/start.sh'], check=True)
 
         # 使用 source 命令加载环境变量 (需要在 shell 中执行) 并 开启代理
         subprocess.run('source /etc/profile.d/clash.sh && proxy_on', shell=True, executable='/bin/bash', check=True)
