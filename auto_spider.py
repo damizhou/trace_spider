@@ -52,8 +52,8 @@ async def handle_server(server):
             'sudo apt install -y docker.io',
             'sudo ethtool -K docker0 tso off gso off gro off',
         ]
-        # for sever_command in sever_commands:
-        #     await async_exec_command(client, sever_command)
+        for sever_command in sever_commands:
+            await async_exec_command(client, sever_command)
 
         # 初始化docker
         for docker_info in server["docker_infos"]:
@@ -85,21 +85,14 @@ async def handle_server(server):
                     file.write(updated_yml_content)
                 remote_file = f"/root/{container_name}/clash/conf/config.yaml"
                 # vpn配置上传到服务器
-                # await async_upload_file(sftp, upload_file, remote_file)
-
-                # 开启vpn
-                # open_vpn_commands = [
-                #     f'docker exec {container_name} sudo bash -c "/app/clash/start.sh"',
-                #     f'docker exec {container_name} bash -c "source /etc/profile.d/clash.sh && proxy_on"'
-                # ]
-                # for open_vpn_command in open_vpn_commands:
-                #     await async_exec_command(client, open_vpn_command)
+                await async_upload_file(sftp, upload_file, remote_file)
 
             # 开启爬虫命令
             spider_commands = [
                 f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off',
                 f'docker exec {container_name} python /app/main.py'
             ]
+
             for spider_command in spider_commands:
                 await async_exec_command(client, spider_command)
 
