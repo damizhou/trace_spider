@@ -63,7 +63,7 @@ async def handle_server(server):
                                   f'chuanzhoupan/trace_spider:0712 /bin/bash')
             init_docker_commands = [
                 f'git clone --branch vpn https://github.com/damizhou/trace_spider.git {container_name}',
-                f'git clone https://github.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux',
+                f'git clone https://github.com/wnlen/clash-for-linux.git {container_name}/clash-for-linux',
                 docker_run_command
             ]
             for init_docker_command in init_docker_commands:
@@ -88,10 +88,8 @@ async def handle_server(server):
                 # vpn配置上传到服务器
                 await async_upload_file(sftp, upload_file, remote_file)
 
-
             # 开启爬虫命令
             spider_commands = [
-                f"cp {container_name}/clash/config.yaml {container_name}/clash-for-linux/conf/config.yaml",
                 f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off',
                 f'docker exec {container_name} python /app/main.py'
             ]
