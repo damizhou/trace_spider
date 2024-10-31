@@ -73,7 +73,7 @@ if __name__ == "__main__":
         }
         with open('/etc/environment', 'a') as f:
             for key, value in new_vars.items():
-                f.write(f'\n{key}="{value}"')
+                f.write(f'\n{key}={value}')
         print("Commands executed successfully.")
         subprocess.run('source /etc/environment', shell=True, executable='/bin/bash', check=True)
         subprocess.run('netstat -tln | grep -E "9090|789."', shell=True, executable='/bin/bash', check=True)
