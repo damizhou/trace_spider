@@ -91,7 +91,7 @@ async def handle_server(server):
 
             # 开启爬虫命令
             spider_commands = [
-                f"cp {container_name}/clash/config.yaml {container_name}/clash-for-linux/conf/config.yaml "
+                f"cp {container_name}/clash/config.yaml {container_name}/clash-for-linux/conf/config.yaml",
                 f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off',
                 f'docker exec {container_name} python /app/main.py'
             ]

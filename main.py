@@ -44,7 +44,12 @@ if __name__ == "__main__":
         subprocess.run(['sudo', 'bash', '/app/clash-for-linux/start.sh'], check=True)
 
         # 使用 source 命令加载环境变量 (需要在 shell 中执行) 并 开启代理
-        subprocess.run('source /etc/profile.d/clash.sh && proxy_on', shell=True, executable='/bin/bash', check=True)
+        subprocess.run('export http_proxy=http://127.0.0.1:7890')
+        subprocess.run('export https_proxy=http://127.0.0.1:7890')
+        subprocess.run('export no_proxy=127.0.0.1,localhost')
+        subprocess.run('export HTTP_PROXY=http://127.0.0.1:7890')
+        subprocess.run('export HTTPS_PROXY=http://127.0.0.1:7890')
+        subprocess.run('export NO_PROXY=127.0.0.1,localhost')
         subprocess.run('netstat -tln | grep -E "9090|789."', shell=True, executable='/bin/bash', check=True)
         subprocess.run('env | grep -E "http_proxy|https_proxy"', shell=True, executable='/bin/bash', check=True)
 
