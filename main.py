@@ -75,6 +75,9 @@ if __name__ == "__main__":
             for key, value in new_vars.items():
                 f.write(f'\n{key}="{value}"')
         print("Commands executed successfully.")
+        subprocess.run('source /etc/environment', shell=True, executable='/bin/bash', check=True)
+        subprocess.run('netstat -tln | grep -E "9090|789."', shell=True, executable='/bin/bash', check=True)
+        subprocess.run('env | grep -E "http_proxy|https_proxy"', shell=True, executable='/bin/bash', check=True)
 
     except subprocess.CalledProcessError as e:
         print(f"An error occurred: {e}")
