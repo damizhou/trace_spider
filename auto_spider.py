@@ -81,7 +81,7 @@ async def handle_server(server):
                 updated_yml_content = re.sub(pattern, vpn_info_str, yml_content)
                 updated_yml_content = updated_yml_content.replace('vpnnodename', vpn_info['name'])
                 # 将处理后的内容写入文件
-                upload_file = "./clash/config.yaml"
+                upload_file = "./clash/upload_config.yaml"
                 with open(upload_file, 'w', encoding='utf-8') as file:
                     file.write(updated_yml_content)
                 remote_file = f"/root/{container_name}/clash-for-linux/conf/config.yaml"

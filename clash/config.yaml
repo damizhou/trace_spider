@@ -24,7 +24,7 @@ secret: 955af99a505bb4cbc519eeadf1fe1558fbb53a83f65905a436758253fc130d05
 
 # 您可以将静态网页资源（如 clash-dashboard）放置在一个目录中，clash 将会服务于 `RESTful API/ui`
 # 参数应填写配置目录的相对路径或绝对路径。
-external-ui: /app/clash/dashboard/public
+external-ui: /app/clash-for-linux/dashboard/public
 
 proxies:
   - { name: 'vpnnodename', type: xxx, server: xxx, port: xxx, password: xxx, udp: true, sni: xxx, skip-cert-verify: true }
