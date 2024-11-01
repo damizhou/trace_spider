@@ -70,10 +70,11 @@ def dealVPN():
         subprocess.run(['sudo', 'bash', '/app/clash-for-linux/restart.sh'], check=True)
         subprocess.run('netstat -tln | grep -E "9090|789."', shell=True, executable='/bin/bash', check=True)
 
+        main()
+
     except subprocess.CalledProcessError as e:
         print(f"An error occurred: {e}")
 
 
 if __name__ == "__main__":
     dealVPN()
-    main()

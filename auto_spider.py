@@ -88,11 +88,10 @@ async def handle_server(server):
                 # vpn配置上传到服务器
                 await async_upload_file(sftp, upload_file, remote_file)
 
-            new_url = "https://clashgithub.com/wp-content/uploads/rss/20241031.yml"
             # 开启爬虫命令
             spider_commands = [
                 f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off',
-                f'docker exec {container_name} python /app/main.py {new_url}'
+                f'docker exec {container_name} python /app/main.py {vpn_info["temp_yml_ulr"]}'
             ]
 
             for spider_command in spider_commands:
