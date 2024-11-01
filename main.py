@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 import sys
+import time
 
 from utils.config import config
 from utils.logger import setup_logging, logger
@@ -41,7 +42,7 @@ def main():
     logger.info(f"任务完成")
 
 
-if __name__ == "__main__":
+def dealVPN():
     new_url = sys.argv[1] if len(sys.argv) > 1 else None
     with open('/app/clash-for-linux/.env', 'r') as file:
         lines = file.readlines()
@@ -60,7 +61,19 @@ if __name__ == "__main__":
         # 使用 sudo 权限执行 start.sh
         subprocess.run(['sudo', 'bash', '/app/clash-for-linux/start.sh'], check=True)
 
+        time.sleep(5)
+
+        os.remove('/app/clash-for-linux/config.yaml')
+        shutil.copy2('/app/clash-for-linux/upload_config.yaml', '/app/clash-for-linux/config.yaml')
+
+        subprocess.run(['sudo', 'bash', '/app/clash-for-linux/restart.sh'], check=True)
+
+
+
     except subprocess.CalledProcessError as e:
         print(f"An error occurred: {e}")
 
+
+if __name__ == "__main__":
+    dealVPN()
     main()
