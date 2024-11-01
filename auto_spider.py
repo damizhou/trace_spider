@@ -63,7 +63,7 @@ async def handle_server(server):
                                   f'chuanzhoupan/trace_spider:0712 /bin/bash')
             init_docker_commands = [
                 f'git clone --branch vpn https://github.com/damizhou/trace_spider.git {container_name}',
-                f'git clone https://github.com/wnlen/clash-for-linux.git {container_name}/clash-for-linux',
+                f'git clone https://github.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux',
                 docker_run_command
             ]
             for init_docker_command in init_docker_commands:
@@ -74,24 +74,24 @@ async def handle_server(server):
             vpn_info = docker_info["vpn_info"]
             if vpn_info:
                 local_file = "./clash/config.yaml"
-                vpn_info_str = json.dumps(vpn_info)
+                vpn_info_str = '- ' + json.dumps(vpn_info)
                 pattern = r"- \{ name: 'vpnnodename'.*?\}"
                 with open(local_file, 'r', encoding='utf-8') as file:
                     yml_content = file.read()
                 updated_yml_content = re.sub(pattern, vpn_info_str, yml_content)
-                updated_yml_content = updated_yml_content.replace('vpnnodename', vpn_info['loaction'])
+                updated_yml_content = updated_yml_content.replace('vpnnodename', vpn_info['name'])
                 # 将处理后的内容写入文件
-                upload_file = "./clash/upload_config.yaml"
+                upload_file = "./clash/config.yaml"
                 with open(upload_file, 'w', encoding='utf-8') as file:
                     file.write(updated_yml_content)
-                remote_file = f"/root/{container_name}/clash-for-linux/conf/upload_config.yaml"
+                remote_file = f"/root/{container_name}/clash-for-linux/conf/config.yaml"
                 # vpn配置上传到服务器
                 await async_upload_file(sftp, upload_file, remote_file)
 
             # 开启爬虫命令
             spider_commands = [
                 f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off',
-                f'docker exec {container_name} python /app/main.py {vpn_info["temp_yml_ulr"]}'
+                f'docker exec {container_name} python /app/main.py'
             ]
 
             for spider_command in spider_commands:

@@ -59,14 +59,14 @@ def dealVPN():
     # 执行带有 sudo 权限的 bash 脚本
     try:
         # 使用 sudo 权限执行 start.sh
-        subprocess.run(['sudo', 'bash', '/app/clash-for-linux/start.sh'], check=True)
-        time.sleep(5)
-
-        os.remove('/app/clash-for-linux/conf/config.yaml')
-        shutil.copy2('/app/clash-for-linux/conf/upload_config.yaml', '/app/clash-for-linux/conf/config.yaml')
-
-        time.sleep(5)
-        subprocess.run(['sudo', 'bash', '/app/clash-for-linux/restart.sh'], check=True)
+        # subprocess.run(['sudo', 'bash', '/app/clash-for-linux/start.sh'], check=True)
+        # subprocess.run('netstat -tln | grep -E "9090|789."', shell=True, executable='/bin/bash', check=True)
+        # process = subprocess.Popen(['bash', '/app/clash-for-linux/start.sh'], stout=subprocess.PIPE)
+        process = subprocess.Popen(["bash", '/app/clash-for-linux/start.sh'], stdout=subprocess.PIPE)
+        output, error = process.communicate()
+        logger.info(f"output:{output}")
+        logger.info(f"error:{error}")
+        logger.info("代理启动成功")
 
     except subprocess.CalledProcessError as e:
         print(f"An error occurred: {e}")
