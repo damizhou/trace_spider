@@ -63,8 +63,8 @@ def dealVPN():
 
         time.sleep(5)
 
-        os.remove('/app/clash-for-linux/config.yaml')
-        shutil.copy2('/app/clash-for-linux/upload_config.yaml', '/app/clash-for-linux/config.yaml')
+        os.remove('/app/clash-for-linux/conf/config.yaml')
+        shutil.copy2('/app/clash-for-linux/conf/upload_config.yaml', '/app/clash-for-linux/conf/config.yaml')
 
         subprocess.run(['sudo', 'bash', '/app/clash-for-linux/restart.sh'], check=True)
 

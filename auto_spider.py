@@ -84,7 +84,7 @@ async def handle_server(server):
                 upload_file = "./clash/upload_config.yaml"
                 with open(upload_file, 'w', encoding='utf-8') as file:
                     file.write(updated_yml_content)
-                remote_file = f"/root/{container_name}/clash/upload_config.yaml"
+                remote_file = f"/root/{container_name}/clash/conf/upload_config.yaml"
                 # vpn配置上传到服务器
                 await async_upload_file(sftp, upload_file, remote_file)
 
