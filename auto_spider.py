@@ -10,20 +10,20 @@ from sever_info import servers_info
 
 # 异步执行并监控命令输出
 async def async_exec_command(client, command):
-    print(f"Executing: {command}")
+    print(f"{command}")
     stdin, stdout, stderr = client.exec_command(command)
 
     while not stdout.channel.exit_status_ready():
         # 逐行读取输出
         line = stdout.readline()
         if line:
-            print(f"Output: {line.strip()}")
+            print(f"{line.strip()}")
         await asyncio.sleep(0.1)  # 异步等待，避免阻塞
 
     # 读取剩余的输出
     err = stderr.read().decode()
     if err:
-        print(f"Error in command '{command}': {err}")
+        print(f"{err}")
 
 
 # 异步上传文件
@@ -47,13 +47,13 @@ async def handle_server(server):
         client.connect(hostname, username='root', password=password)
         sftp = client.open_sftp()
         # 执行 git clone 命令
-        sever_commands = [
-            'sudo apt update',
-            'sudo apt install -y docker.io',
-            'sudo ethtool -K docker0 tso off gso off gro off',
-        ]
+        # sever_commands = [
+        #     'sudo apt update',
+        #     'sudo apt install -y docker.io',
+        #     'sudo ethtool -K docker0 tso off gso off gro off',
+        # ]
         # for sever_command in sever_commands:
-            # await async_exec_command(client, sever_command)
+        #     await async_exec_command(client, sever_command)
 
         # 初始化docker
         for docker_info in server["docker_infos"]:
@@ -91,7 +91,7 @@ async def handle_server(server):
             new_url = "https://clashgithub.com/wp-content/uploads/rss/20241031.yml"
             # 开启爬虫命令
             spider_commands = [
-                # f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off',
+                f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off',
                 f'docker exec {container_name} python /app/main.py {new_url}'
             ]
 
