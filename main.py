@@ -60,7 +60,6 @@ def dealVPN():
     try:
         # 使用 sudo 权限执行 start.sh
         subprocess.run(['sudo', 'bash', '/app/clash-for-linux/start.sh'], check=True)
-        subprocess.run('netstat -tln | grep -E "9090|789."', shell=True, executable='/bin/bash', check=True)
         time.sleep(5)
 
         os.remove('/app/clash-for-linux/conf/config.yaml')
@@ -68,7 +67,6 @@ def dealVPN():
 
         time.sleep(5)
         subprocess.run(['sudo', 'bash', '/app/clash-for-linux/restart.sh'], check=True)
-        subprocess.run('netstat -tln | grep -E "9090|789."', shell=True, executable='/bin/bash', check=True)
 
     except subprocess.CalledProcessError as e:
         print(f"An error occurred: {e}")
