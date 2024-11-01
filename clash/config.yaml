@@ -62,7 +62,6 @@ proxy-groups:
   - name: 🎯 全球直连
     type: select
     proxies:
-      - DIRECT
       - vpnnodename
   - name: 🛑 全球拦截
     type: select

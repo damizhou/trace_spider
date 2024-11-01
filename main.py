@@ -60,27 +60,6 @@ if __name__ == "__main__":
         # 使用 sudo 权限执行 start.sh
         subprocess.run(['sudo', 'bash', '/app/clash-for-linux/start.sh'], check=True)
 
-        # new_vars = {
-        #     "http_proxy": "http://127.0.0.1:7890",
-        #     "https_proxy": "http://127.0.0.1:7890",
-        #     "no_proxy": "127.0.0.1,localhost",
-        #     "HTTP_PROXY": "http://127.0.0.1:7890",
-        #     "HTTPS_PROXY": "http://127.0.0.1:7890",
-        #     "NO_PROXY": "127.0.0.1,localhost"
-        # }
-        # with open('/etc/environment', 'a') as f:
-        #     for key, value in new_vars.items():
-        #         f.write(f'\n{key}={value}')
-        #
-        # subprocess.run('source /etc/environment', shell=True, executable='/bin/bash', check=True)
-        os.environ["http_proxy"] = "http://127.0.0.1:7890"
-        os.environ["https_proxy"] = "http://127.0.0.1:7890"
-        os.environ["no_proxy"] = "127.0.0.1,localhost"
-        os.environ["HTTP_PROXY"] = "http://127.0.0.1:7890"
-        os.environ["HTTPS_PROXY"] = "http://127.0.0.1:7890"
-        subprocess.run('netstat -tln | grep -E "9090|789."', shell=True, executable='/bin/bash', check=True)
-        subprocess.run('env | grep -E "http_proxy|https_proxy"', shell=True, executable='/bin/bash', check=True)
-
     except subprocess.CalledProcessError as e:
         print(f"An error occurred: {e}")
 
