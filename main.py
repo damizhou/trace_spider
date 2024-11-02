@@ -1,6 +1,6 @@
 import json
 import sys
-from utils.config import config, save_config
+from utils.config import config
 from utils.logger import logger
 import threading
 from utils.task import task_instance

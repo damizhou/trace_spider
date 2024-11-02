@@ -7,7 +7,7 @@ import paramiko
 import os
 from sever_info import servers_info
 from utils import project_path
-from utils.config import config, save_config
+from utils.config import config
 
 
 # 异步执行并监控命令输出
@@ -89,13 +89,17 @@ async def handle_server(server):
                              f'{server["loaction"]} {server["os"]} ')
 
             # 修改config并上传
-            config["docker"]["current_docker_index"] = int(docker_info["docker_index"])
-            config["docker"]["current_docker_task_length"] = (server["each_docker_task_count"])
-            save_config()
+            config["docker"]["current_docker_index"] = docker_info["docker_index"]
+            config["docker"]["current_docker_task_length"] = each_docker_task_count["each_docker_task_count"]
             loacl_config_path = os.path.join(project_path, "config.ini")
             remot_config_path = f"/root/{container_name}/config.ini"
+            with open(loacl_config_path, 'w') as configfile:
+                print(f"重写config")
+                config.write(configfile)
             await async_upload_file(sftp, loacl_config_path, remot_config_path)
+            print("config上传成功")
 
+            # 配置vpn
             if vpn_info:
                 local_file = "./clash/config.yaml"
                 vpn_info_str = '- ' + json.dumps(vpn_info)
