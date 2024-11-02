@@ -21,15 +21,15 @@ def run_action_script():
 
 def main():
     task_instance.current_index = 0
-    start_index = int(sys.argv[2]) * int(sys.argv[3])
-    stop_index = start_index + int(sys.argv[3])
+    start_index = int(sys.argv[1]) * int(sys.argv[2])
+    stop_index = start_index + int(sys.argv[2])
     urls = task_instance.urls[start_index: stop_index]
     logger.info(f"urls:{urls}")
-    return 
     logger.info(f"开始任务")
     logger.info(
         f"本次任务共计采集{len(task_instance.urls)}个页面，预计采集时间{len(task_instance.urls) * duration / 60}分钟")
     logger.info(f"任务URL列表：{task_instance.urls}")
+    return
     while task_instance.current_index != len(task_instance.urls):
         with open('./utils/running.json', 'w') as f:
             json.dump({'currentIndex': task_instance.current_index}, f)
