@@ -83,7 +83,7 @@ async def handle_server(server):
 
             # 获取vpn配置
             vpn_info = docker_info["vpn_yml_info"]
-            main_commmand = f'docker exec {container_name} python /app/main.py {server["loaction"]} {server["os"]}'
+            main_commmand = f'docker exec {container_name} python /app/main.py {server["loaction"]} {server["os"]} '
 
             # 拆分任务列表,并上传到对应的docker
             with open(f"url_list.txt", 'r') as file:
