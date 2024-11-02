@@ -64,8 +64,6 @@ async def handle_server(server):
         spider_commands = []  # 用于存储异步任务的列表
         # 初始化docker
         for docker_info in server["docker_infos"]:
-            if docker_info["docker_index"] == 0:
-                continue
             container_name = docker_info["docker_name"] + str(docker_info["docker_index"])
             docker_run_command = (f'docker run --volume /root/{container_name}:/app -e HOST_UID=$(id -u $USER) '
                                   f'-e HOST_GID=$(id -g $USER) --privileged -itd --name {container_name} '
