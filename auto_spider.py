@@ -41,19 +41,19 @@ async def handle_server(server):
     password = os.environ.get('SERVER_PASSWORD', server["password"])
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
+    each_docker_task_count = server["each_docker_task_count"]
     try:
         # 连接服务器,并初始化服务器
         client.connect(hostname, username='root', password=password)
         sftp = client.open_sftp()
         # 执行 git clone 命令
-        # sever_commands = [
-        #     'sudo apt update',
-        #     'sudo apt install -y docker.io',
-        #     'sudo ethtool -K docker0 tso off gso off gro off',
-        # ]
-        # for sever_command in sever_commands:
-        #     await async_exec_command(client, sever_command)
+        sever_commands = [
+            'sudo apt update',
+            'sudo apt install -y docker.io',
+            'sudo ethtool -K docker0 tso off gso off gro off',
+        ]
+        for sever_command in sever_commands:
+            await async_exec_command(client, sever_command)
 
         # 初始化docker
         for docker_info in server["docker_infos"]:
@@ -66,6 +66,11 @@ async def handle_server(server):
                 f'git clone https://github.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux',
                 docker_run_command
             ]
+            # init_docker_commands = [
+            #     f'git clone --branch vpn https://gitee.com/damizhou/trace_spider.git {container_name}',
+            #     f'git clone https://gitee.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux',
+            #     docker_run_command
+            # ]
             for init_docker_command in init_docker_commands:
                 await async_exec_command(client, init_docker_command)
 
@@ -91,7 +96,7 @@ async def handle_server(server):
             # 开启爬虫命令
             spider_commands = [
                 f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off',
-                f'docker exec {container_name} python /app/main.py'
+                f'docker exec {container_name} python /app/main.py {docker_info}'
             ]
 
             for spider_command in spider_commands:

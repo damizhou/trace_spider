@@ -73,5 +73,6 @@ def dealVPN():
 
 
 if __name__ == "__main__":
-    dealVPN()
-    main()
+    # 获取其他参数
+    for i, arg in enumerate(sys.argv[1:], start=1):
+        print(f"参数 {i}: {arg}")
