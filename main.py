@@ -73,6 +73,15 @@ def dealVPN():
 
 
 if __name__ == "__main__":
-    # 获取其他参数
-    for i, arg in enumerate(sys.argv[1:], start=1):
-        print(f"参数 {i}: {arg}")
+    # dealVPN()
+    # main()
+    # 获取命令行参数
+    script_name = sys.argv[0]
+    arg1 = sys.argv[1]  # "kor"
+    arg2 = sys.argv[2]  # "ubuntu24.04"
+    arg3 = sys.argv[3]  # "jpn"
+    arg4 = sys.argv[4]  # "trojan"
+    arg5 = sys.argv[5]  # "udp"
+
+    print(f"Script: {script_name}")
+    print(f"Arguments: {arg1}, {arg2}, {arg3}, {arg4}, {arg5}")

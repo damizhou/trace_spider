@@ -52,8 +52,8 @@ async def handle_server(server):
             'sudo apt install -y docker.io',
             'sudo ethtool -K docker0 tso off gso off gro off',
         ]
-        for sever_command in sever_commands:
-            await async_exec_command(client, sever_command)
+        # for sever_command in sever_commands:
+        #     await async_exec_command(client, sever_command)
 
         # 初始化docker
         for docker_info in server["docker_infos"]:
@@ -61,22 +61,23 @@ async def handle_server(server):
             docker_run_command = (f'docker run --volume /root/{container_name}:/app -e HOST_UID=$(id -u $USER) '
                                   f'-e HOST_GID=$(id -g $USER) --privileged -itd --name {container_name} '
                                   f'chuanzhoupan/trace_spider:0712 /bin/bash')
-            init_docker_commands = [
-                f'git clone --branch vpn https://github.com/damizhou/trace_spider.git {container_name}',
-                f'git clone https://github.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux',
-                docker_run_command
-            ]
+            # init_docker_commands = [
+            #     f'git clone --branch vpn https://github.com/damizhou/trace_spider.git {container_name}',
+            #     f'git clone https://github.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux',
+            #     docker_run_command
+            # ]
             # init_docker_commands = [
             #     f'git clone --branch vpn https://gitee.com/damizhou/trace_spider.git {container_name}',
             #     f'git clone https://gitee.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux',
             #     docker_run_command
             # ]
-            for init_docker_command in init_docker_commands:
-                await async_exec_command(client, init_docker_command)
+            # for init_docker_command in init_docker_commands:
+            #     await async_exec_command(client, init_docker_command)
 
-            time.sleep(5)
+            # time.sleep(5)
             # 获取vpn配置
-            vpn_info = docker_info["vpn_info"]
+            vpn_info = docker_info["vpn_yml_info"]
+            main_commmand = f'docker exec {container_name} python /app/main.py {server["loaction"]} {server["os"]} '
             if vpn_info:
                 local_file = "./clash/config.yaml"
                 vpn_info_str = '- ' + json.dumps(vpn_info)
@@ -93,10 +94,18 @@ async def handle_server(server):
                 # vpn配置上传到服务器
                 await async_upload_file(sftp, upload_file, remote_file)
 
+                if vpn_info["udp"]:
+                    protocol = "udp"
+                else:
+                    protocol = "tcp"
+
+                main_commmand += f'{docker_info["vpn_location"]} {vpn_info["type"]} {protocol}'
+            else:
+                main_commmand += f'novpn'
             # 开启爬虫命令
             spider_commands = [
                 f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off',
-                f'docker exec {container_name} python /app/main.py {docker_info}'
+                main_commmand
             ]
 
             for spider_command in spider_commands:
