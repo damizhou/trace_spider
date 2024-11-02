@@ -35,7 +35,7 @@ def traffic():
     # 格式化输出
     formatted_time = current_time.strftime("%Y%m%d_%H_%M_%S")
     allowed_domain = task_instance.current_allowed_domain
-    capture(allowed_domain, formatted_time, sys.argv[1:])
+    capture(allowed_domain, formatted_time, sys.argv[3:])
 
 
 # 停止爬虫
@@ -100,6 +100,10 @@ def start_task():
 
 
 if __name__ == "__main__":
+    start_index = int(sys.argv[1]) * int(sys.argv[2])
+    stop_index = start_index + int(sys.argv[2])
+    urls = task_instance.urls[start_index: stop_index]
+    task_instance.urls = urls
     if is_docker():
         start_task()
     else:

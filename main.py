@@ -11,7 +11,7 @@ duration = int(config["spider"]["duration"])
 
 
 def run_action_script():
-    command = ['python', 'action.py'] + sys.argv[3:]
+    command = ['python', 'action.py'] + sys.argv[1:]
     # 使用 subprocess 运行 action.py
     subprocess.run(command)
 
@@ -23,8 +23,8 @@ def main():
     urls = task_instance.urls[start_index: stop_index]
     task_instance.urls = urls
     logger.info(f"开始任务")
-    logger.info(
-        f"本次任务共计采集{len(task_instance.urls)}个页面，预计采集时间{len(task_instance.urls) * duration / 60}分钟")
+    logger.info(f"本次任务共计采集{len(task_instance.urls)}个页面，预计单个网站采集时间{duration / 60}分钟，"
+                f"共计采集{len(task_instance.urls) * duration / 60}分钟")
     logger.info(f"任务URL列表：{task_instance.urls}")
     while task_instance.current_index != len(task_instance.urls):
         with open('./utils/running.json', 'w') as f:

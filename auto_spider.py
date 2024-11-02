@@ -2,7 +2,7 @@ import asyncio
 import json
 import re
 import time
-
+import threading
 import paramiko
 import os
 from sever_info import servers_info
@@ -24,6 +24,13 @@ async def async_exec_command(client, command):
     err = stderr.read().decode()
     if err:
         print(f"{err}")
+
+
+def run_command(ssh, command):
+    stdin, stdout, stderr = ssh.exec_command(command)
+    print(f"{command}")
+    print(stdout.read().decode())
+    print(stderr.read().decode())
 
 
 # 异步上传文件
@@ -54,7 +61,7 @@ async def handle_server(server):
         ]
         # for sever_command in sever_commands:
         #     await async_exec_command(client, sever_command)
-
+        spider_commands = []  # 用于存储异步任务的列表
         # 初始化docker
         for docker_info in server["docker_infos"]:
             container_name = docker_info["docker_name"] + str(docker_info["docker_index"])
@@ -66,15 +73,12 @@ async def handle_server(server):
                 f'git clone https://github.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux',
                 docker_run_command
             ]
-            # init_docker_commands = [
-            #     f'git clone --branch vpn https://gitee.com/damizhou/trace_spider.git {container_name}',
-            #     f'git clone https://gitee.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux',
-            #     docker_run_command
-            # ]
             for init_docker_command in init_docker_commands:
                 await async_exec_command(client, init_docker_command)
 
             time.sleep(5)
+            await async_exec_command(client, f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off')
+
             # 获取vpn配置
             vpn_info = docker_info["vpn_yml_info"]
             main_commmand = (f'docker exec {container_name} python /app/main.py '
@@ -103,14 +107,23 @@ async def handle_server(server):
                 main_commmand += f'{docker_info["vpn_location"]} {vpn_info["type"]} {protocol}'
             else:
                 main_commmand += f'novpn'
-            # 开启爬虫命令
-            spider_commands = [
-                f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off',
-                main_commmand
-            ]
 
-            for spider_command in spider_commands:
-                await async_exec_command(client, spider_command)
+            # 开启爬虫命令
+            # 收集任务而不是立即等待
+            spider_commands.append(main_commmand)
+
+        # 创建线程列表
+        threads = []
+
+        # 启动线程
+        for spider_command in spider_commands:
+            thread = threading.Thread(target=run_command, args=(client, spider_command))
+            thread.start()
+            threads.append(thread)
+
+        # 等待所有线程完成
+        for thread in threads:
+            thread.join()
 
     except Exception as e:
         print(f"Error handling server {hostname}: {e}")
