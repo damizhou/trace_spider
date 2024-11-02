@@ -6,8 +6,6 @@ import threading
 import paramiko
 import os
 from sever_info import servers_info
-from utils import project_path
-from utils.config import config
 
 
 # 异步执行并监控命令输出
@@ -87,9 +85,19 @@ async def handle_server(server):
             vpn_info = docker_info["vpn_yml_info"]
             main_commmand = f'docker exec {container_name} python /app/main.py {server["loaction"]} {server["os"]}'
 
-            with open('./config.json', 'w') as f:
-                json.dump({"currentDockerIndex": docker_info["docker_index"],
-                           "currentDockerTaskLength": each_docker_task_count["each_docker_task_count"]}, f)
+            # 拆分任务列表,并上传到对应的docker
+            with open(f"url_list.txt", 'r') as file:
+                lines = file.readlines()
+            urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
+            start_url_index = docker_info["docker_index"] * server["each_docker_task_count"]
+            end_url_index = start_url_index + server["each_docker_task_count"]
+            local_current_urls_path = f'current_docker_url_list.txt'
+            remote_current_urls_path = f"/root/{container_name}/current_docker_url_list.txt"
+            with open(local_current_urls_path, 'w') as file:
+                for url in urls[start_url_index: end_url_index]:
+                    file.write(f"{url}\n")
+
+            await async_upload_file(sftp, local_current_urls_path, remote_current_urls_path)
 
             # 配置vpn
             if vpn_info:
