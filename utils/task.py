@@ -18,6 +18,8 @@ class Task:
             with open('./utils/running.json', 'r') as f:
                 params = json.load(f)
                 self.current_index = params['currentIndex']
+                self.current_docker_index = int(params['currentDockerIndex'])
+                self.current_docker_task_length = int(params['currentDockerTaskLength'])
             with open('exclude_keywords', 'r') as f:
                 self.exclude_keywords = [s.replace('\n', ' ') for s in f.readlines()]
             self._initialized = True
@@ -26,7 +28,8 @@ class Task:
         with open(self.file_path, 'r') as file:
             lines = file.readlines()
         urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
-        return urls
+        start = self.current_docker_index * self.current_docker_task_length
+        return urls[start: start + self.current_docker_task_length]
 
     @property
     def current_start_url(self):
