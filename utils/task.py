@@ -1,4 +1,5 @@
 import json
+from utils.config import config
 
 
 class Task:
@@ -17,8 +18,8 @@ class Task:
             with open('./utils/running.json', 'r') as f:
                 params = json.load(f)
                 self.current_index = params['currentIndex']
-                self.current_docker_index = int(params['currentDockerIndex'])
-                self.current_docker_task_length = int(params['currentDockerTaskLength'])
+                self.current_docker_index = int(config["docker"]["currentDockerIndex"])
+                self.current_docker_task_length = int(config["docker"]["currentDockerTaskLength"])
             with open('exclude_keywords', 'r') as f:
                 self.exclude_keywords = [s.replace('\n', ' ') for s in f.readlines()]
             self.urls = self.read_file()

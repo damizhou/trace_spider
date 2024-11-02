@@ -10,6 +10,10 @@ config_defult_path = os.path.join(project_path, "config.ini")
 with open(config_defult_path, 'r', encoding='utf-8') as config_file:
     config.read_file(config_file)
 
+
+def save_config():
+    with open('config_defult_path', 'w') as configfile:
+        config.write(configfile)
 # 可以在这里添加一些函数来获取特定的配置项
 # def get_database_config():
 #     return {

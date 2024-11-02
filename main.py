@@ -1,8 +1,7 @@
 import json
 import sys
-
-from utils.config import config
-from utils.logger import setup_logging, logger
+from utils.config import config, save_config
+from utils.logger import logger
 import threading
 from utils.task import task_instance
 import subprocess
@@ -18,15 +17,13 @@ def run_action_script():
 
 def main():
     task_instance.current_index = 0
+    logger.info(f"开始任务")
+    logger.info(f"本次任务共计采集{len(task_instance.urls)}个页面，预计单个网站采集时间{duration / 60}分钟，"
+                f"共计采集{len(task_instance.urls) * duration / 60}分钟")
+    logger.info(f"任务URL列表：{task_instance.urls}")
     while task_instance.current_index != len(task_instance.urls):
         with open('./utils/running.json', 'w') as f:
-            json.dump({'currentIndex': task_instance.current_index, "currentDockerIndex": int(sys.argv[1]),
-                       "currentDockerTaskLength": int(sys.argv[2])}, f)
-        if task_instance.current_index == 0:
-            logger.info(f"开始任务")
-            logger.info(f"本次任务共计采集{len(task_instance.urls)}个页面，预计单个网站采集时间{duration / 60}分钟，"
-                        f"共计采集{len(task_instance.urls) * duration / 60}分钟")
-            logger.info(f"任务URL列表：{task_instance.urls}")
+            json.dump({'currentIndex': task_instance.current_index}, f)
         logger.info(f"当前第{task_instance.current_index + 1}个任务，任务URL为{task_instance.current_start_url}，"
                     f"剩余时间{(len(task_instance.urls) - task_instance.current_index) * duration / 60}分钟")
         # 创建一个线程来运行 action.py
@@ -56,6 +53,9 @@ def dealVPN():
 
 
 if __name__ == "__main__":
+    config["docker"]["currentDockerIndex"] = sys.argv[1]
+    config["docker"]["currentDockerTaskLength"] = sys.argv[2]
+    save_config()
     if sys.argv[5] != 'novpn':
         dealVPN()
     main()
