@@ -1,5 +1,6 @@
 import json
 from utils.config import config
+from utils.logger import logger
 
 
 class Task:
@@ -30,6 +31,7 @@ class Task:
             lines = file.readlines()
         urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
         start = self.current_docker_index * self.current_docker_task_length
+        logger.info("加载URL列表")
         return urls[start: start + self.current_docker_task_length]
 
     @property
