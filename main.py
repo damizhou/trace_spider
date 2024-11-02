@@ -14,8 +14,9 @@ duration = int(config["spider"]["duration"])
 
 
 def run_action_script():
+    command = ['python', 'action.py'] + sys.argv[1:]
     # 使用 subprocess 运行 action.py
-    subprocess.run(['python', 'action.py'])
+    subprocess.run(command)
 
 
 def main():
@@ -73,15 +74,7 @@ def dealVPN():
 
 
 if __name__ == "__main__":
-    # dealVPN()
-    # main()
-    # 获取命令行参数
-    script_name = sys.argv[0]
-    arg1 = sys.argv[1]  # "kor"
-    arg2 = sys.argv[2]  # "ubuntu24.04"
-    arg3 = sys.argv[3]  # "jpn"
-    arg4 = sys.argv[4]  # "trojan"
-    arg5 = sys.argv[5]  # "udp"
+    if sys.argv[3] != 'novpn':
+        dealVPN()
 
-    print(f"Script: {script_name}")
-    print(f"Arguments: {arg1}, {arg2}, {arg3}, {arg4}, {arg5}")
+    main()

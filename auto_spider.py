@@ -61,20 +61,20 @@ async def handle_server(server):
             docker_run_command = (f'docker run --volume /root/{container_name}:/app -e HOST_UID=$(id -u $USER) '
                                   f'-e HOST_GID=$(id -g $USER) --privileged -itd --name {container_name} '
                                   f'chuanzhoupan/trace_spider:0712 /bin/bash')
-            # init_docker_commands = [
-            #     f'git clone --branch vpn https://github.com/damizhou/trace_spider.git {container_name}',
-            #     f'git clone https://github.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux',
-            #     docker_run_command
-            # ]
+            init_docker_commands = [
+                f'git clone --branch vpn https://github.com/damizhou/trace_spider.git {container_name}',
+                f'git clone https://github.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux',
+                docker_run_command
+            ]
             # init_docker_commands = [
             #     f'git clone --branch vpn https://gitee.com/damizhou/trace_spider.git {container_name}',
             #     f'git clone https://gitee.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux',
             #     docker_run_command
             # ]
-            # for init_docker_command in init_docker_commands:
-            #     await async_exec_command(client, init_docker_command)
+            for init_docker_command in init_docker_commands:
+                await async_exec_command(client, init_docker_command)
 
-            # time.sleep(5)
+            time.sleep(5)
             # 获取vpn配置
             vpn_info = docker_info["vpn_yml_info"]
             main_commmand = f'docker exec {container_name} python /app/main.py {server["loaction"]} {server["os"]} '
