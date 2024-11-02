@@ -21,6 +21,10 @@ class Task:
                 self.current_index = params['currentIndex']
                 self.current_docker_index = int(config["docker"]["currentDockerIndex"])
                 self.current_docker_task_length = int(config["docker"]["currentDockerTaskLength"])
+            with open('config.json', 'r') as config_json:
+                config_json = json.load(config_json)
+                self.current_docker_index = int(config_json["currentDockerIndex"])
+                self.current_docker_task_length = int(config_json["currentDockerTaskLength"])
             with open('exclude_keywords', 'r') as f:
                 self.exclude_keywords = [s.replace('\n', ' ') for s in f.readlines()]
             self.urls = self.read_file()
