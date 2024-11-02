@@ -77,7 +77,8 @@ async def handle_server(server):
             time.sleep(5)
             # 获取vpn配置
             vpn_info = docker_info["vpn_yml_info"]
-            main_commmand = f'docker exec {container_name} python /app/main.py {server["loaction"]} {server["os"]} '
+            main_commmand = (f'docker exec {container_name} python /app/main.py '
+                             f'{docker_info["docker_index"]} {server["each_docker_task_count"]} {server["loaction"]} {server["os"]} ')
             if vpn_info:
                 local_file = "./clash/config.yaml"
                 vpn_info_str = '- ' + json.dumps(vpn_info)
