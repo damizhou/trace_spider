@@ -10,7 +10,7 @@ duration = int(config["spider"]["duration"])
 
 
 def run_action_script():
-    command = ['python', 'action.py'] + sys.argv[3:]
+    command = ['python', 'action.py'] + sys.argv[1:]
     # 使用 subprocess 运行 action.py
     subprocess.run(command)
 
@@ -53,9 +53,6 @@ def dealVPN():
 
 
 if __name__ == "__main__":
-    config["docker"]["currentDockerIndex"] = sys.argv[1]
-    config["docker"]["currentDockerTaskLength"] = sys.argv[2]
-    save_config()
-    if sys.argv[5] != 'novpn':
+    if sys.argv[3] != 'novpn':
         dealVPN()
     main()

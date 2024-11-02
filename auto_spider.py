@@ -6,6 +6,8 @@ import threading
 import paramiko
 import os
 from sever_info import servers_info
+from utils import project_path
+from utils.config import config, save_config
 
 
 # 异步执行并监控命令输出
@@ -84,7 +86,16 @@ async def handle_server(server):
             # 获取vpn配置
             vpn_info = docker_info["vpn_yml_info"]
             main_commmand = (f'docker exec {container_name} python /app/main.py '
-                             f'{docker_info["docker_index"]} {server["each_docker_task_count"]} {server["loaction"]} {server["os"]} ')
+                             f'{server["loaction"]} {server["os"]} ')
+
+            # 修改config并上传
+            config["docker"]["current_docker_index"] = int(docker_info["docker_index"])
+            config["docker"]["current_docker_task_length"] = (server["each_docker_task_count"])
+            save_config()
+            loacl_config_path = os.path.join(project_path, "config.ini")
+            remot_config_path = f"/root/{container_name}/config.ini"
+            await async_upload_file(sftp, loacl_config_path, remot_config_path)
+
             if vpn_info:
                 local_file = "./clash/config.yaml"
                 vpn_info_str = '- ' + json.dumps(vpn_info)
