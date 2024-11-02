@@ -13,7 +13,7 @@ with open(config_defult_path, 'r', encoding='utf-8') as config_file:
 
 
 def save_config():
-    with open('config_defult_path', 'w') as configfile:
+    with open(config_defult_path, 'w') as configfile:
         logger.info("重写config")
         config.write(configfile)
 # 可以在这里添加一些函数来获取特定的配置项
