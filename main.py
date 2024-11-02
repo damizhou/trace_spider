@@ -11,7 +11,7 @@ duration = int(config["spider"]["duration"])
 
 
 def run_action_script():
-    command = ['python', 'action.py'] + sys.argv[1:]
+    command = ['python', 'action.py'] + sys.argv[3:]
     # 使用 subprocess 运行 action.py
     subprocess.run(command)
 
