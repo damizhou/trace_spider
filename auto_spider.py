@@ -68,9 +68,15 @@ async def handle_server(server):
             docker_run_command = (f'docker run --volume /root/{container_name}:/app -e HOST_UID=$(id -u $USER) '
                                   f'-e HOST_GID=$(id -g $USER) --privileged -itd --name {container_name} '
                                   f'chuanzhoupan/trace_spider:0712 /bin/bash')
+            # init_docker_commands = [
+            #     f'git clone --branch vpn https://github.com/damizhou/trace_spider.git {container_name}',
+            #     f'git clone https://github.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux',
+            #     docker_run_command
+            # ]
+
             init_docker_commands = [
-                f'git clone --branch vpn https://github.com/damizhou/trace_spider.git {container_name}',
-                f'git clone https://github.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux',
+                f'git clone --branch vpn https://gitee.com/damizhou/trace_spider.git {container_name}',
+                f'git clone https://gitee.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux',
                 docker_run_command
             ]
             for init_docker_command in init_docker_commands:
@@ -96,6 +102,7 @@ async def handle_server(server):
                     file.write(f"{url}\n")
 
             await async_upload_file(sftp, local_current_urls_path, remote_current_urls_path)
+            time.sleep(5)
 
             # 配置vpn
             if vpn_info:
@@ -113,6 +120,7 @@ async def handle_server(server):
                 remote_file = f"/root/{container_name}/clash-for-linux/conf/config.yaml"
                 # vpn配置上传到服务器
                 await async_upload_file(sftp, upload_file, remote_file)
+                time.sleep(5)
 
                 if vpn_info["udp"]:
                     protocol = "udp"
