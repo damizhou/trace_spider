@@ -57,10 +57,11 @@ async def handle_server(server):
         sever_commands = [
             'sudo apt update',
             'sudo apt install -y docker.io',
+            'docker load -i trace_spider.tar',
             'sudo ethtool -K docker0 tso off gso off gro off',
         ]
-        # for sever_command in sever_commands:
-        #     await async_exec_command(client, sever_command)
+        for sever_command in sever_commands:
+            await async_exec_command(client, sever_command)
         spider_commands = []  # 用于存储异步任务的列表
         # 初始化docker
         for docker_info in server["docker_infos"]:
@@ -90,17 +91,20 @@ async def handle_server(server):
             main_commmand = f'docker exec {container_name} python /app/main.py {server["loaction"]} {server["os"]} '
 
             # 拆分任务列表,并上传到对应的docker
-            with open(f"url_list.txt", 'r') as file:
-                lines = file.readlines()
-            urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
-            start_url_index = docker_info["docker_index"] * server["each_docker_task_count"]
-            end_url_index = start_url_index + server["each_docker_task_count"]
-            local_current_urls_path = f'current_docker_url_list.txt'
+            # with open(f"url_list.txt", 'r') as file:
+            #     lines = file.readlines()
+            # urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
+            # start_url_index = docker_info["docker_index"] * server["each_docker_task_count"]
+            # end_url_index = start_url_index + server["each_docker_task_count"]
+            # local_current_urls_path = f'current_docker_url_list.txt'
             remote_current_urls_path = f"/root/{container_name}/current_docker_url_list.txt"
-            with open(local_current_urls_path, 'w') as file:
-                for url in urls[start_url_index: end_url_index]:
-                    file.write(f"{url}\n")
+            # with open(local_current_urls_path, 'w') as file:
+            #     for url in urls[start_url_index: end_url_index]:
+            #         file.write(f"{url}\n")
 
+            # 上传任务列表到对应的docker
+            local_current_urls_path = f'url_list.txt'
+            remote_current_urls_path = f"/root/{container_name}/current_docker_url_list.txt"
             await async_upload_file(sftp, local_current_urls_path, remote_current_urls_path)
             time.sleep(5)
 
