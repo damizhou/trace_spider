@@ -49,11 +49,11 @@ def handle_server(server):
     password = os.environ.get('SERVER_PASSWORD', server["password"])
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    each_docker_task_count = server["each_docker_task_count"]
     try:
         # 连接服务器,并初始化服务器
         client.connect(hostname, username='root', password=password)
         sftp = client.open_sftp()
+        print(f"{hostname}连接成功")
         # 执行 git clone 命令
         sever_commands = [
             'sudo apt update',
@@ -98,8 +98,6 @@ def handle_server(server):
                 # 获取vpn配置
                 vpn_info = vpn_info["vpn_yml_info"]
 
-
-
                 # 配置vpn
                 local_file = "./clash/config.yaml"
                 vpn_info_str = '- ' + json.dumps(vpn_info)
@@ -115,7 +113,7 @@ def handle_server(server):
                 remote_file = f"/root/{container_name}/clash-for-linux/conf/config.yaml"
                 # vpn配置上传到服务器
                 async_upload_file(sftp, upload_file, remote_file)
-                # time.sleep(5)
+                time.sleep(5)
 
                 if vpn_info["udp"]:
                     protocol = "udp"
@@ -129,7 +127,7 @@ def handle_server(server):
                 spider_commands.append(main_commmand)
 
             # 拆分任务列表,并上传到对应的docker
-            with open(f"url_list.txt", 'r') as file:
+            with open(f"url_list.txt", 'r', encoding='utf-8') as file:
                 lines = file.readlines()
             urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
             start_url_index = index * server["each_docker_task_count"] % len(urls)
