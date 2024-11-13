@@ -27,7 +27,7 @@ secret: 955af99a505bb4cbc519eeadf1fe1558fbb53a83f65905a436758253fc130d05
 external-ui: /app/clash-for-linux/dashboard/public
 
 proxies:
-  - {"name": "jpn", "type": "trojan", "server": "jpn.zlfbgac.site", "port": "443", "password": "511bf2c7-0537-4992-9e6c-f45d0f0ea8a8", "sni": "jpn.zlfbgac.site", "udp": true, "skip-cert-verify": true}
+  - {"name": "usa", "type": "trojan", "server": "usa.zlfbgac.site", "port": "443", "password": "d4018c21-d538-49ed-b23f-e4d2921eecc7", "sni": "usa.zlfbgac.site", "udp": true, "skip-cert-verify": true}
 proxy-groups:
   - name: 🚀 节点选择
     type: select
@@ -36,21 +36,21 @@ proxy-groups:
       - 🔯 故障转移
       - 🔮 负载均衡
       - DIRECT
-      - jpn
+      - usa
   - name: ♻️ 自动选择
     type: url-test
     url: http://www.gstatic.com/generate_204
     interval: 300
     tolerance: 50
     proxies:
-      - jpn
+      - usa
   - name: 🔯 故障转移
     type: fallback
     url: http://www.gstatic.com/generate_204
     interval: 180
     proxies:
       - DIRECT
-      - jpn
+      - usa
   - name: 🔮 负载均衡
     type: load-balance
     strategy: consistent-hashing
@@ -58,17 +58,17 @@ proxy-groups:
     interval: 180
     proxies:
       - DIRECT
-      - jpn
+      - usa
   - name: 🎯 全球直连
     type: select
     proxies:
-      - jpn
+      - usa
   - name: 🛑 全球拦截
     type: select
     proxies:
       - REJECT
       - DIRECT
-      - jpn
+      - usa
   - name: 🐟 漏网之鱼
     type: select
     proxies:
@@ -77,7 +77,7 @@ proxy-groups:
       - ♻️ 自动选择
       - 🔯 故障转移
       - 🔮 负载均衡
-      - jpn
+      - usa
 rules:
   - DOMAIN-SUFFIX,acl4.ssr,🎯 全球直连
   - DOMAIN-SUFFIX,ip6-localhost,🎯 全球直连

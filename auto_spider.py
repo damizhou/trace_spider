@@ -7,9 +7,9 @@ import paramiko
 import os
 from sever_info import servers_info
 
-
+index = 0
 # 异步执行并监控命令输出
-async def async_exec_command(client, command):
+def async_exec_command(client, command):
     print(f"{command}")
     stdin, stdout, stderr = client.exec_command(command)
 
@@ -18,7 +18,7 @@ async def async_exec_command(client, command):
         line = stdout.readline()
         if line:
             print(f"{line.strip()}")
-        await asyncio.sleep(0.1)  # 异步等待，避免阻塞
+        time.sleep(1)  # 异步等待，避免阻塞
 
     # 读取剩余的输出
     err = stderr.read().decode()
@@ -27,14 +27,14 @@ async def async_exec_command(client, command):
 
 
 def run_command(ssh, command):
+    print(command)
     stdin, stdout, stderr = ssh.exec_command(command)
-    print(f"{command}")
     print(stdout.read().decode())
     print(stderr.read().decode())
 
 
 # 异步上传文件
-async def async_upload_file(sftp, local_file, remote_file):
+def async_upload_file(sftp, local_file, remote_file):
     if os.path.exists(local_file):
         sftp.put(local_file, remote_file)
         print(f"File '{local_file}' successfully uploaded to '{remote_file}'")
@@ -43,7 +43,7 @@ async def async_upload_file(sftp, local_file, remote_file):
 
 
 # 在服务器上异步执行一系列命令
-async def handle_server(server):
+def handle_server(server):
     hostname = server["hostname"]
     password = os.environ.get('SERVER_PASSWORD', server["password"])
     client = paramiko.SSHClient()
@@ -57,59 +57,60 @@ async def handle_server(server):
         sever_commands = [
             'sudo apt update',
             'sudo apt install -y docker.io',
-            'docker load -i trace_spider.tar',
             'sudo ethtool -K docker0 tso off gso off gro off',
         ]
         for sever_command in sever_commands:
-            await async_exec_command(client, sever_command)
+            async_exec_command(client, sever_command)
         spider_commands = []  # 用于存储异步任务的列表
         # 初始化docker
-        for docker_info in server["docker_infos"]:
-            container_name = docker_info["docker_name"] + str(docker_info["docker_index"])
+        for vpn_info in server["vpn_infos"]:
+            container_name = server["docker_basename"] + str(index)
+            init_docker_commands = [
+                f'git clone --branch openworld https://github.com/damizhou/trace_spider.git {container_name}',
+            ]
             docker_run_command = (f'docker run --volume /root/{container_name}:/app -e HOST_UID=$(id -u $USER) '
                                   f'-e HOST_GID=$(id -g $USER) --privileged -itd --name {container_name} '
                                   f'chuanzhoupan/trace_spider:0712 /bin/bash')
-            # init_docker_commands = [
-            #     f'git clone --branch vpn https://github.com/damizhou/trace_spider.git {container_name}',
-            #     f'git clone https://github.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux',
-            #     docker_run_command
-            # ]
 
-            init_docker_commands = [
-                f'git clone --branch vpn https://gitee.com/damizhou/trace_spider.git {container_name}',
-                f'git clone https://gitee.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux',
-                docker_run_command
-            ]
-            for init_docker_command in init_docker_commands:
-                await async_exec_command(client, init_docker_command)
-
-            time.sleep(5)
-            await async_exec_command(client, f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off')
-
-            # 获取vpn配置
-            vpn_info = docker_info["vpn_yml_info"]
             main_commmand = f'docker exec {container_name} python /app/main.py {server["loaction"]} {server["os"]} '
+            if vpn_info["vpn_yml_info"] == {}:
+                init_docker_commands.append(docker_run_command)
+                for init_docker_command in init_docker_commands:
+                    async_exec_command(client, init_docker_command)
+                main_commmand += f'novpn'
+                spider_commands.append(main_commmand)
+            else:
+                init_docker_commands.append(f'git clone https://github.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux')
+                init_docker_commands.append(docker_run_command)
 
-            # 拆分任务列表,并上传到对应的docker
-            # with open(f"url_list.txt", 'r') as file:
-            #     lines = file.readlines()
-            # urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
-            # start_url_index = docker_info["docker_index"] * server["each_docker_task_count"]
-            # end_url_index = start_url_index + server["each_docker_task_count"]
-            # local_current_urls_path = f'current_docker_url_list.txt'
-            remote_current_urls_path = f"/root/{container_name}/current_docker_url_list.txt"
-            # with open(local_current_urls_path, 'w') as file:
-            #     for url in urls[start_url_index: end_url_index]:
-            #         file.write(f"{url}\n")
+                for init_docker_command in init_docker_commands:
+                    async_exec_command(client, init_docker_command)
 
-            # 上传任务列表到对应的docker
-            local_current_urls_path = f'url_list.txt'
-            remote_current_urls_path = f"/root/{container_name}/current_docker_url_list.txt"
-            await async_upload_file(sftp, local_current_urls_path, remote_current_urls_path)
-            time.sleep(5)
+                # time.sleep(5)
+                async_exec_command(client, f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off')
 
-            # 配置vpn
-            if vpn_info:
+                # 获取vpn配置
+                vpn_info = vpn_info["vpn_yml_info"]
+
+                # 拆分任务列表,并上传到对应的docker
+                with open(f"url_list.txt", 'r') as file:
+                    lines = file.readlines()
+                urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
+                start_url_index = index * server["each_docker_task_count"] % len(urls)
+                end_url_index = start_url_index + server["each_docker_task_count"]
+                local_current_urls_path = f'current_docker_url_list.txt'
+                remote_current_urls_path = f"/root/{container_name}/current_docker_url_list.txt"
+                with open(local_current_urls_path, 'w') as file:
+                    for url in urls[start_url_index: end_url_index]:
+                        file.write(f"{url}\n")
+
+                # 上传任务列表到对应的docker
+                local_current_urls_path = f'url_list.txt'
+                remote_current_urls_path = f"/root/{container_name}/current_docker_url_list.txt"
+                async_upload_file(sftp, local_current_urls_path, remote_current_urls_path)
+                # time.sleep(5)
+
+                # 配置vpn
                 local_file = "./clash/config.yaml"
                 vpn_info_str = '- ' + json.dumps(vpn_info)
                 pattern = r"- \{ name: 'vpnnodename'.*?\}"
@@ -123,21 +124,19 @@ async def handle_server(server):
                     file.write(updated_yml_content)
                 remote_file = f"/root/{container_name}/clash-for-linux/conf/config.yaml"
                 # vpn配置上传到服务器
-                await async_upload_file(sftp, upload_file, remote_file)
-                time.sleep(5)
+                async_upload_file(sftp, upload_file, remote_file)
+                # time.sleep(5)
 
                 if vpn_info["udp"]:
                     protocol = "udp"
                 else:
                     protocol = "tcp"
 
-                main_commmand += f'{docker_info["vpn_location"]} {vpn_info["type"]} {protocol}'
-            else:
-                main_commmand += f'novpn'
+                main_commmand += f'{vpn_info["name"]} {vpn_info["type"]} {protocol}'
 
-            # 开启爬虫命令
-            # 收集任务而不是立即等待
-            spider_commands.append(main_commmand)
+                # 开启爬虫命令
+                # 收集任务而不是立即等待
+                spider_commands.append(main_commmand)
 
         # 创建线程列表
         threads = []
@@ -161,8 +160,18 @@ async def handle_server(server):
 
 # 主函数：并行处理所有服务器
 async def main():
-    tasks = [handle_server(server) for server in servers_info]
-    await asyncio.gather(*tasks)
+    # 创建线程列表
+    sever_threads = []
+
+    # 启动线程
+    for server in servers_info:
+        thread = threading.Thread(target=handle_server, args=(server,))
+        thread.start()
+        sever_threads.append(thread)
+
+    # 等待所有线程完成
+    for thread in sever_threads:
+        thread.join()
 
 
 # 运行主程序

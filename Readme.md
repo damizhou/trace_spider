@@ -47,7 +47,7 @@ python main.py
 2. `analyze`目录下是流量分析脚本
    - `flows_packets`需要修改代码中的本机IP，改为实际的本机IP
 3. 关闭网卡合并包，每次启动linux都要重新运行。包括第物理机和docker
-
+4. pcap命名规则：收集设备物理位置_收集设备系统_vpn位置_vpn协议_tcp/udp_时间_网址
 ## 代码更新
 
 - 2024年5月31日
