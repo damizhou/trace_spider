@@ -44,6 +44,7 @@ def async_upload_file(sftp, local_file, remote_file):
 
 # 在服务器上异步执行一系列命令
 def handle_server(server):
+    global index
     hostname = server["hostname"]
     password = os.environ.get('SERVER_PASSWORD', server["password"])
     client = paramiko.SSHClient()
@@ -59,8 +60,8 @@ def handle_server(server):
             'sudo apt install -y docker.io',
             'sudo ethtool -K docker0 tso off gso off gro off',
         ]
-        for sever_command in sever_commands:
-            async_exec_command(client, sever_command)
+        # for sever_command in sever_commands:
+        #     async_exec_command(client, sever_command)
         spider_commands = []  # 用于存储异步任务的列表
         # 初始化docker
         for vpn_info in server["vpn_infos"]:
@@ -73,10 +74,15 @@ def handle_server(server):
                                   f'chuanzhoupan/trace_spider:0712 /bin/bash')
 
             main_commmand = f'docker exec {container_name} python /app/main.py {server["loaction"]} {server["os"]} '
+
             if vpn_info["vpn_yml_info"] == {}:
                 init_docker_commands.append(docker_run_command)
                 for init_docker_command in init_docker_commands:
                     async_exec_command(client, init_docker_command)
+
+                time.sleep(5)
+                async_exec_command(client, f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off')
+
                 main_commmand += f'novpn'
                 spider_commands.append(main_commmand)
             else:
@@ -86,29 +92,13 @@ def handle_server(server):
                 for init_docker_command in init_docker_commands:
                     async_exec_command(client, init_docker_command)
 
-                # time.sleep(5)
+                time.sleep(5)
                 async_exec_command(client, f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off')
 
                 # 获取vpn配置
                 vpn_info = vpn_info["vpn_yml_info"]
 
-                # 拆分任务列表,并上传到对应的docker
-                with open(f"url_list.txt", 'r') as file:
-                    lines = file.readlines()
-                urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
-                start_url_index = index * server["each_docker_task_count"] % len(urls)
-                end_url_index = start_url_index + server["each_docker_task_count"]
-                local_current_urls_path = f'current_docker_url_list.txt'
-                remote_current_urls_path = f"/root/{container_name}/current_docker_url_list.txt"
-                with open(local_current_urls_path, 'w') as file:
-                    for url in urls[start_url_index: end_url_index]:
-                        file.write(f"{url}\n")
 
-                # 上传任务列表到对应的docker
-                local_current_urls_path = f'url_list.txt'
-                remote_current_urls_path = f"/root/{container_name}/current_docker_url_list.txt"
-                async_upload_file(sftp, local_current_urls_path, remote_current_urls_path)
-                # time.sleep(5)
 
                 # 配置vpn
                 local_file = "./clash/config.yaml"
@@ -138,6 +128,22 @@ def handle_server(server):
                 # 收集任务而不是立即等待
                 spider_commands.append(main_commmand)
 
+            # 拆分任务列表,并上传到对应的docker
+            with open(f"url_list.txt", 'r') as file:
+                lines = file.readlines()
+            urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
+            start_url_index = index * server["each_docker_task_count"] % len(urls)
+            end_url_index = start_url_index + server["each_docker_task_count"]
+            local_current_urls_path = f'current_docker_url_list.txt'
+            remote_current_urls_path = f"/root/{container_name}/current_docker_url_list.txt"
+            with open(local_current_urls_path, 'w') as file:
+                for url in urls[start_url_index: end_url_index]:
+                    file.write(f"{url}\n")
+
+            # 上传任务列表到对应的docker
+            async_upload_file(sftp, local_current_urls_path, remote_current_urls_path)
+
+            index = index + 1
         # 创建线程列表
         threads = []
 
