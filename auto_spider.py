@@ -44,7 +44,6 @@ def async_upload_file(sftp, local_file, remote_file):
 
 # 在服务器上异步执行一系列命令
 def handle_server(server):
-    global index
     hostname = server["hostname"]
     password = os.environ.get('SERVER_PASSWORD', server["password"])
     client = paramiko.SSHClient()
@@ -65,7 +64,8 @@ def handle_server(server):
         spider_commands = []  # 用于存储异步任务的列表
         # 初始化docker
         for vpn_info in server["vpn_infos"]:
-            container_name = server["docker_basename"] + str(index)
+            docker_index = vpn_info["docker_index"]
+            container_name = server["docker_basename"] + str(docker_index)
             init_docker_commands = [
                 f'git clone --branch openworld https://github.com/damizhou/trace_spider.git {container_name}',
             ]
@@ -130,9 +130,9 @@ def handle_server(server):
             with open(f"url_list.txt", 'r', encoding='utf-8') as file:
                 lines = file.readlines()
             urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
-            start_url_index = index * server["each_docker_task_count"] % len(urls)
+            start_url_index = docker_index * server["each_docker_task_count"] % len(urls)
             end_url_index = start_url_index + server["each_docker_task_count"]
-            local_current_urls_path = f'current_docker_url_list.txt'
+            local_current_urls_path = f'{container_name}_url_list.txt'
             remote_current_urls_path = f"/root/{container_name}/current_docker_url_list.txt"
             with open(local_current_urls_path, 'w') as file:
                 for url in urls[start_url_index: end_url_index]:
@@ -141,7 +141,6 @@ def handle_server(server):
             # 上传任务列表到对应的docker
             async_upload_file(sftp, local_current_urls_path, remote_current_urls_path)
 
-            index = index + 1
         # 创建线程列表
         threads = []
 
