@@ -7,9 +7,9 @@ class TraceSpider(scrapy.Spider):
     name = "trace"
     allowed_domains = [task_instance.current_allowed_domain]
     start_urls = [task_instance.current_start_url]
-    custom_settings = {
-        'DEPTH_LIMIT': 1  # 设置爬取深度为 1
-    }
+    # custom_settings = {
+    #     'DEPTH_LIMIT': 1  # 设置爬取深度为 1
+    # }
 
     def parse(self, response):
         if 'archive' in response.url:

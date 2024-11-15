@@ -134,7 +134,7 @@ def handle_server(server):
             end_url_index = start_url_index + server["each_docker_task_count"]
             local_current_urls_path = f'{container_name}_url_list.txt'
             remote_current_urls_path = f"/root/{container_name}/current_docker_url_list.txt"
-            with open(local_current_urls_path, 'w') as file:
+            with open(local_current_urls_path, 'w', encoding='utf-8') as file:
                 for url in urls[start_url_index: end_url_index]:
                     file.write(f"{url}\n")
 
