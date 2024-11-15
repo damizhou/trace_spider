@@ -59,8 +59,8 @@ def handle_server(server):
             'sudo apt install -y docker.io',
             'sudo ethtool -K docker0 tso off gso off gro off',
         ]
-        # for sever_command in sever_commands:
-        #     async_exec_command(client, sever_command)
+        for sever_command in sever_commands:
+            async_exec_command(client, sever_command)
         spider_commands = []  # 用于存储异步任务的列表
         # 初始化docker
         for vpn_info in server["vpn_infos"]:
