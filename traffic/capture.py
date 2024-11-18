@@ -12,7 +12,7 @@ should_stop_capture = False
 
 def capture(TASK_NAME, formatted_time, parsers):
     current_time = datetime.now()
-    current_data = current_time.strftime("%H%M%S")
+    current_data = current_time.strftime("%Y%m%d")
     dataDir = os.path.join(project_path, "data", current_data)
     os.makedirs(dataDir, exist_ok=True)
     # 格式化输出
