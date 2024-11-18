@@ -127,7 +127,7 @@ def handle_server(server):
                 spider_commands.append(main_commmand)
 
             # 拆分任务列表,并上传到对应的docker
-            with open(f"all_websitelist.txt", 'r', encoding='utf-8') as file:
+            with open(f"url_list.txt", 'r', encoding='utf-8') as file:
                 lines = file.readlines()
             urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
             start_url_index = docker_index * server["each_docker_task_count"] % len(urls)
