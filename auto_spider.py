@@ -67,7 +67,7 @@ def handle_server(server):
             docker_index = vpn_info["docker_index"]
             container_name = server["docker_basename"] + str(docker_index)
             init_docker_commands = [
-                f'git clone --branch openworld https://github.com/damizhou/trace_spider.git {container_name}',
+                f'git clone --branch vpn https://gitee.com/damizhou/trace_spider.git {container_name}',
             ]
             docker_run_command = (f'docker run --volume /root/{container_name}:/app -e HOST_UID=$(id -u $USER) '
                                   f'-e HOST_GID=$(id -g $USER) --privileged -itd --name {container_name} '
@@ -86,7 +86,7 @@ def handle_server(server):
                 main_commmand += f'novpn'
                 spider_commands.append(main_commmand)
             else:
-                init_docker_commands.append(f'git clone https://github.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux')
+                init_docker_commands.append(f'git clone https://gitee.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux')
                 init_docker_commands.append(docker_run_command)
 
                 for init_docker_command in init_docker_commands:
@@ -127,7 +127,7 @@ def handle_server(server):
                 spider_commands.append(main_commmand)
 
             # 拆分任务列表,并上传到对应的docker
-            with open(f"url_list.txt", 'r', encoding='utf-8') as file:
+            with open(f"all_websitelist.txt", 'r', encoding='utf-8') as file:
                 lines = file.readlines()
             urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
             start_url_index = docker_index * server["each_docker_task_count"] % len(urls)
