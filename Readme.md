@@ -35,8 +35,28 @@ sudo ethtool -K eth0 tso off gso off gro off
 ```
 8. 修改url_list.txt中的需要爬取的URL列表
 9. 运行程序，在`app`下执行
+9.1 对于novpn的采集
 ```
-python main.py
+python main.py sever_location sever_os novpn
+```
+sever_location 是服务器位置
+sever_os       是服务器的系统
+例如
+```
+python /app/main.py hz ubuntu24.04 novpn
+```
+9.1 对于使用vpn的采集
+```
+python main.py sever_location sever_os vpn_loaction vpn_type udp/tpc
+```
+sever_location 是服务器位置
+sever_os       是服务器的系统
+vpn_loaction   是vpn节点位置
+vpn_type       是vpn节点协议
+udp/tpc        是指clash配置中是否使用udp，没有类似配置默认就是tcp
+例如
+```
+python main.py hz ubuntu24.04 jpn trojan udp
 ```
 10. `logs`目录下是日志，日志以日期分割。例如`20240528.log`、`20240529.log`
 

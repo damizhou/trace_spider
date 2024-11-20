@@ -15,3 +15,5 @@ analyze/20240725_17_55_04_youtube.com.pcap
 sever_info.py
 current_docker_url_list.txt
 xx-net/
+*url_list.txt
+clash/upload_config.yaml
