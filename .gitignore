@@ -16,4 +16,4 @@ sever_info.py
 current_docker_url_list.txt
 xx-net/
 *url_list.txt
-clash/upload_config.yaml
+*config.yaml
