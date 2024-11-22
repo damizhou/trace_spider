@@ -1,6 +1,8 @@
 import subprocess
 import sys
 from urllib.parse import unquote
+
+from tools.math_tool import generate_normal_random
 from utils.chrome import is_docker, create_chrome_driver
 from utils.logger import logger, setup_url_logger
 from utils.config import config
@@ -89,9 +91,9 @@ def start_task():
     urls = ['https://zh.wikipedia.org/wiki/2018年3月中國',
             'https://zh.wikipedia.org/wiki/反叛的御醫：毛澤東私人醫生李志綏和他未完成的回憶錄']
     for url in urls:
-        url_logger.info(f"原始URL:{decoded_url}")
+        url_logger.info(f"原始URL:{url}")
         browser.get(url)
-        time.sleep(5)
+        time.sleep(generate_normal_random())
         decoded_url = unquote(browser.current_url)
         url_logger.info(f"重定向URL:{decoded_url}")
     logger.info(f"清理浏览器进程")
