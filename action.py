@@ -89,7 +89,8 @@ def start_task():
         urls = file.readlines()
 
     for url in urls:
-        url_logger.info(f"original_url:{url}")
+        stand_url = url.replace('\n', '')
+        url_logger.info(f"original_url:{stand_url}")
         browser.get(url)
         time.sleep(generate_normal_random())
         decoded_url = unquote(browser.current_url)
