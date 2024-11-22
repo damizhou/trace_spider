@@ -62,9 +62,9 @@ def setup_url_logger():
     traffic_name = task_instance.traffic_name
     # 创建一个handler，用于写入日志文件
     log_file = traffic_name.replace(".pcap", ".log")
-
+    allowed_domain = task_instance.current_allowed_domain
     # 创建一个logger
-    logger = logging.getLogger(log_file.split("/").split(".")[0])
+    logger = logging.getLogger(allowed_domain)
     logger.setLevel(logging.DEBUG)  # 可以根据需要设置不同的日志级别
 
     # 用于写入日志文件，当文件大小超过100MB时进行滚动
