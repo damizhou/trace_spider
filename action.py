@@ -2,7 +2,7 @@ import subprocess
 import sys
 from urllib.parse import unquote
 from utils.chrome import is_docker, create_chrome_driver
-from utils.logger import logger, setup_url_logger
+from utils.logger import logger
 from utils.config import config
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
@@ -82,18 +82,19 @@ def start_task():
 
     traffic_thread.start()
     browser = create_chrome_driver()
-    url_logger = setup_url_logger()
     with open("url_list.txt", 'r') as file:
         lines = file.readlines()
     # urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
     urls = ['https://zh.wikipedia.org/wiki/2018年3月中國',
             'https://zh.wikipedia.org/wiki/反叛的御醫：毛澤東私人醫生李志綏和他未完成的回憶錄']
     for url in urls:
-        url_logger.info(f"原始URL:{decoded_url}")
-        browser.get(url)
+        with open(task_instance.traffic_name.replace('.pcap', '.txt'), "a", encoding="utf-8") as file:
+            file.write(f"原始URL:{decoded_url}")
+            browser.get(url)
+            time.sleep(5)
+            decoded_url = unquote(browser.current_url)
+            file.write(f"重定向URL:{decoded_url}")
         time.sleep(5)
-        decoded_url = unquote(browser.current_url)
-        url_logger.info(f"重定向URL:{decoded_url}")
     logger.info(f"清理浏览器进程")
     kill_chrome_processes()
     logger.info(f"等待TCP结束挥手完成")
