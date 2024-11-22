@@ -7,6 +7,8 @@ import subprocess
 import psutil
 from datetime import datetime
 
+from utils.task import task_instance
+
 should_stop_capture = False
 
 
@@ -25,7 +27,7 @@ def capture(TASK_NAME, formatted_time, parsers):
         filename += f"{parser}_"
 
     traffic_name = os.path.join(traffic_dir, f"{filename}{formatted_time}_{TASK_NAME}.pcap")
-
+    task_instance.traffic_name = traffic_name
     # 设置tcpdump命令的参数
     tcpdump_command = [
         "tcpdump",

@@ -15,6 +15,7 @@ class Task:
             self.file_path = 'current_docker_url_list.txt'
             self.urls = self.read_file()
             self.requesturlNum = 0
+            self.traffic_name = ''
             with open('./utils/running.json', 'r') as f:
                 params = json.load(f)
                 self.current_index = params['currentIndex']

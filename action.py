@@ -1,8 +1,8 @@
 import subprocess
 import sys
-
-from utils.chrome import is_docker
-from utils.logger import logger
+from urllib.parse import unquote
+from utils.chrome import is_docker, create_chrome_driver
+from utils.logger import logger, setup_url_logger, url_logger
 from utils.config import config
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
@@ -81,11 +81,19 @@ def start_task():
     traffic_thread = threading.Thread(target=traffic)
 
     traffic_thread.start()
-
-    start_spider()
-    logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面")
-    time.sleep(10)
-
+    browser = create_chrome_driver()
+    setup_url_logger()
+    with open("url_list.txt", 'r') as file:
+        lines = file.readlines()
+    # urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
+    urls = ['https://zh.wikipedia.org/wiki/2018年3月中國',
+            'https://zh.wikipedia.org/wiki/反叛的御醫：毛澤東私人醫生李志綏和他未完成的回憶錄']
+    for url in urls:
+        url_logger.info(f"原始URL:{decoded_url}")
+        browser.get(url)
+        time.sleep(5)
+        decoded_url = unquote(browser.current_url)
+        url_logger.info(f"重定向URL:{decoded_url}")
     logger.info(f"清理浏览器进程")
     kill_chrome_processes()
     logger.info(f"等待TCP结束挥手完成")
@@ -100,7 +108,7 @@ def start_task():
 
 
 if __name__ == "__main__":
-    if is_docker():
-        start_task()
-    else:
-        start_spider()
+    # if is_docker():
+    start_task()
+    # else:
+    #     start_spider()
