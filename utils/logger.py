@@ -90,5 +90,4 @@ def setup_url_logger():
     url_logger = logger
     return logger
 
-
 logger = setup_logging()
