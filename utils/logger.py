@@ -88,6 +88,7 @@ def setup_url_logger():
     logger.addHandler(console_handler)
 
     url_logger = logger
+    return logger
 
 
 logger = setup_logging()

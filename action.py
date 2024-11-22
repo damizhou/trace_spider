@@ -2,7 +2,7 @@ import subprocess
 import sys
 from urllib.parse import unquote
 from utils.chrome import is_docker, create_chrome_driver
-from utils.logger import logger, setup_url_logger, url_logger
+from utils.logger import logger, setup_url_logger
 from utils.config import config
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
@@ -82,7 +82,7 @@ def start_task():
 
     traffic_thread.start()
     browser = create_chrome_driver()
-    setup_url_logger()
+    url_logger = setup_url_logger()
     with open("url_list.txt", 'r') as file:
         lines = file.readlines()
     # urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
