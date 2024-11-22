@@ -40,6 +40,7 @@ class Task:
 
     @property
     def current_allowed_domain(self):
+        return 'zh.wikipedia.org'
         url_str = self.urls[self.current_index]
         if '{' in url_str:
             url_dict = json.loads(url_str)
