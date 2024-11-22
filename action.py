@@ -86,16 +86,14 @@ def start_task():
     browser = create_chrome_driver()
     url_logger = setup_url_logger()
     with open("url_list.txt", 'r') as file:
-        lines = file.readlines()
-    # urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
-    urls = ['https://zh.wikipedia.org/wiki/2018年3月中國',
-            'https://zh.wikipedia.org/wiki/反叛的御醫：毛澤東私人醫生李志綏和他未完成的回憶錄']
+        urls = file.readlines()
+
     for url in urls:
-        url_logger.info(f"原始URL:{url}")
+        url_logger.info(f"original_url:{url}")
         browser.get(url)
         time.sleep(generate_normal_random())
         decoded_url = unquote(browser.current_url)
-        url_logger.info(f"重定向URL:{decoded_url}")
+        url_logger.info(f"redirected_url:{decoded_url}")
     logger.info(f"清理浏览器进程")
     kill_chrome_processes()
     logger.info(f"等待TCP结束挥手完成")
