@@ -5,8 +5,6 @@ logs/
 data/
 utils/running.json
 *.csv
-test.py
-test1.py
 cookie.txt
 analyze/20240725_17_55_04_youtube.com.pcap
 *.pcap
@@ -17,3 +15,6 @@ current_docker_url_list.txt
 xx-net/
 *url_list.txt
 *config.yaml
+filelist.txt
+output_file.txt
+test*
