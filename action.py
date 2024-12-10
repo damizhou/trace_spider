@@ -2,7 +2,7 @@ import subprocess
 import sys
 
 from utils.chrome import is_docker
-from utils.logger import logger
+from utils.logger import logger, setup_url_logger
 from utils.config import config
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
@@ -81,7 +81,7 @@ def start_task():
     traffic_thread = threading.Thread(target=traffic)
 
     traffic_thread.start()
-
+    task_instance.url_logger = setup_url_logger()
     start_spider()
     logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面")
     time.sleep(10)

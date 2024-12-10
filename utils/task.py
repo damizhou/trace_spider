@@ -14,6 +14,7 @@ class Task:
         if not self._initialized:
             self.file_path = 'current_docker_url_list.txt'
             self.urls = self.read_file()
+            self.url_logger = None
             self.requesturlNum = 0
             with open('./utils/running.json', 'r') as f:
                 params = json.load(f)

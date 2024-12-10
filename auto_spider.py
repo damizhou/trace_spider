@@ -68,7 +68,7 @@ def handle_server(server):
             docker_index = vpn_info["docker_index"]
             container_name = server["docker_basename"] + str(docker_index)
             init_docker_commands = [
-                f'git clone --branch novpn https://github.com/damizhou/trace_spider.git {container_name}',
+                f'git clone --branch vpn https://github.com/damizhou/trace_spider.git {container_name}',
             ]
             docker_run_command = (f'docker run --volume ~/{container_name}:/app -e HOST_UID=$(id -u $USER) '
                                   f'-e HOST_GID=$(id -g $USER) --privileged -itd --name {container_name} '
