@@ -46,11 +46,12 @@ def async_upload_file(sftp, local_file, remote_file):
 def handle_server(server):
     hostname = server["hostname"]
     password = os.environ.get('SERVER_PASSWORD', server["password"])
+    username = os.environ.get('SERVER_PASSWORD', server["username"])
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     try:
         # 连接服务器,并初始化服务器
-        client.connect(hostname, username='root', password=password)
+        client.connect(hostname, username=username, password=password)
         sftp = client.open_sftp()
         print(f"{hostname}连接成功")
         # 执行 git clone 命令
@@ -67,9 +68,9 @@ def handle_server(server):
             docker_index = vpn_info["docker_index"]
             container_name = server["docker_basename"] + str(docker_index)
             init_docker_commands = [
-                f'git clone --branch vpn https://gitee.com/damizhou/trace_spider.git {container_name}',
+                f'git clone --branch novpn https://github.com/damizhou/trace_spider.git {container_name}',
             ]
-            docker_run_command = (f'docker run --volume /root/{container_name}:/app -e HOST_UID=$(id -u $USER) '
+            docker_run_command = (f'docker run --volume ~/{container_name}:/app -e HOST_UID=$(id -u $USER) '
                                   f'-e HOST_GID=$(id -g $USER) --privileged -itd --name {container_name} '
                                   f'chuanzhoupan/trace_spider:0712 /bin/bash')
 
@@ -86,7 +87,7 @@ def handle_server(server):
                 main_commmand += f'novpn'
                 spider_commands.append(main_commmand)
             else:
-                init_docker_commands.append(f'git clone https://gitee.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux')
+                init_docker_commands.append(f'git clone https://github.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux')
                 init_docker_commands.append(docker_run_command)
 
                 for init_docker_command in init_docker_commands:
@@ -110,7 +111,7 @@ def handle_server(server):
                 upload_file = "./clash/upload_config.yaml"
                 with open(upload_file, 'w', encoding='utf-8') as file:
                     file.write(updated_yml_content)
-                remote_file = f"/root/{container_name}/clash-for-linux/conf/config.yaml"
+                remote_file = f"{container_name}/clash-for-linux/conf/config.yaml"
                 # vpn配置上传到服务器
                 async_upload_file(sftp, upload_file, remote_file)
                 time.sleep(5)
@@ -133,11 +134,12 @@ def handle_server(server):
             start_url_index = docker_index * server["each_docker_task_count"] % len(urls)
             end_url_index = start_url_index + server["each_docker_task_count"]
             local_current_urls_path = f'{container_name}_url_list.txt'
-            remote_current_urls_path = f"/root/{container_name}/current_docker_url_list.txt"
+            remote_current_urls_path = f"{container_name}/current_docker_url_list.txt"
             with open(local_current_urls_path, 'w', encoding='utf-8') as file:
                 for url in urls[start_url_index: end_url_index]:
                     file.write(f"{url}\n")
-
+            print('local_current_urls_path', local_current_urls_path)
+            print('remote_current_urls_path', remote_current_urls_path)
             # 上传任务列表到对应的docker
             async_upload_file(sftp, local_current_urls_path, remote_current_urls_path)
 

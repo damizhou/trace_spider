@@ -76,11 +76,11 @@ class TraceSpiderDownloaderMiddleware:
     def __init__(self):
         logger.info(f"创建浏览器")
         self.browser = create_chrome_driver()
-        if 'youtube' in task_instance.current_allowed_domain:
-            self.browser.get('https://www.youtube.com/')
-            # Retrieve all cookies
-            add_cookies(self.browser)
-            self.browser.get('https://www.youtube.com/')
+        # if 'youtube' in task_instance.current_allowed_domain:
+        #     self.browser.get('https://www.youtube.com/')
+        #     # Retrieve all cookies
+        #     add_cookies(self.browser)
+        #     self.browser.get('https://www.youtube.com/')
 
     def __del__(self):
         logger.info(f"销毁浏览器")

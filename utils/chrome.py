@@ -80,7 +80,7 @@ def scroll_to_bottom(driver):
         times += 1
 
         delay = generate_normal_random() / times
-        print(f'加载等待延时: {delay}')
+        # print(f'加载等待延时: {delay}')
         time.sleep(delay)
 
         # 滚动到页面底部
