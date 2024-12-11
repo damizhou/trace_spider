@@ -34,8 +34,9 @@ class TraceSpider(scrapy.Spider):
                         continue
                     # 剔除类似登录注册页面
                     if any(keyword in full_url for keyword in task_instance.exclude_keywords):
-                        task_instance.url_logger.info(f"unquote(full_url):{unquote(full_url)}")
-                        task_instance.url_logger.info(f"full_url:{full_url}")
+                        task_instance.url_logger.info(f"exclde_unquote(full_url):{unquote(full_url)}")
+                        task_instance.url_logger.info(f"exclde_full_url:{full_url}")
                         continue
                     # 跟随提取的链接
+                    task_instance.url_logger.info(f"unexclde_unquote(full_url):{unquote(full_url)}")
                     yield response.follow(full_url, self.parse)
