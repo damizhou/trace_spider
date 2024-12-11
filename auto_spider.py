@@ -9,9 +9,12 @@ from sever_info import servers_info
 
 index = 0
 # 异步执行并监控命令输出
-def async_exec_command(client, command):
+def async_exec_command(client, command, password):
     print(f"{command}")
     stdin, stdout, stderr = client.exec_command(command)
+    # if 'sudo' in command:
+    #     stdin.write(f'{password}\n')
+    #     stdin.flush()
 
     while not stdout.channel.exit_status_ready():
         # 逐行读取输出
@@ -46,7 +49,7 @@ def async_upload_file(sftp, local_file, remote_file):
 def handle_server(server):
     hostname = server["hostname"]
     password = os.environ.get('SERVER_PASSWORD', server["password"])
-    username = os.environ.get('SERVER_PASSWORD', server["username"])
+    username = os.environ.get('SERVER_USERNAME', server["username"])
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     try:
@@ -56,19 +59,19 @@ def handle_server(server):
         print(f"{hostname}连接成功")
         # 执行 git clone 命令
         sever_commands = [
-            'sudo apt update',
-            'sudo apt install -y docker.io',
-            'sudo ethtool -K docker0 tso off gso off gro off',
+            # f"echo '{password}' | sudo -S apt update",
+            # f"echo '{password}' | sudo -S apt install -y docker.io",
+            f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off"
         ]
         for sever_command in sever_commands:
-            async_exec_command(client, sever_command)
+            async_exec_command(client, sever_command, password)
         spider_commands = []  # 用于存储异步任务的列表
         # 初始化docker
         for vpn_info in server["vpn_infos"]:
             docker_index = vpn_info["docker_index"]
             container_name = server["docker_basename"] + str(docker_index)
             init_docker_commands = [
-                f'git clone --branch vpn https://github.com/damizhou/trace_spider.git {container_name}',
+                f'git clone --branch vpn https://gitee.com/damizhou/trace_spider.git {container_name}',
             ]
             docker_run_command = (f'docker run --volume ~/{container_name}:/app -e HOST_UID=$(id -u $USER) '
                                   f'-e HOST_GID=$(id -g $USER) --privileged -itd --name {container_name} '
@@ -79,22 +82,22 @@ def handle_server(server):
             if vpn_info["vpn_yml_info"] == {}:
                 init_docker_commands.append(docker_run_command)
                 for init_docker_command in init_docker_commands:
-                    async_exec_command(client, init_docker_command)
+                    async_exec_command(client, init_docker_command, password)
 
                 time.sleep(5)
-                async_exec_command(client, f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off')
+                async_exec_command(client, f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off', password)
 
                 main_commmand += f'novpn'
                 spider_commands.append(main_commmand)
             else:
-                init_docker_commands.append(f'git clone https://github.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux')
+                init_docker_commands.append(f'git clone https://gitee.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux')
                 init_docker_commands.append(docker_run_command)
 
                 for init_docker_command in init_docker_commands:
-                    async_exec_command(client, init_docker_command)
+                    async_exec_command(client, init_docker_command, password)
 
                 time.sleep(5)
-                async_exec_command(client, f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off')
+                async_exec_command(client, f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off', password)
 
                 # 获取vpn配置
                 vpn_info = vpn_info["vpn_yml_info"]

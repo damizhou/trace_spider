@@ -5,6 +5,7 @@ import logging.handlers
 import os
 
 from utils.chrome import is_docker
+from utils.task import task_instance
 
 
 # 配置日志基本设置
@@ -51,23 +52,14 @@ def setup_logging():
     return logger
 
 # 配置日志基本设置
-def setup_url_logger():
-    logs_dir = os.path.join(project_path, "logs")
-    os.makedirs(logs_dir, exist_ok=True)
-
-    # 获取当前时间
-    current_time = datetime.now()
-    # 格式化输出
-    formatted_time = current_time.strftime("%Y%m%d")
-
-    filename = formatted_time + ".log"
-
-    # 创建一个logger
-    logger = logging.getLogger(filename.split(".")[0])
-    logger.setLevel(logging.DEBUG)  # 可以根据需要设置不同的日志级别
-
+def setup_url_logger(traffic_name):
+    global url_logger
     # 创建一个handler，用于写入日志文件
-    log_file = os.path.join(logs_dir, filename)
+    log_file = traffic_name.replace(".pcap", ".log")
+    allowed_domain = task_instance.current_allowed_domain
+    # 创建一个logger
+    logger = logging.getLogger(allowed_domain)
+    logger.setLevel(logging.DEBUG)  # 可以根据需要设置不同的日志级别
 
     # 用于写入日志文件，当文件大小超过100MB时进行滚动
     file_handler = logging.handlers.RotatingFileHandler(log_file, maxBytes=100 * 1024 * 1024, backupCount=3,
@@ -81,7 +73,7 @@ def setup_url_logger():
     # 定义handler的输出格式
     # formatter = logging.Formatter
     # ('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter('%(message)s')
     file_handler.setFormatter(formatter)
     console_handler.setFormatter(formatter)
 
@@ -89,6 +81,7 @@ def setup_url_logger():
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
 
+    url_logger = logger
     return logger
 
 logger = setup_logging()

@@ -12,7 +12,7 @@ from utils.chrome import create_chrome_driver, scroll_to_bottom, add_cookies
 import json
 from utils.task import task_instance
 import utils.archive as archive
-
+from urllib.parse import unquote
 
 class TraceSpiderSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
@@ -101,7 +101,8 @@ class TraceSpiderDownloaderMiddleware:
         task_instance.requesturlNum += 1
         self.browser.get(request.url)
         scroll_to_bottom(self.browser)
-        task_instance.url_logger.info(f"{self.browser.current_url}")
+        decoded_url = unquote(self.browser.current_url)
+        task_instance.url_logger.info(f"{decoded_url}")
         if 'youtube' in task_instance.current_allowed_domain:
             if 'watch' in request.url:
                 video_element = self.browser.find_element(By.TAG_NAME, "video")
