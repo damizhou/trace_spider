@@ -20,7 +20,7 @@ class Task:
                 params = json.load(f)
                 self.current_index = params['currentIndex']
             with open('exclude_keywords', 'r') as f:
-                self.exclude_keywords = [s.replace('\n', ' ') for s in f.readlines()]
+                self.exclude_keywords = [s.replace('\n', '') for s in f.readlines()]
             self._initialized = True
 
     def read_file(self):

@@ -55,7 +55,11 @@ def setup_logging():
 def setup_url_logger(traffic_name):
     global url_logger
     # 创建一个handler，用于写入日志文件
-    log_file = traffic_name.replace(".pcap", ".log")
+    log_file = traffic_name.replace(".pcap", ".log").replace("data", "url_logs")
+    directory_path = os.path.dirname(log_file)
+    os.makedirs(directory_path, exist_ok=True)
+    if is_docker():
+        os.chown(directory_path, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
     allowed_domain = task_instance.current_allowed_domain
     # 创建一个logger
     logger = logging.getLogger(allowed_domain)
