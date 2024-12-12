@@ -26,6 +26,7 @@ def main():
             json.dump({'currentIndex': task_instance.current_index}, f)
         logger.info(f"当前第{task_instance.current_index + 1}个任务，任务URL为{task_instance.current_start_url}，"
                     f"剩余时间{(len(task_instance.urls) - task_instance.current_index) * duration / 60}分钟")
+        kill_residue_processes()
         # 创建一个线程来运行 action.py
         action_thread = threading.Thread(target=run_action_script)
 
@@ -38,6 +39,13 @@ def main():
 
     logger.info(f"任务完成")
 
+def kill_residue_processes():
+    try:
+        # Run the command to kill all processes containing 'chrome'
+        subprocess.run(['sudo', 'pkill', '-f', 'action'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(['sudo', 'pkill', '-f', 'tcpdump'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred: {e.stderr.decode('utf-8')}")
 
 def dealVPN():
     # 执行带有 sudo 权限的 bash 脚本
