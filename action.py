@@ -19,11 +19,11 @@ crawlers_timer = None
 
 
 # 清除浏览器进程
-def kill_chrome_processes():
+def kill_residue_processes():
     try:
         # Run the command to kill all processes containing 'chrome'
-        result = subprocess.run(['sudo', 'pkill', '-f', 'chrome'], check=True, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
+        subprocess.run(['sudo', 'pkill', '-f', 'chrome'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(['sudo', 'pkill', '-f', 'tcpdump'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
         print(f"Error occurred: {e.stderr.decode('utf-8')}")
 
@@ -76,7 +76,7 @@ def start_spider():
 
 def start_task():
     logger.info(f"清理浏览器进程")
-    kill_chrome_processes()
+    kill_residue_processes()
     # 开流量收集
     traffic_thread = threading.Thread(target=traffic)
 
@@ -86,7 +86,7 @@ def start_task():
     time.sleep(10)
 
     logger.info(f"清理浏览器进程")
-    kill_chrome_processes()
+    kill_residue_processes()
     logger.info(f"等待TCP结束挥手完成")
     time.sleep(60)
 

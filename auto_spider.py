@@ -58,13 +58,16 @@ def handle_server(server):
         sftp = client.open_sftp()
         print(f"{hostname}连接成功")
         # 执行 git clone 命令
+
         sever_commands = [
             # f"echo '{password}' | sudo -S apt update",
             # f"echo '{password}' | sudo -S apt install -y docker.io",
+            f"docker stop $(docker ps -q)",
+            f"docker rm -f $(docker ps -a -q)",
+            f"echo '{password}' | sudo rm -rf trace_spider* spiderCode",
             f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
-            f'rm -rf spiderCode',
-            f'git clone --branch clash https://gitee.com/damizhou/trace_spider.git spiderCode',
-            f'git clone https://gitee.com/damizhou/clash-for-linux.git spiderCode/clash-for-linux',
+            f'git clone --branch clash https://github.com/damizhou/trace_spider.git spiderCode',
+            f'git clone https://gihub.com/damizhou/clash-for-linux.git spiderCode/clash-for-linux',
         ]
         for sever_command in sever_commands:
             async_exec_command(client, sever_command, password)
