@@ -5,6 +5,6 @@
 #{"allowed_domains": "x.com", "start_urls": "https://x.com/home"}
 #www.cztc.edu.cn
 
-{"allowed_domains": "zh.wikipedia.org", "start_urls": "https://zh.wikipedia.org/w/index.php?title=Special:%E6%89%80%E6%9C%89%E9%A1%B5%E9%9D%A2&from=%E9%99%B3%E6%85%B6+%28%E5%8D%97%E9%9F%93%29"}
+https://huggingface.co/datasets?modality=modality:text&language=language:zh&p=1&sort=trending
 
 #all_remind_webseitlist3

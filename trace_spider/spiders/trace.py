@@ -1,3 +1,5 @@
+import os
+
 import scrapy
 # 导入 logger 模块
 from utils.task import task_instance
@@ -8,48 +10,15 @@ class TraceSpider(scrapy.Spider):
     name = "trace"
     allowed_domains = [task_instance.current_allowed_domain]
     start_urls = task_instance.urls
-    # start_urls = ["https://zh.wikipedia.org/wiki/Linux",
-    #               "https://zh.wikipedia.org/wiki/Google_Chrome",
-    #               "https://zh.wikipedia.org/wiki/Android"]
-    # start_urls = ["https://zh.wikipedia.org/wiki/(1,1%27-%E5%8F%8C("
-    #               "%E4%BA%8C%E8%8B%AF%E5%9F%BA%E8%86%A6)%E4%BA%8C%E8%8C%82%E9%93%81)%E4%BA%8C%E6%B0%AF%E5%8C%96%E9%92"
-    #               "%AF"]
 
     def parse(self, response, **kwargs):
-        if 'wikipedia.org' in response.url:
-            if r'zh.wikipedia.org/w/' in response.url:
-                wiki_urls, nav_url = extract_wiki_url(response)
-                # for wiki_url in wiki_urls:
-                #     # 跟随提取的链接
-                #     yield response.follow(wiki_url, self.parse)
-                full_nav_url = response.urljoin(nav_url)
-                # 跟随提取的链接
-                yield response.follow(full_nav_url, self.parse)
-            elif r'zh.wikipedia.org/wiki/' in response.url:
-                extract_info_for_wikipedia(response)
-        else:
-            if 'archive' in response.url:
-                url_set_Str = response.body.decode('utf-8').split(' ')
-
-                for link in url_set_Str:
-                    # 检查 URL 是否以 http 或 https 开头
-                    if link.startswith('http'):
-                        # 跟随提取的链接
-                        yield response.follow(link, self.parse)
-            else:
-                a_links = response.css('a::attr(href)').getall()
-                if len(a_links) == 0:
-                    print(f'{response.url} 没有提取到 URL')
-                for link in a_links:
-                    # 拼接相对 URL 为绝对 URL
-                    full_url = response.urljoin(link)
-
-                    # 检查 URL 是否以 http 或 https 开头
-                    if full_url.startswith('http'):
-                        if 'analytics' in full_url and 'x.com' in full_url:
-                            continue
-                        # 剔除类似登录注册页面
-                        if any(keyword in full_url for keyword in task_instance.exclude_keywords):
-                            continue
-                        # 跟随提取的链接
-                        yield response.follow(full_url, self.parse)
+        a_links = response.css('a::attr(href)').getall()
+        for link in a_links:
+            # 拼接相对 URL 为绝对 URL
+            if '/datasets/' in link:
+                full_url = response.urljoin(link)
+                huggingface_data_folder = os.path.join(os.getcwd(), 'huggingface_data')
+                if not os.path.exists(huggingface_data_folder):
+                    os.makedirs(huggingface_data_folder)
+                with open(os.path.join(huggingface_data_folder, f"huggingface_dataset_all_url_list_mostdownloads.txt"), "a", encoding="utf-8") as f:
+                    f.write(full_url + "\n")

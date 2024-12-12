@@ -33,7 +33,7 @@ def traffic():
     current_time = datetime.now()
     # 格式化输出
     formatted_time = current_time.strftime("%Y%m%d_%H_%M_%S")
-    allowed_domain = "zh.wikipedia.org"
+    allowed_domain = task_instance.current_allowed_domain
     capture(allowed_domain, formatted_time)
 
 
@@ -89,7 +89,7 @@ def start_task():
     logger.info(f"清理浏览器进程")
     kill_chrome_processes()
     logger.info(f"等待TCP结束挥手完成")
-    time.sleep(60)
+    # time.sleep(60)
 
     # 关流量收集
     logger.info(f"关流量收集")

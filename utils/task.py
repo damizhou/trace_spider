@@ -16,46 +16,33 @@ class Task:
     def __init__(self):
         if not self._initialized:
             self.file_path = 'url_list.txt'
-            self.urls = self.read_file()
+            urls = []
+            for i in range(100):
+                # urls.append(
+                #     f'https://huggingface.co/datasets?modality=modality:text&language=language:zh&p={i}&sort=trending')
+                urls.append(
+                    f'https://huggingface.co/datasets?p={i}&sort=downloads')
+            self.urls = urls
             self.requesturlNum = 0
-            with open('./utils/running.json', 'r') as f:
-                params = json.load(f)
-                self.current_index = params['currentIndex']
+            self.current_index = 0
             with open('exclude_keywords', 'r') as f:
                 self.exclude_keywords = [s.replace('\n', ' ') for s in f.readlines()]
             self._initialized = True
 
     def read_file(self):
-        # with open(self.file_path, 'r') as file:
-        #     lines = file.readlines()
-        # urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
-        # return urls
-        # base_filename = 'wiki_url_list'
-        base_filename = 'wiki_remind_url_list'
-        wikipedia_data_folder = os.path.join(os.getcwd(), 'wikipedia_data')
-        recount_url_list_folder = os.path.join(wikipedia_data_folder, 'recount_url_list')
-        url_file_path = os.path.join(recount_url_list_folder, f"{base_filename}_{index}.txt")
-        with open(url_file_path, 'r') as file:
-            urls = file.readlines()
+        urls = []
+        for i in range(99):
+            urls.append(
+                f'https://huggingface.co/datasets?sort=downloads')
         return urls
 
     @property
     def current_start_url(self):
-        url_str = self.urls[self.current_index]
-        if '{' in url_str:
-            url_dict = json.loads(url_str)
-            return url_dict['start_urls']
-        else:
-            return r'https://' + self.urls[self.current_index]
+        return self.urls[self.current_index]
 
     @property
     def current_allowed_domain(self):
-        url_str = self.urls[self.current_index]
-        if '{' in url_str:
-            url_dict = json.loads(url_str)
-            return url_dict['allowed_domains']
-        else:
-            return self.urls[self.current_index]
+        return 'huggingface.co'
 
 
 task_instance = Task()
