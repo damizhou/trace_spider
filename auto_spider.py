@@ -61,7 +61,10 @@ def handle_server(server):
         sever_commands = [
             # f"echo '{password}' | sudo -S apt update",
             # f"echo '{password}' | sudo -S apt install -y docker.io",
-            f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off"
+            f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
+            f'rm -rf spiderCode clash-for-linux',
+            f'git clone --branch clash https://gitee.com/damizhou/trace_spider.git spiderCode',
+            f'git clone https://gitee.com/damizhou/clash-for-linux.git spiderCode/clash-for-linux',
         ]
         for sever_command in sever_commands:
             async_exec_command(client, sever_command, password)
@@ -71,34 +74,25 @@ def handle_server(server):
             docker_index = vpn_info["docker_index"]
             container_name = server["docker_basename"] + str(docker_index)
             init_docker_commands = [
-                f'git clone --branch clash https://gitee.com/damizhou/trace_spider.git {container_name}',
+                f'cp -r spiderCode {container_name}',
             ]
             docker_run_command = (f'docker run --volume ~/{container_name}:/app -e HOST_UID=$(id -u $USER) '
                                   f'-e HOST_GID=$(id -g $USER) --privileged -itd --name {container_name} '
                                   f'chuanzhoupan/trace_spider:0712 /bin/bash')
 
             main_commmand = f'docker exec {container_name} python /app/main.py {server["loaction"]} {server["os"]} '
+            init_docker_commands.append(docker_run_command)
 
+            for init_docker_command in init_docker_commands:
+                async_exec_command(client, init_docker_command, password)
+
+            time.sleep(5)
+            async_exec_command(client, f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off',
+                               password)
             if vpn_info["vpn_yml_info"] == {}:
-                init_docker_commands.append(docker_run_command)
-                for init_docker_command in init_docker_commands:
-                    async_exec_command(client, init_docker_command, password)
-
-                time.sleep(5)
-                async_exec_command(client, f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off', password)
-
                 main_commmand += f'novpn'
                 spider_commands.append(main_commmand)
             else:
-                init_docker_commands.append(f'git clone https://gitee.com/damizhou/clash-for-linux.git {container_name}/clash-for-linux')
-                init_docker_commands.append(docker_run_command)
-
-                for init_docker_command in init_docker_commands:
-                    async_exec_command(client, init_docker_command, password)
-
-                time.sleep(5)
-                async_exec_command(client, f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off', password)
-
                 # 获取vpn配置
                 vpn_info = vpn_info["vpn_yml_info"]
 
