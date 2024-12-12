@@ -62,7 +62,7 @@ def handle_server(server):
             # f"echo '{password}' | sudo -S apt update",
             # f"echo '{password}' | sudo -S apt install -y docker.io",
             f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
-            f'rm -rf spiderCode clash-for-linux',
+            f'rm -rf spiderCode',
             f'git clone --branch clash https://gitee.com/damizhou/trace_spider.git spiderCode',
             f'git clone https://gitee.com/damizhou/clash-for-linux.git spiderCode/clash-for-linux',
         ]
