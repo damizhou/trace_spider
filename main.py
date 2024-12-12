@@ -42,8 +42,7 @@ def main():
 def kill_residue_processes():
     try:
         # Run the command to kill all processes containing 'chrome'
-        subprocess.run(['sudo', 'pkill', '-f', 'action'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        subprocess.run(['sudo', 'pkill', '-f', 'tcpdump'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run('pgrep -f "action.py" | xargs kill -9', shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
         print(f"Error occurred: {e.stderr.decode('utf-8')}")
 
