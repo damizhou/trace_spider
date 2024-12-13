@@ -64,7 +64,7 @@ def handle_server(server):
             # f"echo '{password}' | sudo -S apt install -y docker.io",
             f"docker stop $(docker ps -q)",
             f"docker rm -f $(docker ps -a -q)",
-            f"echo '{password}' | sudo rm -rf trace_spider* spiderCode",
+            f"echo '{password}' | sudo -S rm -rf trace_spider* spiderCode",
             f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
             f'git clone --branch novpn https://github.com/damizhou/trace_spider.git spiderCode',
             f'git clone https://github.com/damizhou/clash-for-linux.git spiderCode/clash-for-linux',
