@@ -1,24 +1,33 @@
-from utils.logger import logger
+from utils.logger import logger, setup_url_logger
 import os
 import time
 import shutil
 from utils import project_path
 import subprocess
 import psutil
+from datetime import datetime
+
+from utils.task import task_instance
 
 should_stop_capture = False
 
 
-def capture(TASK_NAME, formatted_time):
-    dataDir = os.path.join(project_path, "data")
+def capture(TASK_NAME, formatted_time, parsers):
+    current_time = datetime.now()
+    current_data = current_time.strftime("%Y%m%d")
+    dataDir = os.path.join(project_path, "data", current_data)
     os.makedirs(dataDir, exist_ok=True)
+    # 格式化输出
     os.chown(dataDir, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
     traffic_dir = os.path.join(dataDir, TASK_NAME)
     os.makedirs(traffic_dir, exist_ok=True)
     os.chown(traffic_dir, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
+    filename = ''
+    for parser in parsers:
+        filename += f"{parser}_"
 
-    traffic_name = os.path.join(traffic_dir, f"{formatted_time}_{TASK_NAME}.pcap")
-
+    traffic_name = os.path.join(traffic_dir, f"{filename}{formatted_time}_{TASK_NAME}.pcap")
+    task_instance.url_logger = setup_url_logger(traffic_name)
     # 设置tcpdump命令的参数
     tcpdump_command = [
         "tcpdump",
