@@ -48,6 +48,7 @@ def create_chrome_driver():
     chrome_options.add_argument("--disable-infobars")  # 禁用信息栏
     chrome_options.add_argument("--disable-software-rasterizer")  # 禁用软件光栅化
     chrome_options.add_argument("--autoplay-policy=no-user-gesture-required")  # 允许自动播放
+    chrome_options.add_argument(f'--proxy-server=http://localhost:7890')
 
     # 设置实验性首选项
     prefs = {

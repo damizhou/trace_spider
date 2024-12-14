@@ -16,13 +16,7 @@ class Task:
     def __init__(self):
         if not self._initialized:
             self.file_path = 'url_list.txt'
-            urls = []
-            for i in range(100):
-                # urls.append(
-                #     f'https://huggingface.co/datasets?modality=modality:text&language=language:zh&p={i}&sort=trending')
-                urls.append(
-                    f'https://huggingface.co/datasets?p={i}&sort=downloads')
-            self.urls = urls
+            self.urls = self.read_file()
             self.requesturlNum = 0
             self.current_index = 0
             with open('exclude_keywords', 'r') as f:
@@ -30,10 +24,9 @@ class Task:
             self._initialized = True
 
     def read_file(self):
-        urls = []
-        for i in range(99):
-            urls.append(
-                f'https://huggingface.co/datasets?sort=downloads')
+        with open(self.file_path, 'r') as file:
+            lines = file.readlines()
+        urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
         return urls
 
     @property

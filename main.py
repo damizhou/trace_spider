@@ -50,7 +50,7 @@ def dealVPN():
     # 执行带有 sudo 权限的 bash 脚本
     try:
         # 使用 sudo 权限执行 start.sh
-        process = subprocess.Popen(["bash", '/app/clash-for-linux/start.sh'], stdout=subprocess.PIPE)
+        process = subprocess.Popen(["bash", '/app/clash-for-linux/restart.sh'], stdout=subprocess.PIPE)
         output, error = process.communicate()
         if error is None:
             logger.info("代理启动成功")
