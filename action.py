@@ -1,6 +1,9 @@
+import os
 import subprocess
 import sys
 from selenium.webdriver.common.by import By
+
+from tools.math_tool import generate_normal_random
 from utils.chrome import is_docker, create_chrome_driver, scroll_to_bottom
 from utils.logger import logger, setup_url_logger
 from utils.config import config
@@ -92,21 +95,42 @@ def start_task():
     traffic_thread = threading.Thread(target=traffic)
     index = 0
     traffic_thread.start()
+    download_dir = "./download"  # 更改为您的实际下载路径
+    original_filename = "README.md"
+    original_filepath = os.path.join(download_dir, original_filename)
     # start_spider()
     with open('./huggingface_data/huggingface_dataset_text_url_list_chinese.txt', 'r') as f:
         urls = f.readlines()
     for url in urls:
         browser = create_chrome_driver()
-        readme_uelr = url + '/raw/main/README.md'
-        browser.get(readme_uelr)
-        scroll_to_bottom(browser)
-        raw_content = browser.find_element(By.TAG_NAME, 'pre').text
-        file_name = url.split('/')[-1].replace('\n', '')
-        print('file_name', file_name)
-        logger.info(f"{file_name}的Readme爬取完成。当前第{index}个页面，剩余{len(urls) - index}个页面。")
-        with open(f'./huggingface_data/Readmes/{file_name}.md', 'w', encoding='utf-8') as file:
-            file.write(raw_content)
-        index += 1
+        try:
+            readme_uelr = url + '/raw/main/README.md'
+            browser.get(readme_uelr)
+            scroll_to_bottom(browser)
+            raw_content = browser.find_element(By.TAG_NAME, 'pre').text
+            file_name = url.split('/')[-1].replace('\n', '')
+            print('file_name', file_name)
+            logger.info(f"{file_name}的Readme爬取完成。当前第{index}个页面，剩余{len(urls) - index}个页面。")
+            with open(f'./huggingface_data/Readmes/{file_name}.md', 'w', encoding='utf-8') as file:
+                file.write(raw_content)
+            index += 1
+        except Exception as e:
+            readme_uelr = url + '/resolve/main/README.md'
+            browser.get(readme_uelr)
+            file_name = url.split('/')[-1].replace('\n', '') + '.md'
+            new_filepath = os.path.join(download_dir, file_name)
+            is_download_finished = False
+            while not is_download_finished:
+                if os.path.exists(original_filepath):
+                    is_download_finished = True
+                    # 重命名文件
+                    os.rename(original_filepath, new_filepath)
+                    print(f"File renamed from {original_filename} to {new_filepath}")
+                else:
+                    time.sleep(generate_normal_random())
+
+            logger.info(f"{file_name}的Readme爬取完成。当前第{index}个页面，剩余{len(urls) - index}个页面。")
+            index += 1
 
     logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面")
     time.sleep(10)
