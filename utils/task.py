@@ -35,12 +35,7 @@ class Task:
 
     @property
     def current_allowed_domain(self):
-        url_str = self.urls[self.current_index]
-        if '{' in url_str:
-            url_dict = json.loads(url_str)
-            return url_dict['allowed_domains']
-        else:
-            return self.urls[self.current_index]
+        return "voachinese.com"
 
 
 task_instance = Task()

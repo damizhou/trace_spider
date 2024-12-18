@@ -24,7 +24,7 @@ def create_docker_container(index, category, container_name, loacl_volume_mount)
     ethtool_command = ["docker", "exec", container_name, "ethtool", "-K", "eth0", "tso", "off", "gso", "off", "gro", "off"]
     subprocess.run(ethtool_command, check=True)
 
-    start_command = ["docker", "exec", container_name, "python", "/app/main.py", "novpn", f"{category["category"]}"]
+    start_command = ["docker", "exec", container_name, "python", "/app/main.py", "bj", "windows10", "novpn", f"{category["category"]}"]
     subprocess.run(start_command, check=True)
 
 
@@ -32,15 +32,9 @@ if __name__ == "__main__":
     with open('category_urls.json', 'r', encoding='utf-8') as file:
         categorys = json.load(file)
     original_code_path = r"E:\Docker\Voacategory"
-    # if os.path.exists(original_code_path):
-    #     # 使用 shutil.rmtree 删除文件夹及其内容
-    #     shutil.rmtree(original_code_path)
-    #
+
     # git_command = ["git", "clone", "--branch", "voacategory", "https://github.com/damizhou/trace_spider.git", f"{original_code_path}"]
     # result = subprocess.run(git_command, check=True, text=True, capture_output=True)
-
-    # 输出命令的标准输出
-    # print(result.stdout)
 
     for index, category in enumerate(categorys):
         print(category["category"])
