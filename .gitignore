@@ -18,3 +18,5 @@ xx-net/
 filelist.txt
 output_file.txt
 test*
+url_logs/
+huggingface_data/

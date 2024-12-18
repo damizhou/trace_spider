@@ -26,7 +26,7 @@ def main():
             json.dump({'currentIndex': task_instance.current_index}, f)
         logger.info(f"当前第{task_instance.current_index + 1}个任务，任务URL为{task_instance.current_start_url}，"
                     f"剩余时间{(len(task_instance.urls) - task_instance.current_index) * duration / 60}分钟")
-        kill_residue_processes()
+        # kill_residue_processes()
         # 创建一个线程来运行 action.py
         action_thread = threading.Thread(target=run_action_script)
 
