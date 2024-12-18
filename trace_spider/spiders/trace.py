@@ -7,7 +7,7 @@ from urllib.parse import unquote
 class TraceSpider(scrapy.Spider):
     name = "trace"
     allowed_domains = [task_instance.current_allowed_domain]
-    start_urls = [task_instance.current_start_url]
+    start_urls = ["https://huggingface.co/posts"]
 
     # custom_settings = {
     #     'DEPTH_LIMIT': 1  # 设置爬取深度为 1
