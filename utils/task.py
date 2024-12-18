@@ -31,12 +31,7 @@ class Task:
 
     @property
     def current_start_url(self):
-        url_str = self.urls[self.current_index]
-        if '{' in url_str:
-            url_dict = json.loads(url_str)
-            return url_dict['start_urls']
-        else:
-            return r'https://' + self.urls[self.current_index]
+        return self.urls[self.current_index]
 
     @property
     def current_allowed_domain(self):

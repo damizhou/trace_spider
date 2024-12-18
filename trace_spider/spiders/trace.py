@@ -6,7 +6,7 @@ from urllib.parse import unquote
 
 class TraceSpider(scrapy.Spider):
     name = "trace"
-    allowed_domains = [task_instance.current_allowed_domain]
+    allowed_domains = ["voachinese.com"]
     start_urls = [task_instance.current_start_url]
 
     # custom_settings = {
