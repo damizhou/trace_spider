@@ -47,7 +47,7 @@ def create_chrome_driver():
     chrome_options.add_argument("--disable-infobars")  # 禁用信息栏
     chrome_options.add_argument("--disable-software-rasterizer")  # 禁用软件光栅化
     chrome_options.add_argument("--autoplay-policy=no-user-gesture-required")  # 允许自动播放
-    # chrome_options.add_argument(f'--proxy-server=http://127.0.0.1:7890')
+    chrome_options.add_argument(f'--proxy-server=http://127.0.0.1:7890')
 
     # 设置实验性首选项
     prefs = {
@@ -107,9 +107,3 @@ def add_cookies(browser):
         for cookie in cookies:
             if cookie['secure']:
                 browser.add_cookie(cookie)
-
-
-# 使用示例
-browser = create_chrome_driver()
-# ... 你的其他浏览器自动化任务
-browser.quit()

@@ -1,12 +1,10 @@
 import subprocess
 import sys
-
-from utils.chrome import is_docker
-from utils.logger import logger, setup_url_logger
+from utils.chrome import create_chrome_driver, scroll_to_bottom
+from utils.logger import logger
 from utils.config import config
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
-from trace_spider.spiders.trace import TraceSpider
 import threading
 import time
 from traffic.capture import capture, stop_capture
@@ -56,33 +54,6 @@ def stop_crawlers():
     crawlers_timer = None
 
 
-# 启动定时器
-def stop_crawlers_after_delay():
-    global crawlers_timer
-    crawlers_timer = threading.Timer(duration, stop_crawlers)
-    crawlers_timer.start()
-
-
-# 取消定时器
-def cancel_timer():
-    global crawlers_timer
-    if crawlers_timer is not None:
-        logger.info(f"爬虫提前结束，关闭定时器")
-        crawlers_timer.cancel()
-
-
-# 启动爬虫
-def start_spider():
-    # 添加你要运行的爬虫
-    process.crawl(TraceSpider)
-
-    logger.info(f"开始爬取数据")
-    # 开启定时器
-    stop_crawlers_after_delay()
-    # 启动爬虫
-    process.start()
-
-
 def start_task():
     kill_chrome_processes()
     kill_tcpdump_processes()
@@ -91,7 +62,21 @@ def start_task():
     traffic_thread = threading.Thread(target=traffic)
 
     traffic_thread.start()
-    start_spider()
+    browser = create_chrome_driver()
+    index = 0
+    file_path = task_instance.file_paths[task_instance.current_index]
+    with open(file_path, 'r') as f:
+        lines = f.readlines()
+        urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
+
+    for url in urls:
+        if index == 1:
+            break
+        browser.get(url)
+        scroll_to_bottom(browser)
+        logger.info(f"{browser.current_url}页面加载完成")
+        index += 1
+
     logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面")
     time.sleep(10)
 
@@ -106,11 +91,7 @@ def start_task():
 
     logger.info(f"{task_instance.current_start_url}流量收集结束，共爬取{task_instance.requesturlNum}个页面")
     kill_tcpdump_processes()
-    cancel_timer()
 
 
 if __name__ == "__main__":
-    if is_docker():
-        start_task()
-    else:
-        start_spider()
+    start_task()

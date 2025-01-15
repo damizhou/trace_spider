@@ -11,7 +11,7 @@ redir-port: 7892
 allow-lan: true
 
 # 规则模式：Rule（规则） / Global（全局代理）/ Direct（全局直连）
-mode: rule
+mode: global
 
 # 设置日志输出级别 (默认级别：silent，即不输出任何内容，以避免因日志内容过大而导致程序内存溢出）。
 # 5 个级别：silent / info / warning / error / debug。级别越高日志输出量越大，越倾向于调试，若需要请自行开启。
@@ -35,7 +35,6 @@ proxy-groups:
       - ♻️ 自动选择
       - 🔯 故障转移
       - 🔮 负载均衡
-      - DIRECT
       - vpnnodename
   - name: ♻️ 自动选择
     type: url-test
@@ -49,7 +48,6 @@ proxy-groups:
     url: http://www.gstatic.com/generate_204
     interval: 180
     proxies:
-      - DIRECT
       - vpnnodename
   - name: 🔮 负载均衡
     type: load-balance
@@ -57,7 +55,6 @@ proxy-groups:
     url: http://www.gstatic.com/generate_204
     interval: 180
     proxies:
-      - DIRECT
       - vpnnodename
   - name: 🎯 全球直连
     type: select
@@ -66,17 +63,10 @@ proxy-groups:
   - name: 🛑 全球拦截
     type: select
     proxies:
-      - REJECT
-      - DIRECT
       - vpnnodename
   - name: 🐟 漏网之鱼
     type: select
     proxies:
-      - 🚀 节点选择
-      - 🎯 全球直连
-      - ♻️ 自动选择
-      - 🔯 故障转移
-      - 🔮 负载均衡
       - vpnnodename
 rules:
   - DOMAIN-SUFFIX,acl4.ssr,🎯 全球直连

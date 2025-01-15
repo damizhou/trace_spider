@@ -1,0 +1,10 @@
+https://www.qq.com/
+https://v.qq.com/
+https://v.qq.com/x/cover/mzc00200zfbgy6f/h4100rslpfz.html
+https://sports.qq.com/
+https://fans.sports.qq.com/post.htm?id=1818762855289192675&mid=255#1_allWithElite
+https://gongyi.qq.com/
+https://browser.qq.com/
+https://news.qq.com/mobile/
+https://news.qq.com/rain/a/20241218A076GS00
+https://news.qq.com/rain/a/20241216A02Z1N00

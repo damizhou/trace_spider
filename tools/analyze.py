@@ -86,7 +86,7 @@ def analyze_pcap(file_path, position):
                 try:
                     if hasattr(packet,
                                'tls') and 'handshake' in packet.tls.field_names and packet.tls.handshake_type == '1':  # Client Hello
-                        # clean_tls_describe = eliminate_ANSI(packet.tls)
+                        clean_tls_describe = eliminate_ANSI(packet.tls)
                         # sni = extract_sni(clean_tls_describe)
                         # if sni:
                         #     unique_snis.append({'address': dst_ip, 'sni': sni})

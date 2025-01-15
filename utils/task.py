@@ -1,4 +1,5 @@
 import json
+import os
 
 
 class Task:
@@ -12,8 +13,9 @@ class Task:
 
     def __init__(self):
         if not self._initialized:
-            self.file_path = 'current_docker_url_list.txt'
-            self.urls = self.read_file()
+            self.urls = []
+            self.file_paths = []
+            self.get_all_url_list()
             self.url_logger = None
             self.requesturlNum = 0
             with open('./utils/running.json', 'r') as f:
@@ -23,11 +25,13 @@ class Task:
                 self.exclude_keywords = [s.replace('\n', '') for s in f.readlines()]
             self._initialized = True
 
-    def read_file(self):
-        with open(self.file_path, 'r') as file:
-            lines = file.readlines()
-        urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
-        return urls
+    def get_all_url_list(self):
+        directory = r'./url_lists'
+        all_files = os.listdir(directory)
+        # 获取所有文件的完整路径
+        file_paths = [os.path.join(directory, f) for f in all_files]
+        self.urls = all_files
+        self.file_paths = file_paths
 
     @property
     def current_start_url(self):
