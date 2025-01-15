@@ -5,11 +5,13 @@ from utils.logger import logger
 from utils.config import config
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
+from selenium.webdriver.common.by import By
 import threading
 import time
 from traffic.capture import capture, stop_capture
 from datetime import datetime
 from utils.task import task_instance
+import json
 
 duration = int(config["spider"]["duration"])
 process = CrawlerProcess(get_project_settings())
@@ -63,24 +65,28 @@ def start_task():
 
     traffic_thread.start()
     browser = create_chrome_driver()
-    index = 0
-    file_path = task_instance.file_paths[task_instance.current_index]
-    with open(file_path, 'r') as f:
-        lines = f.readlines()
-        urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
-
-    for url in urls:
-        if index == 1:
-            break
-        browser.get(url)
-        scroll_to_bottom(browser)
+    url = "https://gitstar-ranking.com/users?page="
+    data = []
+    for i in range(100):
+        print(f"{url+str(i+1)}")
+        browser.get(url+str(i+1))
         logger.info(f"{browser.current_url}页面加载完成")
-        index += 1
+        items = browser.find_elements(By.XPATH, '//a[@class="list-group-item paginated_item"]')
+        for item in items:
+            name = item.find_element(By.XPATH, './/span[@class="hidden-md hidden-lg"]').text.strip()
+            # 提取<span class="stargazers_count pull-right">的文本
+            stargazers_text = item.find_element(By.XPATH, './/span[@class="stargazers_count pull-right"]').text.strip()
+            # 输出提取到的信息
+            print(f"Name: {name}, Stargazers: {stargazers_text}")
+            data.append({'name': name, 'stargazers': stargazers_text})
 
     logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面")
     time.sleep(10)
 
-
+    # 将数据保存为JSON格式的文件
+    with open('output_data.json', 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+    #
     kill_chrome_processes()
     logger.info(f"等待TCP结束挥手完成")
     time.sleep(60)
