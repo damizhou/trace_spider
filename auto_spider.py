@@ -12,9 +12,6 @@ index = 0
 def async_exec_command(client, command, password):
     print(f"{command}")
     stdin, stdout, stderr = client.exec_command(command)
-    # if 'sudo' in command:
-    #     stdin.write(f'{password}\n')
-    #     stdin.flush()
 
     while not stdout.channel.exit_status_ready():
         # 逐行读取输出
