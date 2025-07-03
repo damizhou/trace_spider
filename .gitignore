@@ -6,10 +6,8 @@ data/
 utils/running.json
 *.csv
 cookie.txt
-analyze/20240725_17_55_04_youtube.com.pcap
 *.pcap
 *.json
-
 sever_info.py
 current_docker_url_list.txt
 xx-net/
@@ -18,3 +16,5 @@ xx-net/
 filelist.txt
 output_file.txt
 test*
+huggingface_data/
+url_logs/
