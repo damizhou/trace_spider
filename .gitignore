@@ -9,7 +9,6 @@ cookie.txt
 *.pcap
 *.json
 sever_info.py
-current_docker_url_list.txt
 xx-net/
 *url_list.txt
 *config.yaml
