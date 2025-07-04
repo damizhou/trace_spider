@@ -1,4 +1,6 @@
 import scrapy
+
+from utils.logger import logger
 # 导入 logger 模块
 from utils.task import task_instance
 
@@ -23,7 +25,7 @@ class TraceSpider(scrapy.Spider):
         else:
             a_links = response.css('a::attr(href)').getall()
             if len(a_links) == 0:
-                print(f'{response.url} 没有提取到 URL')
+                logger.info(f'{response.url} 没有提取到 URL')
             for link in a_links:
                 # 拼接相对 URL 为绝对 URL
                 full_url = response.urljoin(link)
