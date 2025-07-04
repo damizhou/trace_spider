@@ -60,6 +60,5 @@ def dealVPN():
 
 
 if __name__ == "__main__":
-    if sys.argv[3] != 'novpn':
-        dealVPN()
+    dealVPN()
     main()

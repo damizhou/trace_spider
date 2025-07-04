@@ -1,5 +1,5 @@
-alegra.com
-gamcore.com
+#alegra.com
+youtube.com
 #bbc.com
 #wikipedia.org
 #abc.com
