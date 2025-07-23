@@ -5,6 +5,7 @@ import logging.handlers
 import os
 
 from utils.chrome import is_docker
+from utils.task import task_instance
 
 
 # 配置日志基本设置
