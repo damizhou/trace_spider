@@ -12,7 +12,6 @@ from utils.chrome import create_chrome_driver, scroll_to_bottom, add_cookies
 import json
 from utils.task import task_instance
 import utils.archive as archive
-from urllib.parse import unquote
 
 class TraceSpiderSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
@@ -76,11 +75,14 @@ class TraceSpiderDownloaderMiddleware:
     def __init__(self):
         logger.info(f"创建浏览器")
         self.browser = create_chrome_driver()
-        # if 'youtube' in task_instance.current_allowed_domain:
-        #     self.browser.get('https://www.youtube.com/')
-        #     # Retrieve all cookies
-        #     add_cookies(self.browser)
-        #     self.browser.get('https://www.youtube.com/')
+        if 'youtube' in task_instance.current_allowed_domain:
+            logger.info(f"cookies开始加载")
+            self.browser.get('https://www.youtube.com/')
+            # Retrieve all cookies
+            add_cookies(self.browser)
+
+            self.browser.refresh()  # 带 cookie 重载
+            logger.info("cookies加载完成")
 
     def __del__(self):
         logger.info(f"销毁浏览器")
@@ -101,7 +103,6 @@ class TraceSpiderDownloaderMiddleware:
         task_instance.requesturlNum += 1
         self.browser.get(request.url)
         scroll_to_bottom(self.browser)
-        task_instance.url_logger.info(f"{unquote(self.browser.current_url)}")
         if 'youtube' in task_instance.current_allowed_domain:
             if 'watch' in request.url:
                 video_element = self.browser.find_element(By.TAG_NAME, "video")
@@ -122,8 +123,6 @@ class TraceSpiderDownloaderMiddleware:
 
                     print("当前播放时长:", current_time, "秒")
 
-            with open('youtube_cookie.txt', 'w') as file:
-                json.dump(self.browser.get_cookies(), file)
             return HtmlResponse(url=request.url, body=self.browser.page_source, encoding='utf-8', request=request)
         elif 'archive' in task_instance.current_allowed_domain:
             if 'details' not in request.url:

@@ -5,14 +5,21 @@ from utils.logger import logger
 import threading
 from utils.task import task_instance
 import subprocess
+from pathlib import Path
 
 duration = int(config["spider"]["duration"])
 
 
 def run_action_script():
-    command = ['python', 'action.py'] + sys.argv[1:]
-    # 使用 subprocess 运行 action.py
-    subprocess.run(command)
+    # __file__  =  主脚本的路径（如 main.py）
+    # 用 Path 计算出同目录下的 action.py
+    action_path = Path(__file__).with_name("action.py")
+
+    # sys.executable 指向当前进程的解释器（.venv\Scripts\python.exe）
+    command = [sys.executable, str(action_path), *sys.argv[1:]]
+
+    # 建议加 check=True，这样子进程异常会直接抛出
+    subprocess.run(command, check=True)
 
 
 def main():
@@ -60,6 +67,5 @@ def dealVPN():
 
 
 if __name__ == "__main__":
-    if sys.argv[3] != 'novpn':
-        dealVPN()
+    dealVPN()
     main()
