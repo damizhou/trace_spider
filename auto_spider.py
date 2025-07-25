@@ -59,12 +59,14 @@ def handle_server(server):
         sever_commands = [
             f"echo '{password}' | sudo -S apt update",
             f"echo '{password}' | sudo -S apt install -y docker.io",
-            f"docker stop $(docker ps -q)",
-            f"docker rm -f $(docker ps -a -q)",
+            f"docker stop $(docker ps -q -f \"name=^trace_spider\") | docker rm -f $(docker ps -aq -f \"name=^trace_spider\")",
+            f"export http_proxy=http://127.0.0.1:7890",
+            f"export https_proxy=http://127.0.0.1:7890",
+            f"export all_proxy=socks5://127.0.0.1:7890",
             f"echo '{password}' | sudo -S rm -rf trace_spider* spiderCode",
             f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
             f'git clone --branch novpn https://github.com/damizhou/trace_spider.git spiderCode',
-            f'git clone https://github.com/damizhou/clash-for-linux.git spiderCode/clash-for-linux',
+            # f'git clone https://github.com/damizhou/clash-for-linux.git spiderCode/clash-for-linux',
         ]
         for sever_command in sever_commands:
             async_exec_command(client, sever_command, password)
