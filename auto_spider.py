@@ -57,8 +57,8 @@ def handle_server(server):
         # 执行 git clone 命令
 
         sever_commands = [
-            f"echo '{password}' | sudo -S apt update",
-            f"echo '{password}' | sudo -S apt install -y docker.io",
+            # f"echo '{password}' | sudo -S apt update",
+            # f"echo '{password}' | sudo -S apt install -y docker.io",
             f"docker stop $(docker ps -q -f \"name=^trace_spider\") | docker rm -f $(docker ps -aq -f \"name=^trace_spider\")",
             f"export http_proxy=http://127.0.0.1:7890",
             f"export https_proxy=http://127.0.0.1:7890",
@@ -78,12 +78,13 @@ def handle_server(server):
             init_docker_commands = [
                 f'cp -r spiderCode {container_name}',
             ]
-            docker_run_command = (f'docker run --volume ~/{container_name}:/app -e HOST_UID=$(id -u $USER) '
+            docker_run_command = (f'docker run --volume ~/{container_name}:/app -e HOST_UID=$(id -u $USER) --network host '
+                                  f'-e http_proxy=http://127.0.0.1:7890 -e https_proxy=http://127.0.0.1:7890 -e all_proxy=socks5://127.0.0.1:7890 '
                                   f'-e HOST_GID=$(id -g $USER) --privileged -itd --name {container_name} '
                                   f'chuanzhoupan/trace_spider:0712 /bin/bash')
 
             main_commmand = f'docker exec {container_name} python /app/main.py {server["loaction"]} {server["os"]} '
-            init_docker_commands.append(docker_run_command)
+            # init_docker_commands.append(docker_run_command)
 
             for init_docker_command in init_docker_commands:
                 async_exec_command(client, init_docker_command, password)

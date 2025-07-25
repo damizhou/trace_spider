@@ -86,7 +86,8 @@ class TraceSpiderDownloaderMiddleware:
 
     def __del__(self):
         logger.info(f"销毁浏览器")
-        self.browser.close()
+        if self.browser is not None:
+            self.browser.close()
 
     def process_request(self, request, spider):
         # Called for each request that goes through the downloader
