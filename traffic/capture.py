@@ -34,6 +34,8 @@ def capture(TASK_NAME, formatted_time, parsers):
         "-w",
         traffic_name,  # 输出文件的路径
     ]
+
+    logger.info(f'tcpdump_command:{tcpdump_command}')
     global process
     # 开流量收集
     process = subprocess.Popen(tcpdump_command)

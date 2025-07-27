@@ -57,15 +57,15 @@ def handle_server(server):
         # 执行 git clone 命令
 
         sever_commands = [
-            # f"echo '{password}' | sudo -S apt update",
-            # f"echo '{password}' | sudo -S apt install -y docker.io",
+            f"echo '{password}' | sudo -S apt update",
+            f"echo '{password}' | sudo -S apt install -y docker.io",
             f"docker stop $(docker ps -q -f \"name=^trace_spider\") | docker rm -f $(docker ps -aq -f \"name=^trace_spider\")",
-            f"export http_proxy=http://127.0.0.1:7890",
-            f"export https_proxy=http://127.0.0.1:7890",
-            f"export all_proxy=socks5://127.0.0.1:7890",
-            # f"echo '{password}' | sudo -S rm -rf trace_spider* spiderCode",
-            # f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
-            # f'git clone --branch novpn https://github.com/damizhou/trace_spider.git spiderCode',
+            # f"source /etc/profile.d/clash.sh",
+            # f"proxy_on",
+            f"echo '{password}' | sudo -S rm -rf trace_spider* spiderCode",
+            f"echo '{password}' | sudo -S rm -rf trace_spider*",
+            f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
+            f'git clone --branch novpn https://github.com/damizhou/trace_spider.git spiderCode',
             # f'git clone https://github.com/damizhou/clash-for-linux.git spiderCode/clash-for-linux',
         ]
         for sever_command in sever_commands:
@@ -76,11 +76,11 @@ def handle_server(server):
             docker_index = vpn_info["docker_index"]
             container_name = server["docker_basename"] + str(docker_index)
             init_docker_commands = [
-                # f'cp -r spiderCode {container_name}',
+                f'cp -r spiderCode {container_name}',
             ]
-            docker_run_command = (f'docker run --volume ~/{container_name}:/app -e HOST_UID=$(id -u $USER) --add-host host.docker.internal:host-gateway '
-                                  f'-e http_proxy=http://host.docker.internal:7890 -e https_proxy=http://host.docker.internal:7890 -e all_proxy=socks5://127.0.0.1:7890 '
-                                  f'-e HOST_GID=$(id -g $USER) --privileged -itd --name {container_name} --cap-add NET_RAW --cap-add NET_ADMIN '
+            docker_run_command = (f'docker run --volume ~/{container_name}:/app -e HOST_UID=$(id -u $USER) '
+                                  # f'-e http_proxy=http://host.docker.internal:7890 -e https_proxy=http://host.docker.internal:7890 -e no_proxy=127.0.0.1,localhost,::1 -e NO_PROXY=127.0.0.1,localhost,::1 --add-host host.docker.internal:host-gateway  --cap-add NET_RAW --cap-add NET_ADMIN '
+                                  f'-e HOST_GID=$(id -g $USER) --privileged -itd --name {container_name} '
                                   f'chuanzhoupan/trace_spider:0712 /bin/bash')
 
             main_commmand = f'docker exec {container_name} python /app/main.py {server["loaction"]} {server["os"]} '
