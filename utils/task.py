@@ -20,7 +20,7 @@ class Task:
             self._initialized = True
 
     def read_file(self):
-        df = pd.read_csv(r'./test.csv', encoding="utf-8", skiprows=1, sep="\t")
+        df = pd.read_csv(r'current_docker_url_list.csv', encoding="utf-8", skiprows=1, sep="\t")
 
         # 可选：强制类型
         for col in ["id", "curid", "sensitive_flag"]:

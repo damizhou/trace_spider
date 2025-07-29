@@ -131,8 +131,8 @@ def handle_server(server):
                 lines = file.readlines()
             start_url_index = docker_index * server["each_docker_task_count"] % len(lines[1:])
             end_url_index = start_url_index + server["each_docker_task_count"]
-            local_current_urls_path = f'{container_name}_url_list.txt'
-            remote_current_urls_path = f"{container_name}/current_docker_url_list.txt"
+            local_current_urls_path = f'{container_name}_url_list.csv'
+            remote_current_urls_path = f"{container_name}/current_docker_url_list.csv"
             with open(local_current_urls_path, 'w', encoding='utf-8') as file:
                 file.write(f"{lines[0]}\n")
                 for line in lines[start_url_index + 1: end_url_index + 1]:
