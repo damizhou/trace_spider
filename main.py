@@ -1,12 +1,7 @@
-import json
 import subprocess
-from utils.config import config
 from utils.logger import setup_logging, logger
 import threading
 from utils.task import task_instance
-
-duration = int(config["spider"]["duration"])
-
 
 def run_action_script():
     # 使用 subprocess 运行 action.py
@@ -26,9 +21,7 @@ def main():
     # 等待线程完成
     action_thread.join()
 
-
     logger.info(f"任务完成")
-
 
 if __name__ == "__main__":
     main()

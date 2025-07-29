@@ -16,15 +16,11 @@ class Task:
             self.urls = self.read_file()
             self.url_logger = None
             self.requesturlNum = 0
-            with open('./utils/running.json', 'r') as f:
-                params = json.load(f)
-                self.current_index = params['currentIndex']
-            with open('exclude_keywords', 'r') as f:
-                self.exclude_keywords = [s.replace('\n', '') for s in f.readlines()]
+
             self._initialized = True
 
     def read_file(self):
-        df = pd.read_csv(r'../test.csv', encoding="utf-8", skiprows=1, sep="\t")
+        df = pd.read_csv(r'./test.csv', encoding="utf-8", skiprows=1, sep="\t")
 
         # 可选：强制类型
         for col in ["id", "curid", "sensitive_flag"]:
@@ -44,14 +40,15 @@ class Task:
     #     else:
     #         return r'https://' + self.urls[self.current_index]
     #
-    # @property
-    # def current_allowed_domain(self):
-    #     url_str = self.urls[self.current_index]
-    #     if '{' in url_str:
-    #         url_dict = json.loads(url_str)
-    #         return url_dict['allowed_domains']
-    #     else:
-    #         return self.urls[self.current_index]
+    @property
+    def current_allowed_domain(self):
+        # url_str = self.urls[self.current_index]
+        # if '{' in url_str:
+        #     url_dict = json.loads(url_str)
+        #     return url_dict['allowed_domains']
+        # else:
+        #     return self.urls[self.current_index]
+        return 'zh.wikipedia.org'
 
 
 task_instance = Task()

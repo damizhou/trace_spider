@@ -3,9 +3,6 @@ import subprocess
 from utils.chrome import is_docker, create_chrome_driver
 from utils.logger import logger
 from utils.config import config
-from scrapy.crawler import CrawlerProcess
-from scrapy.utils.project import get_project_settings
-from trace_spider.spiders.trace import TraceSpider
 import threading
 import time
 from traffic.capture import capture, stop_capture
@@ -13,7 +10,6 @@ from datetime import datetime
 from utils.task import task_instance
 
 duration = int(config["spider"]["duration"])
-process = CrawlerProcess(get_project_settings())
 crawlers_timer = None
 
 
@@ -32,33 +28,10 @@ def traffic(index=0):
     # 获取当前时间
     current_time = datetime.now()
     # 格式化输出
-    # formatted_time = current_time.strftime("%Y%m%d_%H_%M_%S")
-    allowed_domain = "zh.wikipedia.org"
-    capture(index, allowed_domain)
+    formatted_time = current_time.strftime("%Y%m%d_%H_%M_%S")
+    allowed_domain = f"zh.wikipedia.org"
+    capture(allowed_domain, formatted_time, f"{index}")
 
-
-# 停止爬虫
-def stop_crawlers():
-    logger.info("定时器触发，停止所有爬虫")
-    global crawlers_timer
-    for crawler in process.crawlers:
-        crawler.stop()
-    crawlers_timer = None
-
-
-# 启动定时器
-def stop_crawlers_after_delay():
-    global crawlers_timer
-    crawlers_timer = threading.Timer(duration, stop_crawlers)
-    crawlers_timer.start()
-
-
-# 取消定时器
-def cancel_timer():
-    global crawlers_timer
-    if crawlers_timer is not None:
-        logger.info(f"爬虫提前结束，关闭定时器")
-        crawlers_timer.cancel()
 
 # 清理流量捕获进程
 def kill_tcpdump_processes():
@@ -69,32 +42,21 @@ def kill_tcpdump_processes():
     except subprocess.CalledProcessError as e:
         print(f"Error occurred: {e.stderr.decode('utf-8')}")
 
-# 启动爬虫
-def start_spider():
-    # 添加你要运行的爬虫
-    process.crawl(TraceSpider)
-
-    logger.info(f"开始爬取数据")
-    if duration > 0:
-        # 开启定时器
-        stop_crawlers_after_delay()
-    # 启动爬虫
-    process.start()
-
 
 def start_task(urldict):
     kill_chrome_processes()
     kill_tcpdump_processes()
     index = urldict['id']
-    url = f'https://zh.wikipedia.org/wiki?curid={urldict['curid']}'
+    curid = urldict['curid']
+    url = f'https://zh.wikipedia.org/wiki?curid={curid}'
     # 开流量收集
     traffic_thread = threading.Thread(target=traffic, kwargs={"index": index} )
     traffic_thread.start()
 
     logger.info(f"创建浏览器")
     browser = create_chrome_driver()
+    logger.info(f"开始访问{url}")
     browser.get(url)
-
     logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面")
     time.sleep(10)
 

@@ -57,15 +57,15 @@ def handle_server(server):
         # 执行 git clone 命令
 
         sever_commands = [
-            f"echo '{password}' | sudo -S apt update",
-            f"echo '{password}' | sudo -S apt install -y docker.io",
+            # f"echo '{password}' | sudo -S apt update",
+            # f"echo '{password}' | sudo -S apt install -y docker.io",
             f"docker stop $(docker ps -q -f \"name=^trace_spider\") | docker rm -f $(docker ps -aq -f \"name=^trace_spider\")",
             # f"source /etc/profile.d/clash.sh",
             # f"proxy_on",
             f"echo '{password}' | sudo -S rm -rf trace_spider* spiderCode",
             f"echo '{password}' | sudo -S rm -rf trace_spider*",
             f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
-            f'git clone --branch novpn https://github.com/damizhou/trace_spider.git spiderCode',
+            f'git clone --branch specialurls https://github.com/damizhou/trace_spider.git spiderCode',
             # f'git clone https://github.com/damizhou/clash-for-linux.git spiderCode/clash-for-linux',
         ]
         for sever_command in sever_commands:
@@ -79,7 +79,6 @@ def handle_server(server):
                 f'cp -r spiderCode {container_name}',
             ]
             docker_run_command = (f'docker run --volume ~/{container_name}:/app -e HOST_UID=$(id -u $USER) '
-                                  # f'-e http_proxy=http://host.docker.internal:7890 -e https_proxy=http://host.docker.internal:7890 -e no_proxy=127.0.0.1,localhost,::1 -e NO_PROXY=127.0.0.1,localhost,::1 --add-host host.docker.internal:host-gateway  --cap-add NET_RAW --cap-add NET_ADMIN '
                                   f'-e HOST_GID=$(id -g $USER) --privileged -itd --name {container_name} '
                                   f'chuanzhoupan/trace_spider:0712 /bin/bash')
 
@@ -128,16 +127,16 @@ def handle_server(server):
                 spider_commands.append(main_commmand)
 
             # 拆分任务列表,并上传到对应的docker
-            with open(f"url_list.txt", 'r', encoding='utf-8') as file:
+            with open(f"wikicontent_130w.csv", 'r', encoding='utf-8') as file:
                 lines = file.readlines()
-            urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
-            start_url_index = docker_index * server["each_docker_task_count"] % len(urls)
+            start_url_index = docker_index * server["each_docker_task_count"] % len(lines[1:])
             end_url_index = start_url_index + server["each_docker_task_count"]
             local_current_urls_path = f'{container_name}_url_list.txt'
             remote_current_urls_path = f"{container_name}/current_docker_url_list.txt"
             with open(local_current_urls_path, 'w', encoding='utf-8') as file:
-                for url in urls[start_url_index: end_url_index]:
-                    file.write(f"{url}\n")
+                file.write(f"{lines[0]}\n")
+                for line in lines[start_url_index + 1: end_url_index + 1]:
+                    file.write(f"{line}\n")
             print('local_current_urls_path', local_current_urls_path)
             print('remote_current_urls_path', remote_current_urls_path)
             # 上传任务列表到对应的docker
