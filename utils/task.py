@@ -1,8 +1,6 @@
 import json
 import os
-
-index = 0
-
+import pandas as pd
 
 class Task:
     _instance = None
@@ -15,7 +13,6 @@ class Task:
 
     def __init__(self):
         if not self._initialized:
-            self.file_path = 'current_docker_url_list.txt'
             self.urls = self.read_file()
             self.url_logger = None
             self.requesturlNum = 0
@@ -27,36 +24,34 @@ class Task:
             self._initialized = True
 
     def read_file(self):
-        # with open(self.file_path, 'r') as file:
-        #     lines = file.readlines()
-        # urls = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
-        # return urls
-        # base_filename = 'wiki_url_list'
-        base_filename = 'wiki_remind_url_list'
-        wikipedia_data_folder = os.path.join(os.getcwd(), 'wikipedia_data')
-        recount_url_list_folder = os.path.join(wikipedia_data_folder, 'recount_url_list')
-        url_file_path = os.path.join(recount_url_list_folder, f"{base_filename}_{index}.txt")
-        with open(url_file_path, 'r') as file:
-            urls = file.readlines()
-        return urls
+        df = pd.read_csv(r'../test.csv', encoding="utf-8", skiprows=1, sep="\t")
 
-    @property
-    def current_start_url(self):
-        url_str = self.urls[self.current_index]
-        if '{' in url_str:
-            url_dict = json.loads(url_str)
-            return url_dict['start_urls']
-        else:
-            return r'https://' + self.urls[self.current_index]
+        # 可选：强制类型
+        for col in ["id", "curid", "sensitive_flag"]:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors="coerce").astype("Int64")
 
-    @property
-    def current_allowed_domain(self):
-        url_str = self.urls[self.current_index]
-        if '{' in url_str:
-            url_dict = json.loads(url_str)
-            return url_dict['allowed_domains']
-        else:
-            return self.urls[self.current_index]
+        # 导出为一个 JSON 数组
+        records = df.to_dict(orient="records")
+        return records
+
+    # @property
+    # def current_start_url(self):
+    #     url_str = self.urls[self.current_index]
+    #     if '{' in url_str:
+    #         url_dict = json.loads(url_str)
+    #         return url_dict['start_urls']
+    #     else:
+    #         return r'https://' + self.urls[self.current_index]
+    #
+    # @property
+    # def current_allowed_domain(self):
+    #     url_str = self.urls[self.current_index]
+    #     if '{' in url_str:
+    #         url_dict = json.loads(url_str)
+    #         return url_dict['allowed_domains']
+    #     else:
+    #         return self.urls[self.current_index]
 
 
 task_instance = Task()
