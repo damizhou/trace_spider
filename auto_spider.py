@@ -134,9 +134,9 @@ def handle_server(server):
             local_current_urls_path = f'{container_name}_url_list.csv'
             remote_current_urls_path = f"{container_name}/current_docker_url_list.csv"
             with open(local_current_urls_path, 'w', encoding='utf-8') as file:
-                file.write(f"{lines[0]}\n")
+                file.write(f"{lines[0]}")
                 for line in lines[start_url_index + 1: end_url_index + 1]:
-                    file.write(f"{line}\n")
+                    file.write(f"{line}")
             print('local_current_urls_path', local_current_urls_path)
             print('remote_current_urls_path', remote_current_urls_path)
             # 上传任务列表到对应的docker
