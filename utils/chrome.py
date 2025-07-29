@@ -29,7 +29,6 @@ def create_chrome_driver():
     download_folder = os.path.join(os.getcwd(), 'download')
     if not os.path.exists(download_folder):
         os.makedirs(download_folder)
-
     # 创建 ChromeOptions 实例
     chrome_options = Options()
     if is_docker():
@@ -48,6 +47,7 @@ def create_chrome_driver():
     chrome_options.add_argument("--disable-infobars")  # 禁用信息栏
     chrome_options.add_argument("--disable-software-rasterizer")  # 禁用软件光栅化
     chrome_options.add_argument("--autoplay-policy=no-user-gesture-required")  # 允许自动播放
+    # chrome_options.add_argument(f'--proxy-server=http://127.0.0.1:7890')
 
     # 设置实验性首选项
     prefs = {
@@ -80,6 +80,7 @@ def scroll_to_bottom(driver):
         times += 1
 
         delay = generate_normal_random() / times
+        # print(f'加载等待延时: {delay}')
         time.sleep(delay)
 
         # 滚动到页面底部
@@ -101,8 +102,48 @@ def scroll_to_bottom(driver):
 
 
 def add_cookies(browser):
-    with open('youtube_cookie.txt', 'r') as file:
-        cookies = json.load(file)
-        for cookie in cookies:
-            if cookie['secure']:
-                browser.add_cookie(cookie)
+    with open("youtube_cookie.txt", "r", encoding="utf-8") as f:
+        raw_cookies = json.load(f)
+
+    for ck in raw_cookies:
+        try:
+            browser.add_cookie(sanitize(ck))
+        except Exception as e:
+            print("跳过无效 cookie:", ck["name"], e)
+
+def sanitize(raw: dict) -> dict:
+    """把 DevTools 导出的 cookie → Selenium 可接受格式"""
+    c = {}
+
+    # ===== 必选键 =====
+    c["name"] = raw["name"]
+    c["value"] = raw["value"]
+
+    # ===== 可选键 =====
+    if "domain" in raw:
+        c["domain"] = raw["domain"].lstrip(".")  # 去掉前导点
+    c["path"] = raw.get("path", "/")
+
+    # secure / httpOnly
+    c["secure"] = bool(raw.get("secure", False))
+    c["httpOnly"] = bool(raw.get("httpOnly", False))
+
+    # SameSite：枚举映射
+    samesite_map = {"no_restriction": "None", "unspecified": None,  # 直接忽略
+                    "lax": "Lax", "strict": "Strict", "none": "None", }
+    ss = raw.get("sameSite")
+    ss_fixed = samesite_map.get(str(ss).lower())
+    if ss_fixed:
+        c["sameSite"] = ss_fixed
+
+    # expiry
+    if "expirationDate" in raw:
+        c["expiry"] = int(raw["expirationDate"])
+    elif "expiry" in raw:
+        c["expiry"] = int(raw["expiry"])
+
+    return c
+# 使用示例
+# browser = create_chrome_driver()
+# # ... 你的其他浏览器自动化任务
+# browser.quit()

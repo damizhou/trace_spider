@@ -13,7 +13,6 @@ import json
 from utils.task import task_instance
 import utils.archive as archive
 
-
 class TraceSpiderSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the spider middleware does not modify the
@@ -77,14 +76,19 @@ class TraceSpiderDownloaderMiddleware:
         logger.info(f"创建浏览器")
         self.browser = create_chrome_driver()
         if 'youtube' in task_instance.current_allowed_domain:
+            logger.info(f"cookies开始加载")
             self.browser.get('https://www.youtube.com/')
             # Retrieve all cookies
             add_cookies(self.browser)
-            self.browser.get('https://www.youtube.com/')
+
+            self.browser.refresh()  # 带 cookie 重载
+            logger.info("cookies加载完成")
 
     def __del__(self):
         logger.info(f"销毁浏览器")
-        self.browser.close()
+        browser = getattr(self, "browser", None)
+        if browser:
+            browser.close()
 
     def process_request(self, request, spider):
         # Called for each request that goes through the downloader
@@ -121,8 +125,6 @@ class TraceSpiderDownloaderMiddleware:
 
                     print("当前播放时长:", current_time, "秒")
 
-            with open('youtube_cookie.txt', 'w') as file:
-                json.dump(self.browser.get_cookies(), file)
             return HtmlResponse(url=request.url, body=self.browser.page_source, encoding='utf-8', request=request)
         elif 'archive' in task_instance.current_allowed_domain:
             if 'details' not in request.url:

@@ -1,3 +1,5 @@
+import argparse
+
 import pyshark
 import json
 import re
@@ -23,11 +25,11 @@ def extract_sni(clean_tls_describe):
     return None
 
 
-def normalize_conversation_key(src_ip, src_port, dst_ip, dst_port, protocol):
+def normalize_conversation_key(src_ip, src_port, dst_ip, dst_port, protocol, tls_type):
     if (src_ip, src_port) > (dst_ip, dst_port):
         src_ip, dst_ip = dst_ip, src_ip
         src_port, dst_port = dst_port, src_port
-    return (src_ip, src_port, dst_ip, dst_port, protocol)
+    return src_ip, src_port, dst_ip, dst_port, protocol, tls_type
 
 
 def analyze_pcap(file_path, position):
@@ -41,6 +43,8 @@ def analyze_pcap(file_path, position):
     total_packets = 0
     tcp_packets = 0
     tls_packets = 0
+    tls_1_2_packets = 0
+    tls_1_3_packets = 0
     udp_packets = 0
     quic_packets = 0
     tcp_conversations = 0
@@ -52,6 +56,8 @@ def analyze_pcap(file_path, position):
                 bar_format="{desc}: {n_fmt} packets processed [{elapsed}, {rate_fmt}]",
                 leave=False,
                 position=position)
+
+    tls_type = 0
     for packet in capture:
         total_packets += 1
         pbar.update(1)
@@ -62,46 +68,56 @@ def analyze_pcap(file_path, position):
             unique_ipv4.update([src_ip, dst_ip])
             ip_packet_counts[src_ip] += 1
             ip_packet_counts[dst_ip] += 1
-
             protocol = packet.transport_layer
             if protocol == "TCP":
                 src_port = packet.tcp.srcport
                 dst_port = packet.tcp.dstport
-                tcp_packets += 1
-
-                conversation_key = normalize_conversation_key(src_ip, src_port, dst_ip, dst_port, protocol)
+                # tcp_packets += 1
+                tls_type = 0
+                if hasattr(packet, 'tls') and 'record' in packet.tls.field_names:
+                    if packet.tls.record_version == "0x0303":  # TLS 1.2
+                        tls_type = 1.2
+                    elif packet.tls.record_version == "0x0304":  # TLS 1.3
+                        tls_type = 1.3
+                conversation_key = normalize_conversation_key(src_ip, src_port, dst_ip, dst_port, protocol, tls_type)
                 conversations[conversation_key] += 1
 
                 # Check if the packet is part of a TLS session
                 try:
                     if hasattr(packet,
                                'tls') and 'handshake' in packet.tls.field_names and packet.tls.handshake_type == '1':  # Client Hello
-                        clean_tls_describe = eliminate_ANSI(packet.tls)
-                        sni = extract_sni(clean_tls_describe)
-                        if sni:
-                            unique_snis.append({'address': dst_ip, 'sni': sni})
+                        # clean_tls_describe = eliminate_ANSI(packet.tls)
+                        # sni = extract_sni(clean_tls_describe)
+                        # if sni:
+                        #     unique_snis.append({'address': dst_ip, 'sni': sni})
                         tls_flags[conversation_key] = True
+                    if hasattr(packet, 'tls') and 'record' in packet.tls.field_names:
+                        if packet.tls.record_version == "0x0303":  # TLS 1.2
+                            tls_type = 1.2
+                        elif packet.tls.record_version == "0x0304":  # TLS 1.3
+                            tls_type = 1.3
                 except AttributeError:
                     pass
 
                 # Count the packet as TLS if the conversation is marked as TLS
-                if tls_flags[conversation_key]:
-                    tls_packets += 1
+                # if tls_flags[conversation_key]:
+                #     tls_packets += 1
 
             elif protocol == "UDP":
+                tls_type = 0
                 src_port = packet.udp.srcport
                 dst_port = packet.udp.dstport
-                udp_packets += 1
+                # udp_packets += 1
                 if dst_port == '443' or src_port == '443':
                     quic_packets += 1
 
-                conversation_key = normalize_conversation_key(src_ip, src_port, dst_ip, dst_port, protocol)
+                conversation_key = normalize_conversation_key(src_ip, src_port, dst_ip, dst_port, protocol, tls_type)
                 conversations[conversation_key] += 1
 
-                if conversations[conversation_key] == 1:
-                    udp_conversations += 1
-                    if dst_port == '443' or src_port == '443':
-                        quic_conversations += 1
+                # if conversations[conversation_key] == 1:
+                #     # udp_conversations += 1
+                #     if dst_port == '443' or src_port == '443':
+                #         quic_conversations += 1
 
             # Count TCP conversations
             if protocol == "TCP" and conversations[conversation_key] == 1:
@@ -110,46 +126,57 @@ def analyze_pcap(file_path, position):
     pbar.close()
 
     # Count TLS conversations after processing all packets
-    tls_conversations = sum(1 for flag in tls_flags.values() if flag)
+    # tls_conversations = sum(1 for flag in tls_flags.values() if flag)
 
     capture.close()
 
-    unique_ipv4_count = len(unique_ipv4)
-    unique_sni_count = len(set(s['sni'] for s in unique_snis))
+    # unique_ipv4_count = len(unique_ipv4)
+    # unique_sni_count = len(set(s['sni'] for s in unique_snis))
 
     total_ip_packets = sum(ip_packet_counts.values())
-    ip_packet_percentage = [
-        {"address": ip, "percent": (count / total_ip_packets) * 100}
-        for ip, count in ip_packet_counts.items()
-        if (count / total_ip_packets) * 100 < 50  # Exclude local IP if its count is 50% or more
-    ]
-    top_ip_packet_percentage = sorted(ip_packet_percentage, key=lambda x: x['percent'], reverse=True)[:5]
+    # ip_packet_percentage = [
+    #     {"address": ip, "percent": (count / total_ip_packets) * 100}
+    #     for ip, count in ip_packet_counts.items()
+    #     if (count / total_ip_packets) * 100 < 50  # Exclude local IP if its count is 50% or more
+    # ]
+    # top_ip_packet_percentage = sorted(ip_packet_percentage, key=lambda x: x['percent'], reverse=True)[:5]
 
-    for (src_ip, src_port, dst_ip, dst_port, protocol), count in conversations.items():
+    for (src_ip, src_port, dst_ip, dst_port, protocol, tls_type), count in conversations.items():
+        if protocol == "TCP" and (src_port == "443" or dst_port == "443") and tls_type == 0:
+            continue
+
+        if tls_type == 1.2:
+            tls_1_2_packets += count
+
+        if tls_type == 1.3:
+            tls_1_3_packets += count
         conversation_details.append({
             "addressA": src_ip,
             "portA": src_port,
             "addressB": dst_ip,
             "portB": dst_port,
             "protocol": protocol,
-            "packet_count": count
+            "packet_count": count,
+            "tls_type": tls_type
         })
 
     results = {
-        "unique_sni_count": unique_sni_count,
-        "unique_snis": unique_snis,
-        "unique_ipv4_count": unique_ipv4_count,
-        "top_ip_packet_percentage": top_ip_packet_percentage,
+        # "unique_sni_count": unique_sni_count,
+        # "unique_snis": unique_snis,
+        # "unique_ipv4_count": unique_ipv4_count,
+        # "top_ip_packet_percentage": top_ip_packet_percentage,
         "total_conversations": len(conversation_details),
         "total_packets": total_packets,
-        "conversation_packet_counts": conversation_details,
+        # "conversation_packet_counts": conversation_details,
         "tcp_conversations": tcp_conversations,
-        "tcp_packets": tcp_packets,
-        "tls_conversations": tls_conversations,
-        "tls_packets": tls_packets,
-        "udp_conversations": udp_conversations,
-        "udp_packets": udp_packets,
-        "quic_conversations": quic_conversations,
+        # "tcp_packets": tcp_packets,
+        # "tls_conversations": tls_conversations,
+        # "tls_packets": tls_packets,
+        "tls_1_2_packets": tls_1_2_packets,
+        "tls_1_3_packets": tls_1_3_packets,
+        # "udp_conversations": udp_conversations,
+        # "udp_packets": udp_packets,
+        # "quic_conversations": quic_conversations,
         "quic_packets": quic_packets
     }
 
@@ -180,9 +207,9 @@ def monitor_system_and_run(directory):
         undeal_pcaps = []
         for pcap_file in pcap_files:
             json_file = os.path.splitext(pcap_file)[0] + '.json'
-            if os.path.exists(json_file):
-                print(f"Skipping {pcap_file} as it has already been analyzed.")
-                continue
+            # if os.path.exists(json_file):
+            #     print(f"Skipping {pcap_file} as it has already been analyzed.")
+            #     continue
             undeal_pcaps.append(pcap_file)
         for pcap_file in undeal_pcaps:
             while True:
@@ -202,5 +229,14 @@ def monitor_system_and_run(directory):
 
 
 if __name__ == "__main__":
-    directory = r"/home/dataCollection/pcz/pcz/7.26"
-    monitor_system_and_run(directory)
+    # 创建 ArgumentParser 对象
+    parser = argparse.ArgumentParser(description="Monitor system and run with specified directory.")
+
+    # 添加命令行参数
+    parser.add_argument('directory', type=str, help='The directory to monitor')
+
+    # 解析命令行参数
+    args = parser.parse_args()
+
+    # 将解析到的参数传递给函数
+    monitor_system_and_run(args.directory)

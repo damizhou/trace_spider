@@ -1,6 +1,7 @@
 import configparser
 import os
 from utils import project_path
+from utils.logger import logger
 
 # 创建一个配置解析器
 config = configparser.ConfigParser()

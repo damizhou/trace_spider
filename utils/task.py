@@ -15,14 +15,15 @@ class Task:
 
     def __init__(self):
         if not self._initialized:
-            self.file_path = 'url_list.txt'
+            self.file_path = 'current_docker_url_list.txt'
             self.urls = self.read_file()
+            self.url_logger = None
             self.requesturlNum = 0
             with open('./utils/running.json', 'r') as f:
                 params = json.load(f)
                 self.current_index = params['currentIndex']
             with open('exclude_keywords', 'r') as f:
-                self.exclude_keywords = [s.replace('\n', ' ') for s in f.readlines()]
+                self.exclude_keywords = [s.replace('\n', '') for s in f.readlines()]
             self._initialized = True
 
     def read_file(self):
