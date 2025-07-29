@@ -55,7 +55,7 @@ def start_task(urldict):
 
     logger.info(f"创建浏览器")
     browser = create_chrome_driver()
-    logger.info(f"开始访问{url}")
+    logger.info(f"开始访问第{index}的词条：{url}")
     browser.get(url)
     logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面")
     time.sleep(10)
