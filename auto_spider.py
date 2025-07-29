@@ -88,7 +88,7 @@ def handle_server(server):
             for init_docker_command in init_docker_commands:
                 async_exec_command(client, init_docker_command, password)
 
-            time.sleep(5)
+            # time.sleep(5)
             async_exec_command(client, f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off',
                                password)
             if vpn_info["vpn_yml_info"] == {}:
@@ -113,7 +113,7 @@ def handle_server(server):
                 remote_file = f"{container_name}/clash-for-linux/conf/config.yaml"
                 # vpn配置上传到服务器
                 async_upload_file(sftp, upload_file, remote_file)
-                time.sleep(5)
+                # time.sleep(5)
 
                 if vpn_info["udp"]:
                     protocol = "udp"
@@ -142,12 +142,17 @@ def handle_server(server):
             # 上传任务列表到对应的docker
             async_upload_file(sftp, local_current_urls_path, remote_current_urls_path)
 
+            async_exec_command(client, f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off',
+                               password)
+
         # 创建线程列表
         threads = []
 
         # 启动线程
         for spider_command in spider_commands:
             thread = threading.Thread(target=run_command, args=(client, spider_command))
+            if len(spider_command) > 100:
+                time.sleep(0.5)
             thread.start()
             threads.append(thread)
 
