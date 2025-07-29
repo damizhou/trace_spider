@@ -23,7 +23,7 @@ class Task:
             self._initialized = True
 
     def read_file(self):
-        df = pd.read_csv(r'current_docker_url_list.csv', encoding="utf-8", skiprows=1, sep="\t")
+        df = pd.read_csv(r'current_docker_url_list.csv', encoding="utf-8", sep="\t")
 
         # 可选：强制类型
         for col in ["id", "curid", "sensitive_flag"]:
@@ -32,9 +32,6 @@ class Task:
 
         # 导出为一个 JSON 数组
         records = df.to_dict(orient="records")
-        logger.info(f"读取到1条数据: {records[0]} ")
-        logger.info(f"读取到2条数据: {records[1]} ")
-        logger.info(f"读取到3条数据: {records[2]} ")
         return records
 
     # @property
