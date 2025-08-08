@@ -1,3 +1,4 @@
+import os
 import subprocess
 
 from numpy.f2py.auxfuncs import replace
@@ -54,6 +55,7 @@ def start_task(urldict):
     # 开流量收集
     traffic_thread = threading.Thread(target=traffic, kwargs={"index": index} )
     traffic_thread.start()
+    time.sleep(5)
 
     logger.info(f"创建浏览器")
     browser = create_chrome_driver()
@@ -70,6 +72,8 @@ def start_task(urldict):
     # 关流量收集
     logger.info(f"关流量收集")
     stop_capture()
+    ssl_key_log_path = task_instance.ssl_key_path
+    os.chown(ssl_key_log_path, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
 
 
 if __name__ == "__main__":

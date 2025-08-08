@@ -63,7 +63,3 @@ def move_log(log_path, dst_path):
         os.makedirs(os.path.dirname(dst_path))
     shutil.move(log_path, dst_path)
 
-
-if __name__ == "__main__":
-    capture("www.baidu.com", "TEST", "1111111", "tcp")
-    time.sleep(9)
