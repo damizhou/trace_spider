@@ -40,9 +40,9 @@ def create_chrome_driver():
         headless = False
 
     pcap_path = task_instance.pcap_path
-    ssl_key_log_path = Path(pcap_path.replace('data', 'ssl_keys').replace('.pcap', '_ssl_key.log'))
-    os.makedirs(os.path.dirname(ssl_key_log_path), exist_ok=True)
-    print('ssl_key_log_path', ssl_key_log_path)
+    ssl_key_log_path = rf"{pcap_path.replace('data', 'ssl_keys').replace('.pcap', '_ssl_key.log')}"
+    if len(os.path.dirname(ssl_key_log_path)) > 0:
+        os.makedirs(os.path.dirname(ssl_key_log_path), exist_ok=True)
     if headless:
         chrome_options.add_argument('--headless')  # 无界面模式
     chrome_options.add_argument("--disable-gpu")  # 禁用 GPU 加速

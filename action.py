@@ -1,5 +1,7 @@
 import subprocess
 
+from numpy.f2py.auxfuncs import replace
+
 from utils.chrome import is_docker, create_chrome_driver
 from utils.logger import logger
 from utils.config import config
