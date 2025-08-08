@@ -127,15 +127,16 @@ def handle_server(server):
                 spider_commands.append(main_commmand)
 
             # 拆分任务列表,并上传到对应的docker
-            with open(f"wikicontent_130w.csv", 'r', encoding='utf-8') as file:
-                lines = file.readlines()
-            start_url_index = docker_index * server["each_docker_task_count"] % len(lines[1:])
+            with open(f"missing_records.csv", 'r', encoding='utf-8') as file:
+                all_lines = file.readlines()
+                lines = all_lines[1:]
+            start_url_index = docker_index * server["each_docker_task_count"]
             end_url_index = start_url_index + server["each_docker_task_count"]
             local_current_urls_path = f'{container_name}_url_list.csv'
             remote_current_urls_path = f"{container_name}/current_docker_url_list.csv"
             with open(local_current_urls_path, 'w', encoding='utf-8') as file:
-                file.write(f"{lines[0]}")
-                for line in lines[start_url_index + 1: end_url_index + 1]:
+                file.write(f"{all_lines[0]}")
+                for line in lines[start_url_index: end_url_index]:
                     file.write(f"{line}")
             print('local_current_urls_path', local_current_urls_path)
             print('remote_current_urls_path', remote_current_urls_path)
