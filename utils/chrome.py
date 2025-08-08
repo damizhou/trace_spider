@@ -38,7 +38,9 @@ def create_chrome_driver():
         headless = False
 
     pcap_path = Path(task_instance.pcap_path)
-    ssl_key_log_path = (Path(str(pcap_path).replace('data', 'ssl_keys')).with_suffix('_ssl_key.log'))
+    ssl_key_log_path = pcap_path.with_name(pcap_path.stem + "_ssl_key.log")
+    ssl_key_log_path = Path(str(ssl_key_log_path).replace('data', 'ssl_keys'))
+
     ssl_key_log_path.parent.mkdir(parents=True, exist_ok=True)
     print('ssl_key_log_path', ssl_key_log_path)
     if headless:
