@@ -6,7 +6,7 @@ import os
 from selenium.webdriver.support.ui import WebDriverWait  # 从selenium.webdriver.support.wait改为支持ui
 from tools.math_tool import generate_normal_random
 from utils.task import task_instance
-
+from pathlib import Path
 
 def is_docker():
     # 检查cgroup文件
@@ -37,9 +37,9 @@ def create_chrome_driver():
     else:
         headless = False
 
-    pcap_path = task_instance.pcap_path
-    ssl_key_log_path = pcap_path.replace('data', 'ssl_keys').replace('.pcap', '_ssl_key.log')
-    os.makedirs(os.path.dirname(ssl_key_log_path), exist_ok=True)
+    pcap_path = Path(task_instance.pcap_path)
+    ssl_key_log_path = (Path(str(pcap_path).replace('data', 'ssl_keys')).with_suffix('_ssl_key.log'))
+    ssl_key_log_path.parent.mkdir(parents=True, exist_ok=True)
     print('ssl_key_log_path', ssl_key_log_path)
     if headless:
         chrome_options.add_argument('--headless')  # 无界面模式
