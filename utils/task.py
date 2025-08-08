@@ -13,6 +13,7 @@ class Task:
         if not self._initialized:
             self.urls = self.read_file()
             self.url_logger = None
+            self.pcap_path = ''
             self.requesturlNum = 0
 
             self._initialized = True

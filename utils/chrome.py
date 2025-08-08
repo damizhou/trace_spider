@@ -5,6 +5,7 @@ from selenium.webdriver.chrome.options import Options
 import os
 from selenium.webdriver.support.ui import WebDriverWait  # 从selenium.webdriver.support.wait改为支持ui
 from tools.math_tool import generate_normal_random
+from utils.task import task_instance
 
 
 def is_docker():
@@ -36,6 +37,8 @@ def create_chrome_driver():
     else:
         headless = False
 
+    pcap_path = task_instance.pcap_path
+    ssl_key_log_path = pcap_path.replace('data', 'ssl_keys').replace('.pcap', '_ssl_key.log')
     if headless:
         chrome_options.add_argument('--headless')  # 无界面模式
     chrome_options.add_argument("--disable-gpu")  # 禁用 GPU 加速
@@ -47,6 +50,7 @@ def create_chrome_driver():
     chrome_options.add_argument("--disable-infobars")  # 禁用信息栏
     chrome_options.add_argument("--disable-software-rasterizer")  # 禁用软件光栅化
     chrome_options.add_argument("--autoplay-policy=no-user-gesture-required")  # 允许自动播放
+    chrome_options.add_argument("--ssl-key-log-file=" + ssl_key_log_path)  # 设置 SSL 密钥日志文件路径
     # chrome_options.add_argument(f'--proxy-server=http://127.0.0.1:7890')
 
     # 设置实验性首选项
