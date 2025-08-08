@@ -39,6 +39,7 @@ def create_chrome_driver():
 
     pcap_path = task_instance.pcap_path
     ssl_key_log_path = pcap_path.replace('data', 'ssl_keys').replace('.pcap', '_ssl_key.log')
+    os.makedirs(os.path.dirname(ssl_key_log_path), exist_ok=True)
     print('ssl_key_log_path', ssl_key_log_path)
     if headless:
         chrome_options.add_argument('--headless')  # 无界面模式
