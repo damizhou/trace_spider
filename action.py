@@ -59,7 +59,7 @@ def start_task(urldict):
     browser.get(url)
     logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面")
     time.sleep(10)
-
+    browser.close()
     logger.info(f"清理浏览器进程")
     kill_chrome_processes()
     logger.info(f"等待TCP结束挥手完成")

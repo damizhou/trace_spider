@@ -39,6 +39,7 @@ def create_chrome_driver():
 
     pcap_path = task_instance.pcap_path
     ssl_key_log_path = pcap_path.replace('data', 'ssl_keys').replace('.pcap', '_ssl_key.log')
+    print('ssl_key_log_path', ssl_key_log_path)
     if headless:
         chrome_options.add_argument('--headless')  # 无界面模式
     chrome_options.add_argument("--disable-gpu")  # 禁用 GPU 加速
@@ -50,7 +51,7 @@ def create_chrome_driver():
     chrome_options.add_argument("--disable-infobars")  # 禁用信息栏
     chrome_options.add_argument("--disable-software-rasterizer")  # 禁用软件光栅化
     chrome_options.add_argument("--autoplay-policy=no-user-gesture-required")  # 允许自动播放
-    chrome_options.add_argument("--ssl-key-log-file=" + ssl_key_log_path)  # 设置 SSL 密钥日志文件路径
+    chrome_options.add_argument(f"--ssl-key-log-file={ssl_key_log_path}")  # 设置 SSL 密钥日志文件路径
     # chrome_options.add_argument(f'--proxy-server=http://127.0.0.1:7890')
 
     # 设置实验性首选项
