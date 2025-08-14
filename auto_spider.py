@@ -62,10 +62,10 @@ def handle_server(server):
             f"docker stop $(docker ps -q -f \"name=^trace_spider\") | docker rm -f $(docker ps -aq -f \"name=^trace_spider\")",
             # f"source /etc/profile.d/clash.sh",
             # f"proxy_on",
-            f"echo '{password}' | sudo -S rm -rf trace_spider* spiderCode",
+            # f"echo '{password}' | sudo -S rm -rf trace_spider* spiderCode",
             f"echo '{password}' | sudo -S rm -rf trace_spider*",
             f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
-            f'git clone --branch sslkey https://github.com/damizhou/trace_spider.git spiderCode',
+            # f'git clone --branch sslkey https://github.com/damizhou/trace_spider.git spiderCode',
             # f'git clone https://github.com/damizhou/clash-for-linux.git spiderCode/clash-for-linux',
         ]
         for sever_command in sever_commands:

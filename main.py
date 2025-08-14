@@ -1,4 +1,5 @@
 import subprocess
+from action import kill_tcpdump_processes
 from utils.logger import setup_logging, logger
 import threading
 from utils.task import task_instance
@@ -20,6 +21,7 @@ def main():
 
     # 等待线程完成
     action_thread.join()
+    kill_tcpdump_processes()
 
     logger.info(f"任务完成")
 

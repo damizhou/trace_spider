@@ -49,13 +49,16 @@ def kill_tcpdump_processes():
 def start_task(urldict):
     kill_chrome_processes()
     kill_tcpdump_processes()
+    time.sleep(2)
+
     index = urldict['id']
     curid = urldict['curid']
     url = f'https://zh.wikipedia.org/wiki?curid={curid}'
+
     # 开流量收集
     traffic_thread = threading.Thread(target=traffic, kwargs={"index": index} )
     traffic_thread.start()
-    time.sleep(5)
+    time.sleep(3)
 
     logger.info(f"创建浏览器")
     browser = create_chrome_driver()
@@ -74,6 +77,7 @@ def start_task(urldict):
     stop_capture()
     ssl_key_log_path = task_instance.ssl_key_path
     os.chown(ssl_key_log_path, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
+
 
 
 if __name__ == "__main__":

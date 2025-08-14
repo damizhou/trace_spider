@@ -7,7 +7,7 @@ import sys
 
 # —— 配置 ——
 # .pcap 文件所在目录（一层）
-PCAP_DIR = "/netdisk/wiki"
+PCAP_DIR = "/netdisk/wiki_with_ssl_key/pcap"
 # CSV 文件路径，包含 id 列
 CSV_FILE = "./wikicontent_130w.csv"
 # 输出缺失记录的 CSV 文件路径
@@ -59,13 +59,18 @@ def main():
             print(row["id"])
     print('找到的记录数:', len(missing))
 
-    # 4. 保存缺失记录到新的 CSV 文件
+    # 4. 重置新的csv文件
+    if os.path.exists(OUTPUT_CSV_FILE):
+        os.remove(OUTPUT_CSV_FILE)
+
+   # 5. 保存缺失记录到新的 CSV 文件
     try:
         with open(OUTPUT_CSV_FILE, "w", newline="", encoding="utf-8") as outf:
             writer = csv.DictWriter(outf, fieldnames=fieldnames, delimiter=DELIMITER)
             writer.writeheader()
             for row in missing:
                 writer.writerow(row)
+            print(f"缺失文件已写入{OUTPUT_CSV_FILE}")
     except Exception as e:
         print(f"写入缺失记录文件时出错：{e}", file=sys.stderr)
         sys.exit(1)
