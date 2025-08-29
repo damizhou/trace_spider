@@ -32,7 +32,7 @@ def main():
             removed.append(fp)
             print(f"  {fp} — {size} bytes")
 
-        print(f"removed {len(removed)} files.")
+    print(f"removed {len(removed)} files.")
 
 
 if __name__ == '__main__':

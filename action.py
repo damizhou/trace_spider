@@ -1,9 +1,7 @@
 import os
 import subprocess
 
-from numpy.f2py.auxfuncs import replace
-
-from utils.chrome import is_docker, create_chrome_driver
+from utils.chrome import  create_chrome_driver
 from utils.logger import logger
 from utils.config import config
 import threading
@@ -52,8 +50,8 @@ def start_task(urldict):
     time.sleep(2)
 
     index = urldict['id']
-    curid = urldict['curid']
-    url = f'https://zh.wikipedia.org/wiki?curid={curid}'
+    title = urldict['title']
+    url = f'https://zh.wikipedia.org/wiki/{title}'
 
     # 开流量收集
     traffic_thread = threading.Thread(target=traffic, kwargs={"index": index} )

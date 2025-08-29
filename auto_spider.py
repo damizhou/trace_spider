@@ -60,12 +60,10 @@ def handle_server(server):
             # f"echo '{password}' | sudo -S apt update",
             # f"echo '{password}' | sudo -S apt install -y docker.io",
             f"docker stop $(docker ps -q -f \"name=^trace_spider\") | docker rm -f $(docker ps -aq -f \"name=^trace_spider\")",
-            # f"source /etc/profile.d/clash.sh",
-            # f"proxy_on",
-            # f"echo '{password}' | sudo -S rm -rf trace_spider* spiderCode",
-            f"echo '{password}' | sudo -S rm -rf trace_spider*",
+            f"echo '{password}' | sudo -S rm -rf trace_spider* spiderCode",
+            # f"echo '{password}' | sudo -S rm -rf trace_spider*",
             f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
-            # f'git clone --branch sslkey https://github.com/damizhou/trace_spider.git spiderCode',
+            f'git clone --branch sslkey https://github.com/damizhou/trace_spider.git spiderCode',
             # f'git clone https://github.com/damizhou/clash-for-linux.git spiderCode/clash-for-linux',
         ]
         for sever_command in sever_commands:
@@ -127,7 +125,7 @@ def handle_server(server):
                 spider_commands.append(main_commmand)
 
             # 拆分任务列表,并上传到对应的docker
-            with open(f"missing_records.csv", 'r', encoding='utf-8') as file:
+            with open(f"missing_records_2.csv", 'r', encoding='utf-8') as file:
                 all_lines = file.readlines()
                 lines = all_lines[1:]
             start_url_index = docker_index * server["each_docker_task_count"]
@@ -152,8 +150,7 @@ def handle_server(server):
         # 启动线程
         for spider_command in spider_commands:
             thread = threading.Thread(target=run_command, args=(client, spider_command))
-            if len(spider_command) > 100:
-                time.sleep(0.5)
+            time.sleep(1)
             thread.start()
             threads.append(thread)
 
