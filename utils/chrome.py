@@ -39,6 +39,9 @@ def create_chrome_driver():
     else:
         headless = False
 
+    _ACCEPT_LANGUAGE = "zh-CN,zh;q=0.9"
+    _LANG_PRIMARY = "zh-CN"
+
     if headless:
         chrome_options.add_argument('--headless')  # 无界面模式
     chrome_options.add_argument("--disable-gpu")  # 禁用 GPU 加速
@@ -50,6 +53,7 @@ def create_chrome_driver():
     chrome_options.add_argument("--disable-infobars")  # 禁用信息栏
     chrome_options.add_argument("--disable-software-rasterizer")  # 禁用软件光栅化
     chrome_options.add_argument("--autoplay-policy=no-user-gesture-required")  # 允许自动播放
+    chrome_options.add_argument(f"--lang={_LANG_PRIMARY}") # ✅ 启动语言
     chrome_options.add_argument(f"--ssl-key-log-file={task_instance.ssl_key_path}")  # 设置 SSL 密钥日志文件路径
     print(f"SSL 密钥日志文件路径: {task_instance.ssl_key_path}")
     # chrome_options.add_argument(f'--proxy-server=http://127.0.0.1:7890')
@@ -62,7 +66,8 @@ def create_chrome_driver():
         "download.default_directory": download_folder,  # 默认下载目录
         "download.prompt_for_download": False,  # 不提示下载
         "download.directory_upgrade": True,  # 升级下载目录
-        "safebrowsing.enabled": True  # 启用安全浏览
+        "safebrowsing.enabled": True,  # 启用安全浏览
+        "intl.accept_languages": _ACCEPT_LANGUAGE,  # ✅ 首选语言
     }
     chrome_options.add_experimental_option("prefs", prefs)
 
@@ -71,8 +76,14 @@ def create_chrome_driver():
 
     # 创建 WebDriver 实例
     browser = webdriver.Chrome(options=chrome_options)
+    browser.execute_cdp_cmd('Network.enable', {})
+    browser.execute_cdp_cmd('Network.setExtraHTTPHeaders', {'headers': {'Accept-Language': _ACCEPT_LANGUAGE}})
     browser.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument',
-                            {'source': 'Object.defineProperty(navigator,"webdriver",{get:()=>undefined})'})
+                            {'source': '''
+                            Object.defineProperty(navigator,"webdriver",{get:()=>undefined});
+                            Object.defineProperty(navigator,"language",{get:()=> "zh-CN"});
+                            Object.defineProperty(navigator,"languages",{get:()=> ["zh-CN","zh"]});
+                            '''.strip()})
     return browser
 
 

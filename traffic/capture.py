@@ -2,7 +2,7 @@ from utils.logger import logger, setup_url_logger
 import os
 import time
 import shutil
-from utils import projectath
+from utils import project_path
 import subprocess
 import psutil
 from datetime import datetime
