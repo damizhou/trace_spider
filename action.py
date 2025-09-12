@@ -58,7 +58,7 @@ def start_task(index, url):
     browser = create_chrome_driver()
     browser.get(url)
     logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面")
-    time.sleep(10)
+    time.sleep(60)
     browser.close()
     logger.info(f"清理浏览器进程")
     kill_chrome_processes()
