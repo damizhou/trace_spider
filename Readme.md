@@ -15,7 +15,7 @@ docker pull chuanzhoupan/trace_spider:0527
 4. 运行docker, 根据自己的实际情况修改`--volume`参数，`your_code_path`为克隆项目的路径。挂载部分包含脚本代码，不挂载脚本无法正常运行。和`--name`参数，`your_container_name`是容器名称
   - windows
     ```
-    docker run --volume your_code_path:/app --privileged -itd --name your_container_name chuanzhoupan/trace_spider:0712 /bin/bash
+    docker run --volume your_code_path:/app --privileged -itd --name your_container_name chuanzhoupan/trace_spider:250912 /bin/bash
     ```
   - linux
     ```
