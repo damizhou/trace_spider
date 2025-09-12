@@ -25,13 +25,13 @@ def kill_chrome_processes():
 
 
 # 流量捕获进程
-def traffic(index=0):
+def traffic(url=0):
     # 获取当前时间
     current_time = datetime.now()
     # 格式化输出
     formatted_time = current_time.strftime("%Y%m%d_%H_%M_%S")
-    allowed_domain = f"zh.wikipedia.org"
-    capture(allowed_domain, formatted_time, f"{index}")
+    allowed_domain = task_instance.current_allowed_domain
+    capture(allowed_domain, formatted_time, f"{url}")
 
 
 # 清理流量捕获进程
@@ -44,23 +44,18 @@ def kill_tcpdump_processes():
         print(f"Error occurred: {e.stderr.decode('utf-8')}")
 
 
-def start_task(urldict):
+def start_task(url):
     kill_chrome_processes()
     kill_tcpdump_processes()
     time.sleep(2)
 
-    index = urldict['id']
-    title = urldict['title']
-    url = f'https://zh.wikipedia.org/wiki/{title}'
-
     # 开流量收集
-    traffic_thread = threading.Thread(target=traffic, kwargs={"index": index} )
+    traffic_thread = threading.Thread(target=traffic, kwargs={"url": url} )
     traffic_thread.start()
     time.sleep(3)
 
     logger.info(f"创建浏览器")
     browser = create_chrome_driver()
-    logger.info(f"开始访问第{index}的词条：{url}")
     browser.get(url)
     logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面")
     time.sleep(10)
@@ -79,5 +74,5 @@ def start_task(urldict):
 
 
 if __name__ == "__main__":
-    for urldict in task_instance.urls:
-        start_task(urldict)
+    for url in task_instance.urls:
+        start_task(url)

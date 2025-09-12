@@ -36,20 +36,14 @@ class Task:
             os.makedirs(os.path.dirname(self.ssl_key_path), exist_ok=True)
 
     def read_file(self):
-        df = pd.read_csv(r'current_docker_url_list.csv', encoding="utf-8", sep="\t")
-
-        # 可选：强制类型
-        for col in ["id", "curid", "sensitive_flag"]:
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors="coerce").astype("Int64")
-
-        # 导出为一个 JSON 数组
-        records = df.to_dict(orient="records")
-        return records
+        # df = pd.read_csv(r'current_docker_url_list.txt', encoding="utf-8", sep="\t")
+        with open(r'current_docker_url_list.txt', 'r', encoding='utf-8') as f:
+            urls = [line.strip() for line in f.readlines()]
+        return urls
 
     @property
     def current_allowed_domain(self):
-        return 'zh.wikipedia.org'
+        return 'test'
 
 
 
