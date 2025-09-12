@@ -47,12 +47,12 @@ def kill_tcpdump_processes():
 def start_task(index, url):
     kill_chrome_processes()
     kill_tcpdump_processes()
-    time.sleep(2)
+    time.sleep(1)
 
     # 开流量收集
     traffic_thread = threading.Thread(target=traffic, kwargs={"index": index} )
     traffic_thread.start()
-    # time.sleep(3)
+    time.sleep(1)
 
     logger.info(f"创建浏览器")
     browser = create_chrome_driver()
@@ -77,4 +77,4 @@ if __name__ == "__main__":
     for url in task_instance.urls:
         current_url = url.get('html_url')
         index = url.get('id')
-        start_task(index, url)
+        start_task(index, current_url)
