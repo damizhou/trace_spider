@@ -4,15 +4,11 @@ import logging
 import logging.handlers
 import os
 
-from utils.chrome import is_docker
-
-
 # 配置日志基本设置
 def setup_logging():
     logs_dir = os.path.join(project_path, "logs")
     os.makedirs(logs_dir, exist_ok=True)
-    if is_docker():
-        os.chown(logs_dir, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
+    os.chown(logs_dir, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
 
     # 获取当前时间
     current_time = datetime.now()

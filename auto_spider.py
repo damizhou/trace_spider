@@ -56,9 +56,9 @@ def handle_server(server):
         print(f"{hostname}连接成功")
         # 执行 git clone 命令
         sever_commands = [
-            'sudo apt update',
-            'sudo apt install -y docker.io',
-            'sudo ethtool -K docker0 tso off gso off gro off',
+            f"docker stop $(docker ps -q -f \"name=^trace_spider\") | docker rm -f $(docker ps -aq -f \"name=^trace_spider\")",
+            f"echo '{password}' | sudo -S rm -rf trace_spider* spiderCode",
+            f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off"
         ]
         for sever_command in sever_commands:
             async_exec_command(client, sever_command)
