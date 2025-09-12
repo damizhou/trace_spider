@@ -75,7 +75,7 @@ def create_chrome_driver():
     chrome_options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
 
     # 创建 WebDriver 实例
-    service = Service(executable_path="/usr/bin/chromedriver")
+    service = Service(executable_path="/usr/local/bin/chromedriver")
     browser = webdriver.Chrome(service=service, options=chrome_options)
     browser.execute_cdp_cmd('Network.enable', {})
     # browser.execute_cdp_cmd('Network.setBlockedURLs',
