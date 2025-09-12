@@ -37,10 +37,6 @@ class Task:
 
     def read_file(self):
         df = pd.read_csv(r'current_docker_url_list.csv', encoding="utf-8", sep="\t")
-        numeric_cols = ["id", "curid", "repo_id", "owner_id", "stars", "issues_count", "sensitive_flag"]
-        for col in numeric_cols:
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors="coerce").astype("Int64")
 
         # 可选：topics 拆成数组（逗号分隔；空值→[]）
         if "topics" in df.columns:
