@@ -1,7 +1,6 @@
 import json
 import time
-from pathlib import Path
-
+from selenium.webdriver.chrome.service import Service
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import os
@@ -34,16 +33,11 @@ def create_chrome_driver():
         os.makedirs(download_folder)
     # 创建 ChromeOptions 实例
     chrome_options = Options()
-    if is_docker():
-        headless = True
-    else:
-        headless = False
 
     _ACCEPT_LANGUAGE = "zh-CN,zh;q=0.9"
     _LANG_PRIMARY = "zh-CN"
-
-    if headless:
-        chrome_options.add_argument('--headless')  # 无界面模式
+    chrome_options.binary_location = "/usr/bin/google-chrome"  # 固定 Chrome 路径，避免联网查询
+    chrome_options.add_argument('--headless')  # 无界面模式
     chrome_options.add_argument("--disable-gpu")  # 禁用 GPU 加速
     chrome_options.add_argument("--no-sandbox")  # 禁用沙盒
     chrome_options.add_argument("--disable-dev-shm-usage")  # 限制使用/dev/shm
@@ -55,6 +49,7 @@ def create_chrome_driver():
     chrome_options.add_argument("--autoplay-policy=no-user-gesture-required")  # 允许自动播放
     chrome_options.add_argument(f"--lang={_LANG_PRIMARY}") # ✅ 启动语言
     chrome_options.add_argument(f"--ssl-key-log-file={task_instance.ssl_key_path}")  # 设置 SSL 密钥日志文件路径
+    chrome_options.add_argument("--disable-background-networking")  # 降低背景“噪音”联网
     print(f"SSL 密钥日志文件路径: {task_instance.ssl_key_path}")
     # chrome_options.add_argument(f'--proxy-server=http://127.0.0.1:7890')
 
@@ -75,8 +70,13 @@ def create_chrome_driver():
     chrome_options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
 
     # 创建 WebDriver 实例
-    browser = webdriver.Chrome(options=chrome_options)
+    service = Service(executable_path="/usr/bin/chromedriver")
+    browser = webdriver.Chrome(service=service, options=chrome_options)
     browser.execute_cdp_cmd('Network.enable', {})
+    browser.execute_cdp_cmd('Network.setBlockedURLs',
+                            {
+                                'urls': ['*://plausible.io/*', '*://*.plausible.io/*']
+                            })
     browser.execute_cdp_cmd('Network.setExtraHTTPHeaders', {'headers': {'Accept-Language': _ACCEPT_LANGUAGE}})
     browser.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument',
                             {'source': '''
