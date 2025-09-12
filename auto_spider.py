@@ -78,7 +78,7 @@ def handle_server(server):
             ]
             docker_run_command = (f'docker run --volume ~/{container_name}:/app -e HOST_UID=$(id -u $USER) '
                                   f'-e HOST_GID=$(id -g $USER) --privileged -itd --name {container_name} '
-                                  f'chuanzhoupan/trace_spider:0712 /bin/bash')
+                                  f'chuanzhoupan/trace_spider:250912 /bin/bash')
 
             main_commmand = f'docker exec {container_name} python /app/main.py {server["loaction"]} {server["os"]} '
             init_docker_commands.append(docker_run_command)
