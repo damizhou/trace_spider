@@ -36,13 +36,27 @@ class Task:
             os.makedirs(os.path.dirname(self.ssl_key_path), exist_ok=True)
 
     def read_file(self):
-        with open(r'current_docker_url_list.txt', 'r', encoding='utf-8') as f:
-            urls = [line.strip() for line in f.readlines()]
-        return urls
+        df = pd.read_csv(r'current_docker_url_list.csv', encoding="utf-8", sep="\t")
+        numeric_cols = ["id", "curid", "repo_id", "owner_id", "stars", "issues_count", "sensitive_flag"]
+        for col in numeric_cols:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors="coerce").astype("Int64")
+
+        # 可选：topics 拆成数组（逗号分隔；空值→[]）
+        if "topics" in df.columns:
+            df["topics"] = (
+                df["topics"].fillna("").astype(str).apply(lambda s: [t.strip() for t in s.split(",") if t.strip()]))
+
+        # 将 NaN 统一成 None，便于 json 序列化
+        df = df.where(pd.notna(df), None)
+
+        # 导出为 JSON 数组（list[dict]）
+        records = df.to_dict(orient="records")
+        return records
 
     @property
     def current_allowed_domain(self):
-        return 'test'
+        return 'github.com'
 
 
 
