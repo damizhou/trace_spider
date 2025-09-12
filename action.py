@@ -42,7 +42,7 @@ def kill_tcpdump_processes():
 
 def start_task():
     url = 'https://zh.wikipedia.org/wiki?curid=5916857'
-
+    index = 123456
     formatted_time = datetime.now().strftime("%Y%m%d_%H_%M_%S")
     kill_chrome_processes()
     kill_tcpdump_processes()
