@@ -33,7 +33,7 @@ def create_chrome_driver():
         os.makedirs(download_folder)
     # 创建 ChromeOptions 实例
     chrome_options = Options()
-
+    os.environ["SE_OFFLINE"] = "true"
     _ACCEPT_LANGUAGE = "zh-CN,zh;q=0.9"
     _LANG_PRIMARY = "zh-CN"
     chrome_options.binary_location = "/usr/bin/google-chrome"  # 固定 Chrome 路径，避免联网查询
@@ -50,6 +50,9 @@ def create_chrome_driver():
     chrome_options.add_argument(f"--lang={_LANG_PRIMARY}") # ✅ 启动语言
     chrome_options.add_argument(f"--ssl-key-log-file={task_instance.ssl_key_path}")  # 设置 SSL 密钥日志文件路径
     chrome_options.add_argument("--disable-background-networking")  # 降低背景“噪音”联网
+    chrome_options.add_argument("--no-first-run")
+    chrome_options.add_argument("--no-default-browser-check")
+    chrome_options.add_argument("--homepage=about:blank")
     print(f"SSL 密钥日志文件路径: {task_instance.ssl_key_path}")
     # chrome_options.add_argument(f'--proxy-server=http://127.0.0.1:7890')
 
@@ -73,10 +76,10 @@ def create_chrome_driver():
     service = Service(executable_path="/usr/bin/chromedriver")
     browser = webdriver.Chrome(service=service, options=chrome_options)
     browser.execute_cdp_cmd('Network.enable', {})
-    browser.execute_cdp_cmd('Network.setBlockedURLs',
-                            {
-                                'urls': ['*://plausible.io/*', '*://*.plausible.io/*']
-                            })
+    # browser.execute_cdp_cmd('Network.setBlockedURLs',
+    #                         {
+    #                             'urls': ['*://plausible.io/*', '*://*.plausible.io/*']
+    #                         })
     browser.execute_cdp_cmd('Network.setExtraHTTPHeaders', {'headers': {'Accept-Language': _ACCEPT_LANGUAGE}})
     browser.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument',
                             {'source': '''
