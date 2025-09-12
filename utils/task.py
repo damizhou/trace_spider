@@ -36,7 +36,6 @@ class Task:
             os.makedirs(os.path.dirname(self.ssl_key_path), exist_ok=True)
 
     def read_file(self):
-        # df = pd.read_csv(r'current_docker_url_list.txt', encoding="utf-8", sep="\t")
         with open(r'current_docker_url_list.txt', 'r', encoding='utf-8') as f:
             urls = [line.strip() for line in f.readlines()]
         return urls

@@ -53,6 +53,8 @@ def create_chrome_driver():
     chrome_options.add_argument("--no-first-run")
     chrome_options.add_argument("--no-default-browser-check")
     chrome_options.add_argument("--homepage=about:blank")
+    chrome_options.add_argument("--log-net-log=/tmp/netlog.json")
+    chrome_options.add_argument("--net-log-capture-mode=Everything")
     print(f"SSL 密钥日志文件路径: {task_instance.ssl_key_path}")
     # chrome_options.add_argument(f'--proxy-server=http://127.0.0.1:7890')
 
