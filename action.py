@@ -63,7 +63,7 @@ def start_task(index, url):
     logger.info(f"清理浏览器进程")
     kill_chrome_processes()
     logger.info(f"等待TCP结束挥手完成")
-    # time.sleep(60)
+    time.sleep(60)
 
     # 关流量收集
     logger.info(f"关流量收集")
