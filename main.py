@@ -12,19 +12,18 @@ def run_action_script():
 def main():
     task_instance.current_index = 0
     logger.info(f"开始任务")
-    print(task_instance.urls)
 
-    # # 创建一个线程来运行 action.py
-    # action_thread = threading.Thread(target=run_action_script)
-    #
-    # # 启动线程
-    # action_thread.start()
-    #
-    # # 等待线程完成
-    # action_thread.join()
-    # kill_tcpdump_processes()
-    #
-    # logger.info(f"任务完成")
+    # 创建一个线程来运行 action.py
+    action_thread = threading.Thread(target=run_action_script)
+
+    # 启动线程
+    action_thread.start()
+
+    # 等待线程完成
+    action_thread.join()
+    kill_tcpdump_processes()
+
+    logger.info(f"任务完成")
 
 if __name__ == "__main__":
     main()

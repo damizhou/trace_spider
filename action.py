@@ -25,13 +25,13 @@ def kill_chrome_processes():
 
 
 # 流量捕获进程
-def traffic(url=0):
+def traffic(index=0):
     # 获取当前时间
     current_time = datetime.now()
     # 格式化输出
     formatted_time = current_time.strftime("%Y%m%d_%H_%M_%S")
     allowed_domain = task_instance.current_allowed_domain
-    capture(allowed_domain, formatted_time, f"{url}")
+    capture(allowed_domain, formatted_time, f"{index}")
 
 
 # 清理流量捕获进程
@@ -44,15 +44,15 @@ def kill_tcpdump_processes():
         print(f"Error occurred: {e.stderr.decode('utf-8')}")
 
 
-def start_task(url):
+def start_task(index, url):
     kill_chrome_processes()
     kill_tcpdump_processes()
     time.sleep(2)
 
     # 开流量收集
-    traffic_thread = threading.Thread(target=traffic, kwargs={"url": url} )
+    traffic_thread = threading.Thread(target=traffic, kwargs={"index": index} )
     traffic_thread.start()
-    time.sleep(3)
+    # time.sleep(3)
 
     logger.info(f"创建浏览器")
     browser = create_chrome_driver()
@@ -63,7 +63,7 @@ def start_task(url):
     logger.info(f"清理浏览器进程")
     kill_chrome_processes()
     logger.info(f"等待TCP结束挥手完成")
-    time.sleep(60)
+    # time.sleep(60)
 
     # 关流量收集
     logger.info(f"关流量收集")
@@ -75,4 +75,6 @@ def start_task(url):
 
 if __name__ == "__main__":
     for url in task_instance.urls:
-        start_task(url)
+        current_url = url.get('html_url')
+        index = url.get('id')
+        start_task(index, url)
