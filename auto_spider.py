@@ -125,7 +125,7 @@ def handle_server(server):
                 spider_commands.append(main_commmand)
 
             # 拆分任务列表,并上传到对应的docker
-            with open(f"github_repose_test.csv", 'r', encoding='utf-8') as file:
+            with open(f"github_repose_10w.csv", 'r', encoding='utf-8') as file:
                 all_lines = file.readlines()
                 lines = all_lines[1:]
             start_url_index = docker_index * server["each_docker_task_count"]
