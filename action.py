@@ -44,20 +44,19 @@ def kill_tcpdump_processes():
         print(f"Error occurred: {e.stderr.decode('utf-8')}")
 
 
-def start_task(session, index, url):
+def start_task(session, current_id, current_url):
     kill_chrome_processes()
     kill_tcpdump_processes()
     time.sleep(1)
 
     # 开流量收集
-    traffic_thread = threading.Thread(target=traffic, kwargs={"index": f"{session}_{index}"} )
+    traffic_thread = threading.Thread(target=traffic, kwargs={"index": f"{session}_{current_id}"} )
     traffic_thread.start()
-    return
     time.sleep(1)
 
     logger.info(f"创建浏览器")
     browser = create_chrome_driver()
-    browser.get(url)
+    browser.get(current_url)
     logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面")
     time.sleep(15)
     browser.close()
@@ -76,5 +75,5 @@ if __name__ == "__main__":
     for url in task_instance.urls:
         current_url = url.get('URL')
         section = url.get('Section')
-        id = url.get('ID')
-        start_task(section, id, current_url)
+        current_id = url.get('ID')
+        start_task(section, current_id, current_url)
