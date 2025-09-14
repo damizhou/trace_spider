@@ -36,7 +36,7 @@ class Task:
             os.makedirs(os.path.dirname(self.ssl_key_path), exist_ok=True)
 
     def read_file(self):
-        df = pd.read_csv(r'current_docker_url_list.csv', encoding="utf-8", sep="\t")
+        df = pd.read_csv(r'current_docker_url_list.csv', encoding="utf-8", sep=",")
 
         # 将 NaN 统一成 None，便于 json 序列化
         df = df.where(pd.notna(df), None)
@@ -47,7 +47,7 @@ class Task:
 
     @property
     def current_allowed_domain(self):
-        return 'github.com'
+        return 'theguardian.com'
 
 
 
