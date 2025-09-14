@@ -59,15 +59,15 @@ def handle_server(server):
         sever_commands = [
             # f"echo '{password}' | sudo -S apt update",
             # f"echo '{password}' | sudo -S apt install -y docker.io",
-            f"docker stop $(docker ps -q -f \"name=^theguardian_trace_spider\") | docker rm -f $(docker ps -aq -f \"name=^theguardian_trace_spider\")",
-            f"echo '{password}' | sudo -S rm -rf theguardian_trace_spider* spiderCode",
-            # f"echo '{password}' | sudo -S rm -rf trace_spider*",
-            f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
-            f'git clone --branch ssl_key_csv_theguardian https://github.com/damizhou/trace_spider.git spiderCode',
+            f"docker stop $(docker ps -q -f \"name=^trace_spider\") | docker rm -f $(docker ps -aq -f \"name=^trace_spider\")",
+            f"echo '{password}' | sudo -S rm -rf trace_spider* spiderCode",
+            # f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
+            f'git clone --branch ssl_key_csv_github https://github.com/damizhou/trace_spider.git spiderCode',
             # f'git clone https://github.com/damizhou/clash-for-linux.git spiderCode/clash-for-linux',
         ]
         for sever_command in sever_commands:
             async_exec_command(client, sever_command, password)
+
         spider_commands = []  # 用于存储异步任务的列表
         # 初始化docker
         for vpn_info in server["vpn_infos"]:
