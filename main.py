@@ -12,6 +12,8 @@ def run_action_script():
 def main():
     task_instance.current_index = 0
     logger.info(f"开始任务")
+    print(task_instance.urls)
+    return 
 
     # 创建一个线程来运行 action.py
     action_thread = threading.Thread(target=run_action_script)

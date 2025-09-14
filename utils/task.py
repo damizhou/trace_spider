@@ -38,11 +38,6 @@ class Task:
     def read_file(self):
         df = pd.read_csv(r'current_docker_url_list.csv', encoding="utf-8", sep="\t")
 
-        # 可选：topics 拆成数组（逗号分隔；空值→[]）
-        if "topics" in df.columns:
-            df["topics"] = (
-                df["topics"].fillna("").astype(str).apply(lambda s: [t.strip() for t in s.split(",") if t.strip()]))
-
         # 将 NaN 统一成 None，便于 json 序列化
         df = df.where(pd.notna(df), None)
 

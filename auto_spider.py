@@ -59,11 +59,11 @@ def handle_server(server):
         sever_commands = [
             # f"echo '{password}' | sudo -S apt update",
             # f"echo '{password}' | sudo -S apt install -y docker.io",
-            f"docker stop $(docker ps -q -f \"name=^trace_spider\") | docker rm -f $(docker ps -aq -f \"name=^trace_spider\")",
-            f"echo '{password}' | sudo -S rm -rf trace_spider* spiderCode",
+            f"docker stop $(docker ps -q -f \"name=^theguardian_trace_spider\") | docker rm -f $(docker ps -aq -f \"name=^theguardian_trace_spider\")",
+            f"echo '{password}' | sudo -S rm -rf theguardian_trace_spider* spiderCode",
             # f"echo '{password}' | sudo -S rm -rf trace_spider*",
             f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
-            f'git clone --branch ssl_key_csv_github https://github.com/damizhou/trace_spider.git spiderCode',
+            f'git clone --branch ssl_key_csv_theguardian https://github.com/damizhou/trace_spider.git spiderCode',
             # f'git clone https://github.com/damizhou/clash-for-linux.git spiderCode/clash-for-linux',
         ]
         for sever_command in sever_commands:
@@ -125,7 +125,7 @@ def handle_server(server):
                 spider_commands.append(main_commmand)
 
             # 拆分任务列表,并上传到对应的docker
-            with open(f"github_missing_records.csv", 'r', encoding='utf-8') as file:
+            with open(f"theguardian_all.csv", 'r', encoding='utf-8') as file:
                 all_lines = file.readlines()
                 lines = all_lines[1:]
             start_url_index = docker_index * server["each_docker_task_count"]
