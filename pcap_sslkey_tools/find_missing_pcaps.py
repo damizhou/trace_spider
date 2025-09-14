@@ -7,13 +7,13 @@ import sys
 
 # —— 配置 ——
 # .pcap 文件所在目录（一层）
-PCAP_DIR = "/netdisk/wiki_with_ssl_key/pcap"
+PCAP_DIR = "/netdisk/github_with_ssl_key/pcap"
 # CSV 文件路径，包含 id 列
-# CSV_FILE = "./wikicontent_130w.csv"
-CSV_FILE = "./missing_records.csv"
+CSV_FILE = "../github_repose_10w.csv"
+# CSV_FILE = "../missing_records.csv"
 # 输出缺失记录的 CSV 文件路径
 # OUTPUT_CSV_FILE = "./missing_records.csv"
-OUTPUT_CSV_FILE = "./missing_records_2.csv"
+OUTPUT_CSV_FILE = "github_missing_records.csv"
 # CSV 分隔符，若为制表符则设置为 "\t"，默认 ","
 DELIMITER = "\t"
 

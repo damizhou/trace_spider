@@ -19,7 +19,7 @@ docker pull chuanzhoupan/trace_spider:0527
     ```
   - linux
     ```
-    docker run --volume your_code_path:/app -e HOST_UID=$(id -u $USER) -e HOST_GID=$(id -g $USER) --privileged -itd --name your_container_name chuanzhoupan/trace_spider:0712 /bin/bash
+    docker run --volume your_code_path:/app -e HOST_UID=$(id -u $USER) -e HOST_GID=$(id -g $USER) --privileged -itd --name your_container_name chuanzhoupan/trace_spider:250912 /bin/bash
     ```
 5. 关闭物理机网卡合并包，要找到自己的docker和对应的物理机桥接网卡
 ```
