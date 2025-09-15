@@ -25,7 +25,7 @@ def kill_chrome_processes():
 
 
 # 流量捕获进程
-def traffic(index=0):
+def traffic(index):
     # 获取当前时间
     current_time = datetime.now()
     # 格式化输出

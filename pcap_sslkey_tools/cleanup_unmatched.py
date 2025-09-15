@@ -6,8 +6,8 @@ import os
 from pathlib import Path
 import stat
 
-PCAP_DIR_DEFAULT = "/netdisk/github_with_ssl_key/pcap"
-SSL_DIR_DEFAULT  = "/netdisk/github_with_ssl_key/ssl_key"
+PCAP_DIR_DEFAULT = "/netdisk/theguardian_with_ssl_key/pcap"
+SSL_DIR_DEFAULT  = "/netdisk/theguardian_with_ssl_key/ssl_key"
 
 def scan_pairs(dir_path: Path, mode: str):
     """

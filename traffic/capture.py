@@ -23,7 +23,7 @@ def capture(TASK_NAME, formatted_time, parsers):
     os.makedirs(traffic_dir, exist_ok=True)
     # os.chown(traffic_dir, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
 
-    parsers = parsers.replace("://", "").replace("/", "").replace("?", "").replace("=", "").replace("&", "").replace(".", "").replace("-", "")
+    parsers = parsers.replace(":", "").replace("/", "").replace("?", "").replace("/", "")
     filename = f'{parsers}_'
 
     traffic_name = os.path.join(traffic_dir, f"{filename}{formatted_time}_{TASK_NAME}.pcap")

@@ -6,7 +6,7 @@ import shutil
 import statistics
 
 # BASE_DIR = '/netdisk/wiki'
-BASE_DIR = '/netdisk/github_with_ssl_key/pcap'
+BASE_DIR = '/netdisk/theguardian_with_ssl_key/pcap'
 OUTLIER_DIR = os.path.join(BASE_DIR, 'outliers')
 
 def find_pcap_files(base_dir):

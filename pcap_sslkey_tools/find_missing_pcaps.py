@@ -7,15 +7,15 @@ import sys
 
 # —— 配置 ——
 # .pcap 文件所在目录（一层）
-PCAP_DIR = "/netdisk/github_with_ssl_key/pcap"
+PCAP_DIR = "/netdisk/theguardian_with_ssl_key/pcap"
 # CSV 文件路径，包含 id 列
-CSV_FILE = "../github_repose_10w.csv"
+CSV_FILE = "../theguardian_all.csv"
 # CSV_FILE = "../missing_records.csv"
 # 输出缺失记录的 CSV 文件路径
 # OUTPUT_CSV_FILE = "./missing_records.csv"
-OUTPUT_CSV_FILE = "github_missing_records.csv"
+OUTPUT_CSV_FILE = "theguardian_missing_records.csv"
 # CSV 分隔符，若为制表符则设置为 "\t"，默认 ","
-DELIMITER = "\t"
+DELIMITER = ","
 
 
 def main():
@@ -29,17 +29,27 @@ def main():
     pcap_ids = set()
     for fname in filenames:
         if fname.lower().endswith(".pcap"):
-            prefix = fname.split("_", 1)[0]
-            pcap_ids.add(prefix)
+            prefix = fname.split("_")[0]
+            # if prefix == "usnews":
+            #     prefix = "us-news"
+            if prefix == "tvandradio":
+                prefix = "tv-and-radio"
+            index = fname.split("_")[1]
+            target = f"{prefix}_{index}"
+            if target in pcap_ids:
+                print(f"警告：发现重复的 .pcap 文件前缀 ID：{target}", file=sys.stderr)
+            pcap_ids.add(target)
+        else:
+            print(f"跳过非 .pcap 文件：{fname}")
+    print(f"目录 {PCAP_DIR} 中找到 {len(pcap_ids)} 个 .pcap 文件前缀 ID。")
 
     # 2. 读取 CSV 文件中的 id 列
-    csv_ids = []
     rows = []  # 保存所有 CSV 行
     try:
         with open(CSV_FILE, newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f, delimiter=DELIMITER)
             fieldnames = reader.fieldnames
-            if not fieldnames or "id" not in fieldnames:
+            if not fieldnames or "ID" not in fieldnames:
                 print(f"CSV 文件中未找到名为 'id' 的列，当前列头：{fieldnames}", file=sys.stderr)
                 sys.exit(1)
             for row in reader:
@@ -50,16 +60,20 @@ def main():
     except Exception as e:
         print(f"读取 CSV 时出错：{e}", file=sys.stderr)
         sys.exit(1)
+    print(f"CSV 文件 {CSV_FILE} 中读取了 {len(rows)} 条记录。")
 
     # 3. 计算缺失的 ID
     missing = []
     for row in rows:
-        if row["id"] in pcap_ids:
+        target = f"{row['Section']}_{row['ID']}"
+        if target in pcap_ids:
+            pcap_ids.remove(target)  # 防止重复打印
             continue
         else:
             missing.append(row)
-            print(row["id"])
+            # print(target)
     print('找到的记录数:', len(missing))
+    print(pcap_ids)
 
     # 4. 重置新的csv文件
     if os.path.exists(OUTPUT_CSV_FILE):

@@ -6,7 +6,7 @@ import shutil
 import statistics
 
 
-BASE_DIR = '/netdisk/github_with_ssl_key/ssl_key'
+BASE_DIR = '/netdisk/theguardian_with_ssl_key/ssl_key'
 
 def find_pcap_files(base_dir):
     """返回 base_dir 下（仅一层）所有 .pcap 文件的绝对路径列表"""
