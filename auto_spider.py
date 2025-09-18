@@ -49,6 +49,7 @@ def handle_server(server):
     username = os.environ.get('SERVER_USERNAME', server["username"])
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    base_path = r"2000_theguardian_trace_spider"
     try:
         # 连接服务器,并初始化服务器
         client.connect(hostname, username=username, password=password)
@@ -59,8 +60,8 @@ def handle_server(server):
         sever_commands = [
             # f"echo '{password}' | sudo -S apt update",
             # f"echo '{password}' | sudo -S apt install -y docker.io",
-            f"docker stop $(docker ps -q -f \"name=^theguardian_trace_spider\") | docker rm -f $(docker ps -aq -f \"name=^theguardian_trace_spider\")",
-            f"echo '{password}' | sudo -S rm -rf theguardian_trace_spider* spiderCode",
+            f"docker stop $(docker ps -q -f \"name=^{base_path}\") | docker rm -f $(docker ps -aq -f \"name=^{base_path}\")",
+            f"echo '{password}' | sudo -S rm -rf {base_path}* spiderCode",
             # f"echo '{password}' | sudo -S rm -rf trace_spider*",
             f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
             f'git clone --branch ssl_key_csv_theguardian https://github.com/damizhou/trace_spider.git spiderCode',
@@ -72,7 +73,7 @@ def handle_server(server):
         # 初始化docker
         for vpn_info in server["vpn_infos"]:
             docker_index = vpn_info["docker_index"]
-            container_name = server["docker_basename"] + str(docker_index)
+            container_name = base_path + str(docker_index)
             init_docker_commands = [
                 f'cp -r spiderCode {container_name}',
             ]
