@@ -253,6 +253,8 @@ def open_url_and_save_content(driver, url, wait_secs=8):
         if any(len(tok) > 300 for tok in s.split()):
             continue
         cleaned.append(s)
+    if not os.path.exists(os.path.dirname(task_instance.content_path)):
+        os.makedirs(os.path.dirname(task_instance.content_path))
     with open(task_instance.content_path, "w", encoding="utf-8") as f:
         f.write("\n".join(cleaned))
     time.sleep(3)
