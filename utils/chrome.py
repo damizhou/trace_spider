@@ -8,6 +8,149 @@ from selenium.webdriver.support.ui import WebDriverWait  # 从selenium.webdriver
 from tools.math_tool import generate_normal_random
 from utils.task import task_instance
 
+JS_RULE_BASED_EXTRACTION = r"""
+function __extract_like_immersive(){
+  // ---------- 规则：显式列出，避免空选择器 ----------
+  const RULES = [
+    {
+      host:/github\.com$/,
+      selectors:['.markdown-body','#readme','.repository-content'],
+      excludeSelectors:[
+        'nav','.Header','.file-navigation','footer','.footer','.cookie-banner',
+        '.js-pinned-issue-list-item','.file'
+      ],
+      stayOriginalSelectors:['pre','code','.blob-code','table.highlight','.highlight','.CodeMirror','.ace_content','.gist']
+    },
+    {
+      host:/wikipedia\.org$/,
+      selectors:['#content','#mw-content-text','article'],
+      excludeSelectors:[
+        '#mw-navigation','#footer','#toc','.toc','.infobox','.navbox',
+        '.catlinks','.mw-editsection','.mw-jump-link'
+      ],
+      stayOriginalSelectors:['pre','code','table','figure .thumb']
+    },
+    {
+      host:/.*/,
+      selectors:[
+        'article','main','[role="main"]','.article','.post','.entry','.content',
+        '.post-content','.markdown-body','.wiki-content','#content','#main'
+      ],
+      excludeSelectors:[
+        'nav','footer','header','aside','.aside','.sidebar','.widget',
+        '.breadcrumb','.breadcrumbs','.crumb','.toc','#toc','.menu','.toolbar',
+        '.advert','.ads','.ad','.sponsor','.cookie','.subscribe','.newsletter',
+        '.share','.overlay','.popup','.modal','.dialog','[aria-hidden="true"]','[hidden]'
+      ],
+      stayOriginalSelectors:['pre','code','samp','kbd','.hljs','.prettyprint','.syntax','.gist','.CodeMirror','.ace_content']
+    }
+  ];
+
+  // ---------- 工具：容错 ----------
+  const uniq = a => Array.from(new Set(a));
+  const sanitize = arr => uniq((arr||[]).filter(s => typeof s === 'string' && s.trim()));
+  const qsa = (root, sel) => {
+    if (!sel || typeof sel !== 'string' || !sel.trim()) return [];
+    try { return Array.from(root.querySelectorAll(sel)); } catch (e) { return []; }
+  };
+
+  const matchRule = h => {
+    const r = RULES.find(r => r.host.test(h)) || RULES[RULES.length-1];
+    // 每次使用前清洗一次，彻底去掉空/非法
+    r.selectors = sanitize(r.selectors);
+    r.excludeSelectors = sanitize(r.excludeSelectors);
+    r.stayOriginalSelectors = sanitize(r.stayOriginalSelectors);
+    return r;
+  };
+
+  const isExcluded = (el, excludes) => {
+    for (const sel of excludes) {
+      if (!sel) continue;
+      try { if (el.closest(sel)) return true; } catch(e) {}
+    }
+    return false;
+  };
+
+  const isStayOriginal = (el, stays) => {
+    for (const sel of stays) {
+      if (!sel) continue;
+      try { if (el.closest(sel)) return true; } catch(e) {}
+    }
+    return false;
+  };
+
+  const scoreContainer = (el) => {
+    const t = (el.innerText||'').replace(/\s+/g,' ').trim();
+    if (!t) return 0;
+    const total = t.length;
+    const linkText = qsa(el,'a').reduce((a,x)=>a+((x.innerText||'').length),0);
+    const linkRatio = total ? linkText/total : 0;
+    let d=0,n=el; while(n && d<10){ n=n.parentElement; d++; }
+    return Math.max(0, total*(1-Math.min(0.9,linkRatio))/(1+d*0.1));
+  };
+
+  function pickMain(doc, rule){
+    let c = [];
+    for (const sel of rule.selectors) c.push(...qsa(doc, sel));
+    c = uniq(c).filter(el => !isExcluded(el, rule.excludeSelectors));
+    if (c.length){ c.sort((a,b)=>scoreContainer(b)-scoreContainer(a)); return c[0]; }
+    const fb = ['article','main','[role="main"]','.content','.post','.entry','#content','#main']
+      .flatMap(sel => qsa(doc, sel));
+    if (fb.length){ fb.sort((a,b)=>scoreContainer(b)-scoreContainer(a)); return fb[0]; }
+    return doc.body || doc.documentElement;
+  }
+
+  function extractBlocks(root, rule){
+    const BLOCKS = 'h1,h2,h3,h4,h5,h6,p,li,blockquote,figcaption,dd,dt,td';
+    const nodes = qsa(root, BLOCKS)
+      .filter(el => !isExcluded(el, rule.excludeSelectors))
+      .filter(el => !isStayOriginal(el, rule.stayOriginalSelectors));
+    const out = [];
+    for (const el of nodes){
+      const txt = (el.innerText||'').replace(/\s+/g,' ').trim();
+      if (!txt) continue;
+
+      // 代码/JSON 兜底过滤（把 '-' 放到类尾避免范围解析）
+      const symCount = (txt.match(/[{}\[\]();,<>!=+*\/%|&\-]/g)||[]).length;
+      const symRatio = symCount / Math.max(1, txt.length);
+      const hasKW = /\b(function|return|var|let|const|class|import|from|export|new|if|else|switch|case|break|continue|null|true|false|undefined|async|await|try|catch|throw)\b/.test(txt);
+      const looksJSON = /^\s*[{[]\s*(".+?"|[A-Za-z0-9_'"-]+)\s*:/.test(txt);
+      if (looksJSON || (symRatio > 0.18 && hasKW)) continue;
+
+      if (txt.length < 2 || txt.length > 5000) continue;
+      out.push({ tag: el.tagName.toLowerCase(), text: txt });
+    }
+    const dedup = [];
+    for (const b of out){ if (!dedup.length || dedup[dedup.length-1].text !== b.text) dedup.push(b); }
+    return dedup;
+  }
+
+  function sameOriginIframes(doc){
+    const frames = [];
+    for (const f of qsa(doc, 'iframe')){
+      try { if (f.contentDocument) frames.push(f.contentDocument); } catch(e){}
+    }
+    return frames;
+  }
+
+  function run(doc, rule){
+    let main = pickMain(doc, rule);
+    let blocks = extractBlocks(main, rule);
+    if (blocks.length < 5){
+      const whole = extractBlocks(doc.body || doc.documentElement, rule);
+      if (whole.length > blocks.length + 3) blocks = whole;
+    }
+    return blocks;
+  }
+
+  const rule = matchRule(location.hostname);
+  let results = run(document, rule);
+  for (const idoc of sameOriginIframes(document)){
+    try { const add = run(idoc, rule); if (add && add.length) results = results.concat(add); } catch(e){}
+  }
+  return { textLines: results.map(b=>b.text), blocks: results };
+}
+"""
 
 def is_docker():
     # 检查cgroup文件
@@ -91,6 +234,29 @@ def create_chrome_driver():
                             '''.strip()})
     return browser
 
+def open_url_and_save_content(driver, url, wait_secs=8):
+    driver.get(url)
+    WebDriverWait(driver, wait_secs).until(lambda d: d.execute_script("return document.readyState") == "complete")
+    script = JS_RULE_BASED_EXTRACTION + "\nreturn __extract_like_immersive();"
+    try:
+        res = driver.execute_script(script) or {"textLines": [], "blocks": []}
+    except Exception as e:
+        # 兜底：输出前 200 字符便于你定位是哪一段导致解析问题
+        raise RuntimeError(f"JS 执行失败: {e}")
+
+    lines = res.get("textLines", []) or []
+    cleaned = []
+    for s in lines:
+        s = " ".join(s.split())
+        if not s:
+            continue
+        if any(len(tok) > 300 for tok in s.split()):
+            continue
+        cleaned.append(s)
+    with open(task_instance.content_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(cleaned))
+    time.sleep(3)
+    os.chown(task_instance.content_path, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
 
 # 定义一个函数来滚动页面
 def scroll_to_bottom(driver):

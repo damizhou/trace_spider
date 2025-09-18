@@ -60,7 +60,7 @@ def handle_server(server):
             # f"echo '{password}' | sudo -S apt update",
             # f"echo '{password}' | sudo -S apt install -y docker.io",
             f"docker stop $(docker ps -q -f \"name=^theguardian_trace_spider\") | docker rm -f $(docker ps -aq -f \"name=^theguardian_trace_spider\")",
-            f"echo '{password}' | sudo -S rm -rf trace_spider* spiderCode",
+            f"echo '{password}' | sudo -S rm -rf theguardian_trace_spider* spiderCode",
             # f"echo '{password}' | sudo -S rm -rf trace_spider*",
             f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
             f'git clone --branch ssl_key_csv_theguardian https://github.com/damizhou/trace_spider.git spiderCode',
