@@ -52,7 +52,7 @@ def main():
          f"{DEST_ROOT}/content"),
         (f"{SOURCE_ROOT}/data/2025*/theguardian.com/*theguardian.com.pcap",
          f"{DEST_ROOT}/pcap"),
-        (f"{SOURCE_ROOT}/ssl_keys/2025*/theguardian.com/*theguardian.com_ssl_key.log",
+        (f"{SOURCE_ROOT}/ssl_key/2025*/theguardian.com/*theguardian.com_ssl_key.log",
          f"{DEST_ROOT}/ssl_key"),
     ]
 

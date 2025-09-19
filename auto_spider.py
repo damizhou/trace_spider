@@ -49,7 +49,7 @@ def handle_server(server):
     username = os.environ.get('SERVER_USERNAME', server["username"])
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    base_path = r"2000_theguardian_trace_spider"
+    base_path = r"2001_theguardian_trace_spider"
     try:
         # 连接服务器,并初始化服务器
         client.connect(hostname, username=username, password=password)
@@ -87,9 +87,6 @@ def handle_server(server):
             for init_docker_command in init_docker_commands:
                 async_exec_command(client, init_docker_command, password)
 
-            # time.sleep(5)
-            async_exec_command(client, f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off',
-                               password)
             if vpn_info["vpn_yml_info"] == {}:
                 main_commmand += f'novpn'
                 spider_commands.append(main_commmand)
@@ -126,7 +123,7 @@ def handle_server(server):
                 spider_commands.append(main_commmand)
 
             # 拆分任务列表,并上传到对应的docker
-            with open(r"theguardian_missing_records.csv", 'r', encoding='utf-8') as file:
+            with open(r"guardian_merged.csv", 'r', encoding='utf-8') as file:
                 all_lines = file.readlines()
                 lines = all_lines[1:]
             start_url_index = docker_index * server["each_docker_task_count"]

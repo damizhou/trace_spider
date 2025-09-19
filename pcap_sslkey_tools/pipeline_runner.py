@@ -25,14 +25,6 @@ def ensure_root():
 def setup_logger():
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
-def chown_recursive(path: str):
-    user = os.environ.get("SUDO_USER") or os.environ.get("USER") or "root"
-    try:
-        subprocess.run(["chown", "-R", f"{user}:{user}", path], check=True)
-        logging.info(f"已 chown -R {user}:{user} {path}")
-    except subprocess.CalledProcessError as e:
-        logging.error(f"chown 失败：{e}")
-
 # ---------- Step 1: copy_guardian ----------
 def step_copy_guardian():
     import copy_guardian as cg  # 你的新版 copy_guardian 已把 .pcap 目标设为 DEST_ROOT/pcap
@@ -101,8 +93,6 @@ def main():
     # 4) 统计缺失
     step_find_missing()
 
-    # 尾声：统一修正所有权（包含过滤/清理阶段新生成或改动的文件）
-    chown_recursive(DEST_ROOT)
     logging.info("✅ 全流程完成。")
 
 if __name__ == "__main__":
