@@ -159,9 +159,7 @@ def open_url_and_save_content(driver, url, wait_secs=8):
     res = driver.execute_script(script)
     if not isinstance(res, dict) or res.get("error"):
         raise RuntimeError(f"JS失败: {res}")
-
-    plain = re.sub(r'(?:[ \t\f\v]*\r?\n)+', '\n', res.get("plain", ""))
-    print(f"文本内容: {plain}")
+    plain = re.sub(r'(?:[ \t\f\u00A0\u3000\u200B\u200C\u200D\uFEFF\u2060\u00AD\v]*\r?\n)+', '\n', res.get("plain", ""))
     if not os.path.exists(os.path.dirname(task_instance.content_path)):
         os.makedirs(os.path.dirname(task_instance.content_path))
     with open(task_instance.content_path, "w", encoding="utf-8") as f:
