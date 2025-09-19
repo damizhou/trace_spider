@@ -1,7 +1,7 @@
 import os
 import subprocess
 from selenium.webdriver.support.ui import WebDriverWait
-from utils.chrome import create_chrome_driver, JS_RULE_BASED_EXTRACTION, open_url_and_save_content
+from utils.chrome import create_chrome_driver, open_url_and_save_content
 from utils.logger import logger
 from utils.config import config
 import threading
