@@ -7,6 +7,7 @@ from selenium.webdriver.chrome.options import Options
 import os
 from selenium.webdriver.support.ui import WebDriverWait  # 从selenium.webdriver.support.wait改为支持ui
 from tools.math_tool import generate_normal_random
+from utils.logger import logger
 from utils.task import task_instance
 
 JS_SELECT_ALL_AND_COPY_CAPTURE = r"""
@@ -161,6 +162,7 @@ def open_url_and_save_content(driver, url, wait_secs=8):
         raise RuntimeError(f"JS失败: {res}")
 
     plain = re.sub(r'(?:[ \t\f\v]*\r?\n)+', '\n', res.get("plain", ""))
+    logger.info(f"文本内容: {plain}")
     if not os.path.exists(os.path.dirname(task_instance.content_path)):
         os.makedirs(os.path.dirname(task_instance.content_path))
     with open(task_instance.content_path, "w", encoding="utf-8") as f:
@@ -172,6 +174,7 @@ def open_url_and_save_content(driver, url, wait_secs=8):
         f.write(html)
 
     os.chown(task_instance.content_path, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
+    os.chown(task_instance.html_path, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
 
 # 定义一个函数来滚动页面
 def scroll_to_bottom(driver):
