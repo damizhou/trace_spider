@@ -1,4 +1,5 @@
 import json
+import re
 import time
 from selenium.webdriver.chrome.service import Service
 from selenium import webdriver
@@ -8,142 +9,62 @@ from selenium.webdriver.support.ui import WebDriverWait  # 从selenium.webdriver
 from tools.math_tool import generate_normal_random
 from utils.task import task_instance
 
-JS_EXTRACT_ALL_READABLE = r"""
-function __extract_all_readable(){
-  const minFontPx = 8; // 小于该字号视为不可读
-  const BLACK = new Set(['script','style','noscript','template','pre','code','head','meta','link','title']);
-  const vw = window.innerWidth || document.documentElement.clientWidth;
-  const vh = window.innerHeight || document.documentElement.clientHeight;
-
-  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-  const uniq = arr => Array.from(new Set(arr));
-
-  function inBlacklist(el){
-    for (let n = el; n; n = n.parentElement){
-      if (n.nodeType !== 1) break;
-      const tag = (n.tagName||'').toLowerCase();
-      if (BLACK.has(tag)) return true;
-      if (n.hasAttribute('aria-hidden') && n.getAttribute('aria-hidden') === 'true') return true;
-      if (n.hidden) return true;
+JS_SELECT_ALL_AND_COPY_CAPTURE = r"""
+function __select_all_and_copy_capture(){
+  try{
+    const sel = window.getSelection();
+    // 备份原选区
+    const saved = [];
+    for (let i=0;i<sel.rangeCount;i++){ saved.push(sel.getRangeAt(i).cloneRange()); }
+    function restore(){
+      sel.removeAllRanges();
+      for (const r of saved) sel.addRange(r);
     }
-    return false;
-  }
-
-  function visibleByStyle(el){
-    for (let n = el; n; n = n.parentElement){
-      if (n.nodeType !== 1) break;
-      const cs = window.getComputedStyle(n);
-      if (cs.display === 'none' || cs.visibility === 'hidden' || cs.visibility === 'collapse') return false;
-      if (parseFloat(cs.opacity) < 0.05) return false;
-      if (n === el && parseFloat(cs.fontSize) > 0 && parseFloat(cs.fontSize) < minFontPx) return false;
-    }
-    return true;
-  }
-
-  function rectIntersectsViewport(r){
-    return !(r.right <= 0 || r.bottom <= 0 || r.left >= vw || r.top >= vh);
-  }
-
-  function hitTest(node, r){
-    const pts = [
-      [r.left + r.width/2, r.top + r.height/2],
-      [r.left + Math.min(6, r.width*0.2), r.top + Math.min(6, r.height*0.5)],
-      [r.right - Math.min(6, r.width*0.2), r.bottom - Math.min(6, r.height*0.5)]
-    ];
-    const p = node.parentElement;
-    for (const [x0,y0] of pts){
-      const x = clamp(x0, 0, vw-1), y = clamp(y0, 0, vh-1);
-      const topEl = document.elementFromPoint(x, y);
-      if (p && topEl && (topEl === p || p.contains(topEl))) return true;
-    }
-    return false;
-  }
-
-  function textNodeVisible(node){
+    // Ctrl+A：全选 <body>（尽量贴近浏览器行为）
+    sel.removeAllRanges();
+    const root = document.body || document.documentElement;
     const range = document.createRange();
-    range.selectNodeContents(node);
-    const rects = range.getClientRects();
-    for (const r of rects){
-      if (r.width <= 0 || r.height <= 0) continue;
-      if (!rectIntersectsViewport(r)) continue;   // 只要与视口相交
-      if (hitTest(node, r)) return true;          // 且没有被遮挡
+    range.selectNodeContents(root);
+    sel.addRange(range);
+
+    function selectionPlain(){ return sel.toString(); }
+    function selectionHTML(){
+      const box = document.createElement('div');
+      for (let i=0;i<sel.rangeCount;i++) box.appendChild(sel.getRangeAt(i).cloneContents());
+      return box.innerHTML;
     }
-    return false;
-  }
+    const defaultPlain = selectionPlain();
+    const defaultHtml  = selectionHTML();
 
-  function looksLikeCodeLine(s, parent){
-    if (!s) return false;
-    const t = s.trim();
-    if (t.length < 2) return false;
-
-    // 等宽字体强指示
-    try {
-      const fam = window.getComputedStyle(parent).fontFamily || '';
-      if (/\bmonospace\b/i.test(fam)) return true;
-    } catch(e){}
-
-    // JSON-ish
-    if (/^\s*[{[]\s*(".+?"|[A-Za-z0-9_'"-]+)\s*:/.test(t)) return true;
-
-    // 符号密度（把 '-' 放末尾避免范围解释）
-    const sym = (t.match(/[{}\[\]();,<>!=+*\/%|&\-]/g) || []).length;
-    const ratio = sym / Math.max(1, t.length);
-    const kw = /\b(function|return|var|let|const|class|import|from|export|new|if|else|switch|case|break|continue|null|true|false|undefined|async|await|try|catch|throw)\b/.test(t);
-    if ((ratio > 0.18 && kw) || ratio > 0.28) return true;
-
-    // 疑似 hash/base64 的长 token
-    if (t.split(/\s+/).some(tok => tok.length >= 40 && /[A-Za-z0-9+/_=-]{40,}/.test(tok))) return true;
-
-    return false;
-  }
-
-  function gather(doc){
-    const out = [];
-    const walker = doc.createTreeWalker(doc, NodeFilter.SHOW_TEXT, {
-      acceptNode(node){
-        const raw = node.nodeValue || '';
-        if (!/\S/.test(raw)) return NodeFilter.FILTER_REJECT;
-
-        const p = node.parentElement;
-        if (!p) return NodeFilter.FILTER_REJECT;
-        if (inBlacklist(p)) return NodeFilter.FILTER_REJECT;
-        if (!visibleByStyle(p)) return NodeFilter.FILTER_REJECT;
-
-        if (!textNodeVisible(node)) return NodeFilter.FILTER_REJECT; // ← 固定只首屏
-
-        const txt = raw.replace(/\s+/g,' ').trim();
-        if (!txt) return NodeFilter.FILTER_REJECT;
-        if (looksLikeCodeLine(txt, p)) return NodeFilter.FILTER_REJECT;
-
-        return NodeFilter.FILTER_ACCEPT;
-      }
-    });
-
-    let n;
-    while ((n = walker.nextNode())){
-      const s = n.nodeValue.replace(/\s+/g,' ').trim();
-      if (!s) continue;
-      if (s.length > 8000) continue;
-      if (s.split(/\s+/).some(tok => tok.length > 300)) continue;
-      out.push(s);
+    // 监听 copy，尽量捕获站点可能改写的内容（若站点在 copy 里 setData）
+    let copiedPlain = null, copiedHtml = null;
+    function onCopyCapture(e){ /* 预留 */ }
+    function onCopyBubble(e){
+      try{ copiedHtml  = e.clipboardData.getData('text/html')  || null; }catch(_){}
+      try{ copiedPlain = e.clipboardData.getData('text/plain') || null; }catch(_){}
     }
-    return uniq(out);
-  }
+    document.addEventListener('copy', onCopyCapture, true);
+    document.addEventListener('copy', onCopyBubble, false);
 
-  function sameOriginDocs(doc){
-    const arr = [doc];
-    const ifr = Array.from(doc.querySelectorAll('iframe'));
-    for (const f of ifr){
-      try { if (f.contentDocument) arr.push(f.contentDocument); } catch(e){}
-    }
-    return arr;
-  }
+    let execOk = false;
+    try { execOk = document.execCommand('copy'); } catch(_){}
 
-  let lines = [];
-  for (const d of sameOriginDocs(document)){
-    try { lines = lines.concat(gather(d)); } catch(e){}
+    document.removeEventListener('copy', onCopyCapture, true);
+    document.removeEventListener('copy', onCopyBubble, false);
+    restore();
+
+    // 如果站点没改写，则 copied* 可能是空，就用默认选区内容兜底
+    return {
+      execOk,
+      plain: copiedPlain  != null && copiedPlain  !== '' ? copiedPlain  : defaultPlain,
+      html:  copiedHtml   != null && copiedHtml   !== '' ? copiedHtml   : defaultHtml,
+      // 也把默认的带上，便于对比
+      _defaultPlain: defaultPlain,
+      _defaultHtml:  defaultHtml
+    };
+  }catch(e){
+    return { error: String(e) };
   }
-  return uniq(lines);
 }
 """
 
@@ -232,32 +153,23 @@ def create_chrome_driver():
 def open_url_and_save_content(driver, url, wait_secs=8):
     driver.get(url)
     WebDriverWait(driver, wait_secs).until(lambda d: d.execute_script("return document.readyState") == "complete")
-    script = JS_EXTRACT_ALL_READABLE + "\nreturn __extract_all_readable();"
-    try:
-        res = driver.execute_script(script) or {"textLines": [], "blocks": []}
-    except Exception as e:
-        # 兜底：输出前 200 字符便于你定位是哪一段导致解析问题
-        raise RuntimeError(f"JS 执行失败: {e}")
 
-    lines = res.get("textLines", []) or []
-    cleaned = []
-    for s in lines:
-        s = " ".join(s.split())
-        if not s:
-            continue
-        if any(len(tok) > 300 for tok in s.split()):
-            continue
-        cleaned.append(s)
+    time.sleep(3)
+    script = JS_SELECT_ALL_AND_COPY_CAPTURE + "\nreturn __select_all_and_copy_capture();"
+    res = driver.execute_script(script)
+    if not isinstance(res, dict) or res.get("error"):
+        raise RuntimeError(f"JS失败: {res}")
+
+    plain = re.sub(r'(?:[ \t\f\v]*\r?\n)+', '\n', res.get("plain", ""))
     if not os.path.exists(os.path.dirname(task_instance.content_path)):
         os.makedirs(os.path.dirname(task_instance.content_path))
     with open(task_instance.content_path, "w", encoding="utf-8") as f:
-        f.write("\n".join(cleaned))
+        f.write(plain)
     html = driver.page_source  # 此刻的 DOM（包含已渲染的动态内容）
     if not os.path.exists(os.path.dirname(task_instance.html_path)):
         os.makedirs(os.path.dirname(task_instance.html_path))
     with open(task_instance.html_path, "w", encoding="utf-8") as f:
         f.write(html)
-    time.sleep(3)
 
     os.chown(task_instance.content_path, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
 
