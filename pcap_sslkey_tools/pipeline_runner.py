@@ -60,9 +60,10 @@ def step_filters_parallel():
 # ---------- Step 3: cleanup_unmatched ----------
 def step_cleanup_unmatched():
     import cleanup_unmatched as cu
-    if hasattr(cu, "PCAP_DIR_DEFAULT"): cu.PCAP_DIR_DEFAULT = f"{DEST_ROOT}/pcap"
-    if hasattr(cu, "SSL_DIR_DEFAULT"):  cu.SSL_DIR_DEFAULT  = f"{DEST_ROOT}/ssl_key"
-    if hasattr(cu, "CONTENT_DIR_DEFAULT"):  cu.CONTENT_DIR_DEFAULT  = f"{DEST_ROOT}/content"
+    if hasattr(cu, "PCAP_DIR_DEFAULT"): cu.PCAP_DIR_DEFAULT         = f"{DEST_ROOT}/pcap"
+    if hasattr(cu, "SSL_DIR_DEFAULT"): cu.SSL_DIR_DEFAULT           = f"{DEST_ROOT}/ssl_key"
+    if hasattr(cu, "CONTENT_DIR_DEFAULT"): cu.CONTENT_DIR_DEFAULT   = f"{DEST_ROOT}/content"
+    if hasattr(cu, "HTML_DIR_DEFAULT    "): cu.HTML_DIR_DEFAULT     = f"{DEST_ROOT}/html"
     logging.info("[3/4] 执行 cleanup_unmatched ...")
     cu.main()
     logging.info("[3/4] cleanup_unmatched 完成。")

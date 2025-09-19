@@ -2,22 +2,22 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import os
 from pathlib import Path
-import stat
 from typing import Dict, List, Set, Tuple
+import stat
 
-# ====== 可被 pipeline 注入覆盖 ======
+# ===== 可被外部注入覆盖的默认目录 =====
 PCAP_DIR_DEFAULT    = "/netdisk/theguardian_with_ssl_key/pcap"
 SSL_DIR_DEFAULT     = "/netdisk/theguardian_with_ssl_key/ssl_key"
 CONTENT_DIR_DEFAULT = "/netdisk/theguardian_with_ssl_key/content"
-# ===================================
+HTML_DIR_DEFAULT    = "/netdisk/theguardian_with_ssl_key/html"
+# =====================================
 
-def _list_by_suffix(dir_path: Path, suffix: str, strip_suffix: str) -> Tuple[Dict[str, Path], List[Path]]:
+def _list_by_suffix(dir_path: Path, suffix: str) -> Tuple[Dict[str, Path], List[Path]]:
     """
-    扫描目录下以 suffix 结尾的文件，返回：
-      - base_key -> 文件路径（base_key = 文件名去掉 strip_suffix 后的部分）
-      - files: 全部匹配的文件列表
+    返回:
+      - base_key -> 文件路径 （base_key = 文件名去掉 suffix 后的部分）
+      - files: 全部匹配文件列表
     """
     dir_path = Path(dir_path)
     if not dir_path.is_dir():
@@ -31,62 +31,57 @@ def _list_by_suffix(dir_path: Path, suffix: str, strip_suffix: str) -> Tuple[Dic
         name = p.name
         if name.endswith(suffix):
             files.append(p)
-            if not name.endswith(strip_suffix):
-                # 正常不会进来：strip_suffix 应该是 suffix 的“真正去除部分”
-                base = name[: -len(suffix)]
-            else:
-                base = name[: -len(strip_suffix)]
+            base = name[: -len(suffix)]
             res[base] = p
     return res, files
 
-def _gather_sets(pcap_dir: Path, ssl_dir: Path, content_dir: Path):
-    # 约定的三种后缀
-    pcap_map, pcap_files         = _list_by_suffix(pcap_dir,    ".pcap",          ".pcap")
-    ssl_map, ssl_files           = _list_by_suffix(ssl_dir,     "_ssl_key.log",   "_ssl_key.log")
-    content_map, content_files   = _list_by_suffix(content_dir, ".txt",           ".txt")
+def _gather_maps(
+    pcap_dir: Path, ssl_dir: Path, content_dir: Path, html_dir: Path
+):
+    pcap_map, pcap_files       = _list_by_suffix(pcap_dir,    ".pcap")
+    ssl_map, ssl_files         = _list_by_suffix(ssl_dir,     "_ssl_key.log")
+    content_map, content_files = _list_by_suffix(content_dir, ".txt")
+    html_map, html_files       = _list_by_suffix(html_dir,    ".html")
 
     pcap_keys: Set[str]    = set(pcap_map.keys())
     ssl_keys: Set[str]     = set(ssl_map.keys())
     content_keys: Set[str] = set(content_map.keys())
+    html_keys: Set[str]    = set(html_map.keys())
 
-    return (pcap_map, ssl_map, content_map,
-            pcap_files, ssl_files, content_files,
-            pcap_keys, ssl_keys, content_keys)
+    return (pcap_map, ssl_map, content_map, html_map,
+            pcap_files, ssl_files, content_files, html_files,
+            pcap_keys, ssl_keys, content_keys, html_keys)
 
-def _decide_to_delete(
+def decide_deletions_strict_all4(
     pcap_map: Dict[str, Path],
     ssl_map: Dict[str, Path],
     content_map: Dict[str, Path],
+    html_map: Dict[str, Path],
     pcap_keys: Set[str],
     ssl_keys: Set[str],
     content_keys: Set[str],
+    html_keys: Set[str],
 ) -> List[Path]:
     """
-    返回需要删除的文件列表：
-      - 必须三件齐全（pcap/ssl/txt），缺任意一个则对应已有的那几件都删
+    严格四件齐全：只保留四个集合的交集 key；对不在交集内的 key，已存在的那些文件全部删除。
     """
-    to_delete: List[Path] = []
+    keep = pcap_keys & ssl_keys & content_keys & html_keys
+    to_del: List[Path] = []
 
-    keep_keys = pcap_keys & ssl_keys & content_keys
-    # 三者都在 keep_keys 内；否则要删“已有”的那几件
     for base, p in pcap_map.items():
-        if base not in keep_keys:
-            to_delete.append(p)
+        if base not in keep: to_del.append(p)
     for base, p in ssl_map.items():
-        if base not in keep_keys:
-            to_delete.append(p)
+        if base not in keep: to_del.append(p)
     for base, p in content_map.items():
-        if base not in keep_keys:
-            to_delete.append(p)
+        if base not in keep: to_del.append(p)
+    for base, p in html_map.items():
+        if base not in keep: to_del.append(p)
 
-
-    # 去重（同名/多路径极少，但稳妥）
-    seen = set()
-    uniq = []
-    for p in to_delete:
+    # 去重
+    seen, uniq = set(), []
+    for p in to_del:
         if p not in seen:
-            uniq.append(p)
-            seen.add(p)
+            uniq.append(p); seen.add(p)
     return uniq
 
 def _ensure_writable(path: Path) -> None:
@@ -97,11 +92,12 @@ def _ensure_writable(path: Path) -> None:
     except Exception:
         pass
 
-def safe_delete(path: Path, force_writable: bool = True) -> Tuple[bool, str | None]:
+def safe_delete(path: Path) -> Tuple[bool, str | None]:
     try:
-        if force_writable:
-            _ensure_writable(path)
+        _ensure_writable(path)
         path.unlink(missing_ok=True)
+        return True, None
+    except FileNotFoundError:
         return True, None
     except PermissionError as e:
         try:
@@ -110,50 +106,45 @@ def safe_delete(path: Path, force_writable: bool = True) -> Tuple[bool, str | No
             return True, None
         except Exception as e2:
             return False, f"PermissionError，chmod后仍失败: {e2}"
-    except FileNotFoundError:
-        return True, None
     except Exception as e:
         return False, str(e)
 
 def main():
     ap = argparse.ArgumentParser(
-        description="清理未匹配（pcap/ssl/txt）的 theguardian 文件。默认必须三件齐全才保留。"
+        description="清理未成套的 theguardian 文件（严格四件齐全：pcap/ssl/txt/html）。缺一删其余。"
     )
     ap.add_argument("--pcap-dir",    default=PCAP_DIR_DEFAULT,    help="pcap 目录")
     ap.add_argument("--ssl-dir",     default=SSL_DIR_DEFAULT,     help="ssl_key 目录")
     ap.add_argument("--content-dir", default=CONTENT_DIR_DEFAULT, help="content(.txt) 目录")
-    ap.add_argument("--pair-only",   action="store_true", help="只要求 pcap 与 ssl 成对；txt 可选（缺 txt 不影响 pcap/ssl 保留）")
-    ap.add_argument("--dry-run",     action="store_true", help="只打印将删除的文件，不实际删除")
+    ap.add_argument("--html-dir",    default=HTML_DIR_DEFAULT,    help="html(.html) 目录")
+    ap.add_argument("--dry-run",     action="store_true",         help="预演：只打印将删除的文件，不实际删除")
     args = ap.parse_args()
 
     pcap_dir    = Path(args.pcap_dir)
     ssl_dir     = Path(args.ssl_dir)
     content_dir = Path(args.content_dir)
+    html_dir    = Path(args.html_dir)
 
-    if not pcap_dir.is_dir():
-        raise SystemExit(f"pcap 目录不存在：{pcap_dir}")
-    if not ssl_dir.is_dir():
-        raise SystemExit(f"ssl_key 目录不存在：{ssl_dir}")
-    if not content_dir.is_dir():
-        print(f"[WARN] content 目录不存在：{content_dir}（将仅按 pcap/ssl 进行）")
+    # 目录存在性不强制：若某目录不存在，等价于该类一个都没有 -> 将删光其它三类（你当前的“缺一删其余”严格语义）
+    (pcap_map, ssl_map, content_map, html_map,
+     pcap_files, ssl_files, content_files, html_files,
+     pcap_keys, ssl_keys, content_keys, html_keys) = _gather_maps(
+        pcap_dir, ssl_dir, content_dir, html_dir
+    )
 
-    (pcap_map, ssl_map, content_map,
-     pcap_files, ssl_files, content_files,
-     pcap_keys, ssl_keys, content_keys) = _gather_sets(pcap_dir, ssl_dir, content_dir)
+    total = len(pcap_files) + len(ssl_files) + len(content_files) + len(html_files)
+    print(f"统计：pcap={len(pcap_files)}，ssl={len(ssl_files)}，txt={len(content_files)}，html={len(html_files)}，合计={total}")
 
-    print(f"统计：pcap={len(pcap_files)}，ssl={len(ssl_files)}，txt={len(content_files)}")
-    require_all_three = not args.pair_only
-
-    to_delete = _decide_to_delete(
-        pcap_map, ssl_map, content_map,
-        pcap_keys, ssl_keys, content_keys
+    to_delete = decide_deletions_strict_all4(
+        pcap_map, ssl_map, content_map, html_map,
+        pcap_keys, ssl_keys, content_keys, html_keys
     )
 
     if not to_delete:
-        print("无需删除，全部已匹配。")
+        print("无需删除，全部四件齐全。")
         return
 
-    print("\n将删除以下文件：")
+    print("\n将删除以下文件（缺一删其余）：")
     for p in to_delete:
         print(" -", p)
 
@@ -164,7 +155,7 @@ def main():
     print("\n开始删除 ...")
     ok, fail = 0, 0
     for p in to_delete:
-        success, err = safe_delete(p, True)
+        success, err = safe_delete(p)
         if success:
             ok += 1
         else:

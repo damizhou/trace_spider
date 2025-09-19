@@ -54,6 +54,8 @@ def main():
          f"{DEST_ROOT}/pcap"),
         (f"{SOURCE_ROOT}/ssl_key/2025*/theguardian.com/*theguardian.com_ssl_key.log",
          f"{DEST_ROOT}/ssl_key"),
+        (f"{SOURCE_ROOT}/html/2025*/theguardian.com/*theguardian.com.html",
+         f"{DEST_ROOT}/html"),
     ]
 
     tasks = []
