@@ -7,7 +7,6 @@ import statistics
 
 # BASE_DIR = '/netdisk/wiki'
 BASE_DIR = '/netdisk/theguardian_with_ssl_key/pcap'
-OUTLIER_DIR = os.path.join(BASE_DIR, 'outliers')
 
 def find_pcap_files(base_dir):
     """返回 base_dir 下（仅一层）所有 .pcap 文件的绝对路径列表"""

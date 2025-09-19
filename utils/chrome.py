@@ -8,147 +8,142 @@ from selenium.webdriver.support.ui import WebDriverWait  # 从selenium.webdriver
 from tools.math_tool import generate_normal_random
 from utils.task import task_instance
 
-JS_RULE_BASED_EXTRACTION = r"""
-function __extract_like_immersive(){
-  // ---------- 规则：显式列出，避免空选择器 ----------
-  const RULES = [
-    {
-      host:/github\.com$/,
-      selectors:['.markdown-body','#readme','.repository-content'],
-      excludeSelectors:[
-        'nav','.Header','.file-navigation','footer','.footer','.cookie-banner',
-        '.js-pinned-issue-list-item','.file'
-      ],
-      stayOriginalSelectors:['pre','code','.blob-code','table.highlight','.highlight','.CodeMirror','.ace_content','.gist']
-    },
-    {
-      host:/wikipedia\.org$/,
-      selectors:['#content','#mw-content-text','article'],
-      excludeSelectors:[
-        '#mw-navigation','#footer','#toc','.toc','.infobox','.navbox',
-        '.catlinks','.mw-editsection','.mw-jump-link'
-      ],
-      stayOriginalSelectors:['pre','code','table','figure .thumb']
-    },
-    {
-      host:/.*/,
-      selectors:[
-        'article','main','[role="main"]','.article','.post','.entry','.content',
-        '.post-content','.markdown-body','.wiki-content','#content','#main'
-      ],
-      excludeSelectors:[
-        'nav','footer','header','aside','.aside','.sidebar','.widget',
-        '.breadcrumb','.breadcrumbs','.crumb','.toc','#toc','.menu','.toolbar',
-        '.advert','.ads','.ad','.sponsor','.cookie','.subscribe','.newsletter',
-        '.share','.overlay','.popup','.modal','.dialog','[aria-hidden="true"]','[hidden]'
-      ],
-      stayOriginalSelectors:['pre','code','samp','kbd','.hljs','.prettyprint','.syntax','.gist','.CodeMirror','.ace_content']
-    }
-  ];
+JS_EXTRACT_ALL_READABLE = r"""
+function __extract_all_readable(){
+  const minFontPx = 8; // 小于该字号视为不可读
+  const BLACK = new Set(['script','style','noscript','template','pre','code','head','meta','link','title']);
+  const vw = window.innerWidth || document.documentElement.clientWidth;
+  const vh = window.innerHeight || document.documentElement.clientHeight;
 
-  // ---------- 工具：容错 ----------
-  const uniq = a => Array.from(new Set(a));
-  const sanitize = arr => uniq((arr||[]).filter(s => typeof s === 'string' && s.trim()));
-  const qsa = (root, sel) => {
-    if (!sel || typeof sel !== 'string' || !sel.trim()) return [];
-    try { return Array.from(root.querySelectorAll(sel)); } catch (e) { return []; }
-  };
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const uniq = arr => Array.from(new Set(arr));
 
-  const matchRule = h => {
-    const r = RULES.find(r => r.host.test(h)) || RULES[RULES.length-1];
-    // 每次使用前清洗一次，彻底去掉空/非法
-    r.selectors = sanitize(r.selectors);
-    r.excludeSelectors = sanitize(r.excludeSelectors);
-    r.stayOriginalSelectors = sanitize(r.stayOriginalSelectors);
-    return r;
-  };
-
-  const isExcluded = (el, excludes) => {
-    for (const sel of excludes) {
-      if (!sel) continue;
-      try { if (el.closest(sel)) return true; } catch(e) {}
+  function inBlacklist(el){
+    for (let n = el; n; n = n.parentElement){
+      if (n.nodeType !== 1) break;
+      const tag = (n.tagName||'').toLowerCase();
+      if (BLACK.has(tag)) return true;
+      if (n.hasAttribute('aria-hidden') && n.getAttribute('aria-hidden') === 'true') return true;
+      if (n.hidden) return true;
     }
     return false;
-  };
-
-  const isStayOriginal = (el, stays) => {
-    for (const sel of stays) {
-      if (!sel) continue;
-      try { if (el.closest(sel)) return true; } catch(e) {}
-    }
-    return false;
-  };
-
-  const scoreContainer = (el) => {
-    const t = (el.innerText||'').replace(/\s+/g,' ').trim();
-    if (!t) return 0;
-    const total = t.length;
-    const linkText = qsa(el,'a').reduce((a,x)=>a+((x.innerText||'').length),0);
-    const linkRatio = total ? linkText/total : 0;
-    let d=0,n=el; while(n && d<10){ n=n.parentElement; d++; }
-    return Math.max(0, total*(1-Math.min(0.9,linkRatio))/(1+d*0.1));
-  };
-
-  function pickMain(doc, rule){
-    let c = [];
-    for (const sel of rule.selectors) c.push(...qsa(doc, sel));
-    c = uniq(c).filter(el => !isExcluded(el, rule.excludeSelectors));
-    if (c.length){ c.sort((a,b)=>scoreContainer(b)-scoreContainer(a)); return c[0]; }
-    const fb = ['article','main','[role="main"]','.content','.post','.entry','#content','#main']
-      .flatMap(sel => qsa(doc, sel));
-    if (fb.length){ fb.sort((a,b)=>scoreContainer(b)-scoreContainer(a)); return fb[0]; }
-    return doc.body || doc.documentElement;
   }
 
-  function extractBlocks(root, rule){
-    const BLOCKS = 'h1,h2,h3,h4,h5,h6,p,li,blockquote,figcaption,dd,dt,td';
-    const nodes = qsa(root, BLOCKS)
-      .filter(el => !isExcluded(el, rule.excludeSelectors))
-      .filter(el => !isStayOriginal(el, rule.stayOriginalSelectors));
+  function visibleByStyle(el){
+    for (let n = el; n; n = n.parentElement){
+      if (n.nodeType !== 1) break;
+      const cs = window.getComputedStyle(n);
+      if (cs.display === 'none' || cs.visibility === 'hidden' || cs.visibility === 'collapse') return false;
+      if (parseFloat(cs.opacity) < 0.05) return false;
+      if (n === el && parseFloat(cs.fontSize) > 0 && parseFloat(cs.fontSize) < minFontPx) return false;
+    }
+    return true;
+  }
+
+  function rectIntersectsViewport(r){
+    return !(r.right <= 0 || r.bottom <= 0 || r.left >= vw || r.top >= vh);
+  }
+
+  function hitTest(node, r){
+    const pts = [
+      [r.left + r.width/2, r.top + r.height/2],
+      [r.left + Math.min(6, r.width*0.2), r.top + Math.min(6, r.height*0.5)],
+      [r.right - Math.min(6, r.width*0.2), r.bottom - Math.min(6, r.height*0.5)]
+    ];
+    const p = node.parentElement;
+    for (const [x0,y0] of pts){
+      const x = clamp(x0, 0, vw-1), y = clamp(y0, 0, vh-1);
+      const topEl = document.elementFromPoint(x, y);
+      if (p && topEl && (topEl === p || p.contains(topEl))) return true;
+    }
+    return false;
+  }
+
+  function textNodeVisible(node){
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    const rects = range.getClientRects();
+    for (const r of rects){
+      if (r.width <= 0 || r.height <= 0) continue;
+      if (!rectIntersectsViewport(r)) continue;   // 只要与视口相交
+      if (hitTest(node, r)) return true;          // 且没有被遮挡
+    }
+    return false;
+  }
+
+  function looksLikeCodeLine(s, parent){
+    if (!s) return false;
+    const t = s.trim();
+    if (t.length < 2) return false;
+
+    // 等宽字体强指示
+    try {
+      const fam = window.getComputedStyle(parent).fontFamily || '';
+      if (/\bmonospace\b/i.test(fam)) return true;
+    } catch(e){}
+
+    // JSON-ish
+    if (/^\s*[{[]\s*(".+?"|[A-Za-z0-9_'"-]+)\s*:/.test(t)) return true;
+
+    // 符号密度（把 '-' 放末尾避免范围解释）
+    const sym = (t.match(/[{}\[\]();,<>!=+*\/%|&\-]/g) || []).length;
+    const ratio = sym / Math.max(1, t.length);
+    const kw = /\b(function|return|var|let|const|class|import|from|export|new|if|else|switch|case|break|continue|null|true|false|undefined|async|await|try|catch|throw)\b/.test(t);
+    if ((ratio > 0.18 && kw) || ratio > 0.28) return true;
+
+    // 疑似 hash/base64 的长 token
+    if (t.split(/\s+/).some(tok => tok.length >= 40 && /[A-Za-z0-9+/_=-]{40,}/.test(tok))) return true;
+
+    return false;
+  }
+
+  function gather(doc){
     const out = [];
-    for (const el of nodes){
-      const txt = (el.innerText||'').replace(/\s+/g,' ').trim();
-      if (!txt) continue;
+    const walker = doc.createTreeWalker(doc, NodeFilter.SHOW_TEXT, {
+      acceptNode(node){
+        const raw = node.nodeValue || '';
+        if (!/\S/.test(raw)) return NodeFilter.FILTER_REJECT;
 
-      // 代码/JSON 兜底过滤（把 '-' 放到类尾避免范围解析）
-      const symCount = (txt.match(/[{}\[\]();,<>!=+*\/%|&\-]/g)||[]).length;
-      const symRatio = symCount / Math.max(1, txt.length);
-      const hasKW = /\b(function|return|var|let|const|class|import|from|export|new|if|else|switch|case|break|continue|null|true|false|undefined|async|await|try|catch|throw)\b/.test(txt);
-      const looksJSON = /^\s*[{[]\s*(".+?"|[A-Za-z0-9_'"-]+)\s*:/.test(txt);
-      if (looksJSON || (symRatio > 0.18 && hasKW)) continue;
+        const p = node.parentElement;
+        if (!p) return NodeFilter.FILTER_REJECT;
+        if (inBlacklist(p)) return NodeFilter.FILTER_REJECT;
+        if (!visibleByStyle(p)) return NodeFilter.FILTER_REJECT;
 
-      if (txt.length < 2 || txt.length > 5000) continue;
-      out.push({ tag: el.tagName.toLowerCase(), text: txt });
+        if (!textNodeVisible(node)) return NodeFilter.FILTER_REJECT; // ← 固定只首屏
+
+        const txt = raw.replace(/\s+/g,' ').trim();
+        if (!txt) return NodeFilter.FILTER_REJECT;
+        if (looksLikeCodeLine(txt, p)) return NodeFilter.FILTER_REJECT;
+
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+
+    let n;
+    while ((n = walker.nextNode())){
+      const s = n.nodeValue.replace(/\s+/g,' ').trim();
+      if (!s) continue;
+      if (s.length > 8000) continue;
+      if (s.split(/\s+/).some(tok => tok.length > 300)) continue;
+      out.push(s);
     }
-    const dedup = [];
-    for (const b of out){ if (!dedup.length || dedup[dedup.length-1].text !== b.text) dedup.push(b); }
-    return dedup;
+    return uniq(out);
   }
 
-  function sameOriginIframes(doc){
-    const frames = [];
-    for (const f of qsa(doc, 'iframe')){
-      try { if (f.contentDocument) frames.push(f.contentDocument); } catch(e){}
+  function sameOriginDocs(doc){
+    const arr = [doc];
+    const ifr = Array.from(doc.querySelectorAll('iframe'));
+    for (const f of ifr){
+      try { if (f.contentDocument) arr.push(f.contentDocument); } catch(e){}
     }
-    return frames;
+    return arr;
   }
 
-  function run(doc, rule){
-    let main = pickMain(doc, rule);
-    let blocks = extractBlocks(main, rule);
-    if (blocks.length < 5){
-      const whole = extractBlocks(doc.body || doc.documentElement, rule);
-      if (whole.length > blocks.length + 3) blocks = whole;
-    }
-    return blocks;
+  let lines = [];
+  for (const d of sameOriginDocs(document)){
+    try { lines = lines.concat(gather(d)); } catch(e){}
   }
-
-  const rule = matchRule(location.hostname);
-  let results = run(document, rule);
-  for (const idoc of sameOriginIframes(document)){
-    try { const add = run(idoc, rule); if (add && add.length) results = results.concat(add); } catch(e){}
-  }
-  return { textLines: results.map(b=>b.text), blocks: results };
+  return uniq(lines);
 }
 """
 
@@ -237,7 +232,7 @@ def create_chrome_driver():
 def open_url_and_save_content(driver, url, wait_secs=8):
     driver.get(url)
     WebDriverWait(driver, wait_secs).until(lambda d: d.execute_script("return document.readyState") == "complete")
-    script = JS_RULE_BASED_EXTRACTION + "\nreturn __extract_like_immersive();"
+    script = JS_EXTRACT_ALL_READABLE + "\nreturn __extract_all_readable();"
     try:
         res = driver.execute_script(script) or {"textLines": [], "blocks": []}
     except Exception as e:
@@ -257,7 +252,13 @@ def open_url_and_save_content(driver, url, wait_secs=8):
         os.makedirs(os.path.dirname(task_instance.content_path))
     with open(task_instance.content_path, "w", encoding="utf-8") as f:
         f.write("\n".join(cleaned))
+    html = driver.page_source  # 此刻的 DOM（包含已渲染的动态内容）
+    if not os.path.exists(os.path.dirname(task_instance.html_path)):
+        os.makedirs(os.path.dirname(task_instance.html_path))
+    with open(task_instance.html_path, "w", encoding="utf-8") as f:
+        f.write(html)
     time.sleep(3)
+
     os.chown(task_instance.content_path, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
 
 # 定义一个函数来滚动页面

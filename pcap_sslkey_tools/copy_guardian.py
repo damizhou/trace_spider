@@ -30,6 +30,8 @@ def copy_one(src: str, dest_dir: str) -> tuple[str, bool, str]:
         dst_dir = Path(dest_dir)
         dst_dir.mkdir(parents=True, exist_ok=True)
         dst = dst_dir / Path(src).name
+        if dst.exists():
+            return (src, True, "exists, skipped")
         # 覆盖复制
         shutil.copy2(src, dst)
         return (src, True, "")
@@ -45,16 +47,13 @@ def main():
     ensure_root()
     setup_logger()
 
-    src_root = SOURCE_ROOT.rstrip("/")
-    dst_root = DEST_ROOT.rstrip("/")
-
     jobs = [
-        (f"{src_root}/content/2025*/theguardian.com/*theguardian.com.txt",
-         f"{dst_root}/content"),
-        (f"{src_root}/data/2025*/theguardian.com/*theguardian.com.pcap",
-         f"{dst_root}/data"),
-        (f"{src_root}/ssl_key/2025*/theguardian.com/*theguardian.com_ssl_key.log",
-         f"{dst_root}/ssl_key"),
+        (f"{SOURCE_ROOT}/content/2025*/theguardian.com/*theguardian.com.txt",
+         f"{DEST_ROOT}/content"),
+        (f"{SOURCE_ROOT}/data/2025*/theguardian.com/*theguardian.com.pcap",
+         f"{DEST_ROOT}/pcap"),
+        (f"{SOURCE_ROOT}/ssl_keys/2025*/theguardian.com/*theguardian.com_ssl_key.log",
+         f"{DEST_ROOT}/ssl_key"),
     ]
 
     tasks = []
@@ -86,7 +85,7 @@ def main():
 
     logging.info(f"复制完成：成功 {ok_cnt}，失败 {fail_cnt}，总计 {ok_cnt + fail_cnt}。")
 
-    target_root = f"{dst_root}"
+    target_root = f"{DEST_ROOT}"
     chown_recursive(target_root)
     logging.info(f"已执行：sudo chown -R $USER:$USER {target_root}")
     logging.info("结束。")

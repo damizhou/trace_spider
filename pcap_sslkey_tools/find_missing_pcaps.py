@@ -9,11 +9,11 @@ import sys
 # .pcap 文件所在目录（一层）
 PCAP_DIR = "/netdisk/theguardian_with_ssl_key/pcap"
 # CSV 文件路径，包含 id 列
-CSV_FILE = "../theguardian_all.csv"
+CSV_FILE = "../guardian_merged.csv"
 # CSV_FILE = "../missing_records.csv"
 # 输出缺失记录的 CSV 文件路径
 # OUTPUT_CSV_FILE = "./missing_records.csv"
-OUTPUT_CSV_FILE = "theguardian_missing_records.csv"
+OUTPUT_CSV_FILE = "../theguardian_missing_records.csv"
 # CSV 分隔符，若为制表符则设置为 "\t"，默认 ","
 DELIMITER = ","
 
