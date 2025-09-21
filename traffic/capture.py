@@ -17,7 +17,7 @@ def capture(TASK_NAME, formatted_time, parsers):
     current_data = current_time.strftime("%Y%m%d")
     dataDir = os.path.join(project_path, "data", current_data)
     os.makedirs(dataDir, exist_ok=True)
-    
+
     traffic_dir = os.path.join(dataDir, TASK_NAME)
     os.makedirs(traffic_dir, exist_ok=True)
 

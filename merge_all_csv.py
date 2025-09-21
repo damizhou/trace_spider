@@ -4,8 +4,8 @@ from pathlib import Path
 from typing import List
 import pandas as pd
 import csv
-import auto_spider as autospider  # 你的新版 copy_guardian 已把 .pcap 目标设为 DEST_ROOT/pcap
-import pipeline_runner as runner
+import auto_spider as autospider
+import pcap_sslkey_tools.pipeline_runner as runner
 
 ROOT_DIR_DEFAULT = "/netdisk/theguardian_with_ssl_key"
 OUTPUT_CSV_DEFAULT = "theguardian_records.csv"
