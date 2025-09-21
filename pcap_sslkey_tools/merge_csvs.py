@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 import pandas as pd
 import csv
 
@@ -16,7 +17,7 @@ def merge_guardian_csvs(
     output_csv: str = "merged.csv",
     pattern: str = "*.csv",
     recursive: bool = False,
-) -> pd.DataFrame:
+) -> tuple[Any, Path]:
     """
     合并目录下所有 CSV 到一个文件：
     - 自动识别分隔符与常见编码
@@ -56,8 +57,15 @@ def merge_guardian_csvs(
     merged = merged[cols]
 
     merged.to_csv(output_csv, index=False, encoding="utf-8")
-    print(f"已保存: {Path(output_csv).resolve()}")
-    return merged
+    csv_path = Path(output_csv).resolve()
+    print(f"已保存: {csv_path}")
+    return merged, csv_path
 
 # 用法示例：
-df = merge_guardian_csvs("/netdisk/theguardian_with_ssl_key/2001/theguardian_all_reformat", output_csv="../guardian_merged.csv")
+CURRENT_YEAR = '2002'
+csv_path = Path('../theguardian_records.csv').resolve()
+# df, csv_path = merge_guardian_csvs(f"/netdisk/theguardian_with_ssl_key/{CURRENT_YEAR}/theguardian_all_reformat", output_csv=f"{csv_path}")
+import auto_spider as autospider  # 你的新版 copy_guardian 已把 .pcap 目标设为 DEST_ROOT/pcap
+if hasattr(autospider, "CURRENT_YEAR"):     autospider.CURRENT_YEAR = CURRENT_YEAR
+if hasattr(autospider, "CSV_PATH"):         autospider.CSV_PATH = f"{csv_path}"
+autospider.main()

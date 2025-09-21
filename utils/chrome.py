@@ -170,9 +170,6 @@ def open_url_and_save_content(driver, url, wait_secs=8):
     with open(task_instance.html_path, "w", encoding="utf-8") as f:
         f.write(html)
 
-    os.chown(task_instance.content_path, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
-    os.chown(task_instance.html_path, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
-
 # 定义一个函数来滚动页面
 def scroll_to_bottom(driver):
     times = 0

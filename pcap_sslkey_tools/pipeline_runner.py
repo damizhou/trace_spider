@@ -9,8 +9,8 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # ========= 只改这里 =========
-SOURCE_ROOT = r"/home/pcz/2000_theguardian_trace_spider*"   # 源基础路径（支持通配）
-DEST_ROOT   = r"/netdisk/theguardian_with_ssl_key/2000"     # 目的基础路径（pcap 在这里的 pcap 子目录）
+SOURCE_ROOT = r"/home/pcz/theguardian_trace_spider*"   # 源基础路径（支持通配）
+DEST_ROOT   = r"/netdisk/theguardian_with_temp/"     # 目的基础路径（pcap 在这里的 pcap 子目录）
 COPY_WORKERS = 8                                            # copy 并发进程数
 # ========= 只改这里 =========
 def ensure_root_or_reexec():
@@ -63,7 +63,7 @@ def step_cleanup_unmatched():
     if hasattr(cu, "PCAP_DIR_DEFAULT"): cu.PCAP_DIR_DEFAULT         = f"{DEST_ROOT}/pcap"
     if hasattr(cu, "SSL_DIR_DEFAULT"): cu.SSL_DIR_DEFAULT           = f"{DEST_ROOT}/ssl_key"
     if hasattr(cu, "CONTENT_DIR_DEFAULT"): cu.CONTENT_DIR_DEFAULT   = f"{DEST_ROOT}/content"
-    if hasattr(cu, "HTML_DIR_DEFAULT    "): cu.HTML_DIR_DEFAULT     = f"{DEST_ROOT}/html"
+    if hasattr(cu, "HTML_DIR_DEFAULT"): cu.HTML_DIR_DEFAULT     = f"{DEST_ROOT}/html"
     logging.info("[3/4] 执行 cleanup_unmatched ...")
     cu.main()
     logging.info("[3/4] cleanup_unmatched 完成。")
@@ -73,11 +73,12 @@ def step_find_missing():
     import find_missing_pcaps as fmp
     if hasattr(fmp, "PCAP_DIR"): fmp.PCAP_DIR = f"{DEST_ROOT}/pcap"
     logging.info("[4/4] 执行 find_missing_pcaps ...")
-    fmp.main()
+    fmp_result = fmp.main()
     logging.info("[4/4] find_missing_pcaps 完成。")
+    return fmp_result
 
-def main():
-    ensure_root()
+def main() -> bool:
+    # ensure_root_or_reexec()
     setup_logger()
 
     # 确保同目录可 import 那五个脚本
@@ -92,10 +93,10 @@ def main():
     # 3) 清理不匹配
     step_cleanup_unmatched()
     # 4) 统计缺失
-    step_find_missing()
+    step_find_missing_result = step_find_missing()
 
     logging.info("✅ 全流程完成。")
+    return step_find_missing_result
 
 if __name__ == "__main__":
-    ensure_root_or_reexec()
     main()

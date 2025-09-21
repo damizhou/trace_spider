@@ -1,6 +1,6 @@
 import os
 import subprocess
-from selenium.webdriver.support.ui import WebDriverWait
+from pathlib import Path
 from utils.chrome import create_chrome_driver, open_url_and_save_content
 from utils.logger import logger
 from utils.config import config
@@ -9,6 +9,7 @@ import time
 from traffic.capture import capture, stop_capture
 from datetime import datetime
 from utils.task import task_instance
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 duration = int(config["spider"]["duration"])
 crawlers_timer = None
@@ -43,14 +44,16 @@ def kill_tcpdump_processes():
     except subprocess.CalledProcessError as e:
         print(f"Error occurred: {e.stderr.decode('utf-8')}")
 
+def _chown_r(path: Path, uid: int, gid: int):
+    subprocess.run(["chown", "-R", f"{uid}:{gid}", str(path)], check=True)
 
-def start_task(session, current_id, current_url):
+def start_task(session, current_id, current_url, year):
     kill_chrome_processes()
     kill_tcpdump_processes()
     time.sleep(1)
 
     # 开流量收集
-    traffic_thread = threading.Thread(target=traffic, kwargs={"index": f"{session}_{current_id}"} )
+    traffic_thread = threading.Thread(target=traffic, kwargs={"index": f"{session}_{current_id}_{year}"} )
     traffic_thread.start()
     time.sleep(1)
 
@@ -70,12 +73,36 @@ def start_task(session, current_id, current_url):
     # 关流量收集
     logger.info(f"关流量收集")
     stop_capture()
-    ssl_key_log_path = task_instance.ssl_key_path
-    os.chown(ssl_key_log_path, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
 
 if __name__ == "__main__":
     for url in task_instance.urls:
         current_url = url.get('URL')
         section = url.get('Section')
         current_id = url.get('ID')
-        start_task(section, current_id, current_url)
+        year = url.get('Year')
+        start_task(section, current_id, current_url, year)
+
+    time.sleep(60)
+    bases = {Path(task_instance.pcap_path).resolve().parent, Path(task_instance.ssl_key_path).resolve().parent,
+        Path(task_instance.html_path).resolve().parent, Path(task_instance.content_path).resolve().parent, }
+
+    uid = int(os.environ.get("HOST_UID", os.getuid()))
+    gid = int(os.environ.get("HOST_GID", os.getgid()))
+
+    # === 并发执行 ===
+    errors = []
+    max_workers = min(4, len(bases))  # 这四个目录通常互不重叠；机械盘可把 4 改小一点
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        futs = {ex.submit(_chown_r, b, uid, gid): b for b in bases}
+        for fut in as_completed(futs):
+            b = futs[fut]
+            try:
+                fut.result()
+            except subprocess.CalledProcessError as e:
+                errors.append((str(b), f"returncode={e.returncode}"))
+            except Exception as e:
+                errors.append((str(b), repr(e)))
+
+    if errors:
+        msg = "; ".join([f"{p}: {err}" for p, err in errors])
+        raise RuntimeError(f"chown 部分失败 -> {msg}")

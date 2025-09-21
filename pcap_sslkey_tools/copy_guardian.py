@@ -8,11 +8,12 @@ import logging
 import subprocess
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from typing import Optional, List  # 新增
 
 # ===== 全局常量 =====
 SOURCE_ROOT = r"/home/pcz/2000_theguardian_trace_spider*"   # 源基础路径
-DEST_ROOT   = r"/netdisk/theguardian_with_ssl_key/2000"   # 目的基础路径
-WORKERS     = 8      # 并发进程数
+DEST_ROOT   = r"/netdisk/theguardian_with_ssl_key/2000"     # 目的基础路径
+WORKERS     = 8  # 并发进程数
 
 def ensure_root():
     if hasattr(os, "geteuid") and os.geteuid() != 0:
@@ -25,26 +26,25 @@ def list_files(pattern: str):
     files = glob.glob(pattern)
     return [f for f in files if os.path.isfile(f)]
 
-def copy_one(src: str, dest_dir: str) -> tuple[str, bool, str]:
+def copy_one(src: str, dest_dir: str) -> tuple[str, bool, str, Optional[str]]:
+    """
+    返回: (源文件, 是否OK, 消息, 目标文件路径或None)
+    只有当本次真的复制成功时，第四个返回值为目标路径；已存在/跳过返回 None。
+    """
     try:
         dst_dir = Path(dest_dir)
         dst_dir.mkdir(parents=True, exist_ok=True)
         dst = dst_dir / Path(src).name
         if dst.exists():
-            return (src, True, "exists, skipped")
-        # 覆盖复制
-        shutil.copy2(src, dst)
-        return (src, True, "")
-    except Exception as e:
-        return (src, False, str(e))
+            return (src, True, "exists, skipped", None)
 
-def chown_recursive(path: str):
-    # 用 sudo 提权前的真实用户；没取到就退化为 USER，再不行用 root
-    user = os.environ.get("SUDO_USER") or os.environ.get("USER") or "root"
-    subprocess.run(["chown", "-R", f"{user}:{user}", path], check=False)
+        shutil.copy2(src, dst)  # 真正复制
+        return (src, True, "", str(dst))
+    except Exception as e:
+        return (src, False, str(e), None)
 
 def main():
-    ensure_root()
+    # ensure_root()
     setup_logger()
 
     jobs = [
@@ -75,22 +75,22 @@ def main():
 
     ok_cnt = 0
     fail_cnt = 0
+    moved_paths: List[str] = []  # 新增：记录本轮真正复制成功的目标文件路径
+
     with ProcessPoolExecutor(max_workers=WORKERS) as ex:
         futures = [ex.submit(copy_one, src, dest_dir) for (src, dest_dir) in tasks]
         for fut in as_completed(futures):
-            src, ok, msg = fut.result()
+            src, ok, msg, dst_path = fut.result()
             if ok:
                 ok_cnt += 1
+                # 只有“本次复制成功”的才加入 chown 清单；已存在/跳过不加入
+                if msg == "" and dst_path:
+                    moved_paths.append(dst_path)
             else:
                 fail_cnt += 1
                 logging.error(f"FAIL: {src} -> {msg}")
 
     logging.info(f"复制完成：成功 {ok_cnt}，失败 {fail_cnt}，总计 {ok_cnt + fail_cnt}。")
-
-    target_root = f"{DEST_ROOT}"
-    chown_recursive(target_root)
-    logging.info(f"已执行：sudo chown -R $USER:$USER {target_root}")
-    logging.info("结束。")
 
 if __name__ == "__main__":
     main()

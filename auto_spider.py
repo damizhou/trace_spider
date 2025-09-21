@@ -6,7 +6,7 @@ import threading
 import paramiko
 import os
 from sever_info import servers_info
-
+CSV_PATH = f'theguardian_records.csv'
 index = 0
 # 异步执行并监控命令输出
 def async_exec_command(client, command, password):
@@ -49,7 +49,7 @@ def handle_server(server):
     username = os.environ.get('SERVER_USERNAME', server["username"])
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    base_path = r"2001_theguardian_trace_spider"
+    base_path = f"theguardian_trace_spider"
     try:
         # 连接服务器,并初始化服务器
         client.connect(hostname, username=username, password=password)
@@ -62,16 +62,30 @@ def handle_server(server):
             # f"echo '{password}' | sudo -S apt install -y docker.io",
             f"docker stop $(docker ps -q -f \"name=^{base_path}\") | docker rm -f $(docker ps -aq -f \"name=^{base_path}\")",
             f"echo '{password}' | sudo -S rm -rf {base_path}* spiderCode",
+            # f"echo '{password}' | sudo -S rm -rf {base_path}*",
             # f"echo '{password}' | sudo -S rm -rf trace_spider*",
-            f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
+            # f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
             f'git clone --branch ssl_key_csv_theguardian https://github.com/damizhou/trace_spider.git spiderCode',
             # f'git clone https://github.com/damizhou/clash-for-linux.git spiderCode/clash-for-linux',
         ]
         for sever_command in sever_commands:
             async_exec_command(client, sever_command, password)
         spider_commands = []  # 用于存储异步任务的列表
+
+        # 获取务列表,并计算每个docker的任务数量
+        with open(f"{CSV_PATH}", 'r', encoding='utf-8') as file:
+            all_lines = file.readlines()
+            lines = all_lines[1:]
+        each_docker_task_count = int(len(lines) / len(server["vpn_infos"])) + 1
+        print(f"每个docker需要处理的URL数量：{each_docker_task_count}")
+        print("len(lines)", len(lines))
+        current_index = 0
         # 初始化docker
         for vpn_info in server["vpn_infos"]:
+            if each_docker_task_count == 1:
+                current_index += 1
+                if current_index > len(lines):
+                    break
             docker_index = vpn_info["docker_index"]
             container_name = base_path + str(docker_index)
             init_docker_commands = [
@@ -123,11 +137,8 @@ def handle_server(server):
                 spider_commands.append(main_commmand)
 
             # 拆分任务列表,并上传到对应的docker
-            with open(r"guardian_merged.csv", 'r', encoding='utf-8') as file:
-                all_lines = file.readlines()
-                lines = all_lines[1:]
-            start_url_index = docker_index * server["each_docker_task_count"]
-            end_url_index = start_url_index + server["each_docker_task_count"]
+            start_url_index = docker_index * each_docker_task_count
+            end_url_index = start_url_index + each_docker_task_count
             local_current_urls_path = f'{container_name}_url_list.csv'
             remote_current_urls_path = f"{container_name}/current_docker_url_list.csv"
             with open(local_current_urls_path, 'w', encoding='utf-8') as file:
@@ -164,7 +175,7 @@ def handle_server(server):
 
 
 # 主函数：并行处理所有服务器
-async def main():
+async def auto_main():
     # 创建线程列表
     sever_threads = []
 
@@ -178,6 +189,10 @@ async def main():
     for thread in sever_threads:
         thread.join()
 
+def main():
+    asyncio.run(auto_main())
 
-# 运行主程序
-asyncio.run(main())
+if __name__ == "__main__":
+    main()
+    time.sleep(5)
+

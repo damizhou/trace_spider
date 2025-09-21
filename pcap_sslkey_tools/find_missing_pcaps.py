@@ -7,18 +7,18 @@ import sys
 
 # —— 配置 ——
 # .pcap 文件所在目录（一层）
-PCAP_DIR = "/netdisk/theguardian_with_ssl_key/pcap"
+PCAP_DIR = "/netdisk/theguardian_with_ssl_key/2002/pcap"
 # CSV 文件路径，包含 id 列
-CSV_FILE = "../guardian_merged.csv"
+CSV_FILE = "/home/pcz/code/trace_spider/theguardian_records.csv"
 # CSV_FILE = "../missing_records.csv"
 # 输出缺失记录的 CSV 文件路径
 # OUTPUT_CSV_FILE = "./missing_records.csv"
-OUTPUT_CSV_FILE = "../theguardian_missing_records.csv"
+OUTPUT_CSV_FILE = "/home/pcz/code/trace_spider/theguardian_records.csv"
 # CSV 分隔符，若为制表符则设置为 "\t"，默认 ","
 DELIMITER = ","
 
 
-def main():
+def main() -> bool:
     # 1. 提取目录中所有 .pcap 文件的前缀 ID
     try:
         filenames = os.listdir(PCAP_DIR)
@@ -72,8 +72,7 @@ def main():
         else:
             missing.append(row)
             # print(target)
-    print('找到的记录数:', len(missing))
-    print(pcap_ids)
+    print('找到缺失的记录数:', len(missing))
 
     # 4. 重置新的csv文件
     if os.path.exists(OUTPUT_CSV_FILE):
@@ -90,6 +89,11 @@ def main():
     except Exception as e:
         print(f"写入缺失记录文件时出错：{e}", file=sys.stderr)
         sys.exit(1)
+
+    if missing:
+        return True
+    else:
+        return False
 
 
 if __name__ == "__main__":
