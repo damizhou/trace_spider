@@ -10,6 +10,7 @@ from tools.math_tool import generate_normal_random
 from utils.task import task_instance
 import base64
 from pathlib import Path
+from typing import Optional
 
 JS_SELECT_ALL_AND_COPY_CAPTURE = r"""
 function __select_all_and_copy_capture(){
@@ -201,7 +202,7 @@ def scroll_to_bottom(driver):
             is_continue = False
         last_height = new_height
 
-def screenshot_full_page(driver: webdriver.Chrome, out_path: Path, dpr: float | None = None) -> None:
+def screenshot_full_page(driver: webdriver.Chrome, out_path: Path, dpr: Optional[float] = None) -> None:
     """整页长截图：通过 CDP 获取内容尺寸并原生捕获，不做滚动拼接。"""
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
