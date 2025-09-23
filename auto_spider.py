@@ -65,7 +65,7 @@ def handle_server(server):
             # f"echo '{password}' | sudo -S rm -rf {base_path}*",
             # f"echo '{password}' | sudo -S rm -rf trace_spider*",
             # f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
-            f'git clone --branch ssl_key_csv_theguardian https://github.com/damizhou/trace_spider.git spiderCode',
+            f'git clone --branch skc_x.com https://github.com/damizhou/trace_spider.git spiderCode',
             # f'git clone https://github.com/damizhou/clash-for-linux.git spiderCode/clash-for-linux',
         ]
         for sever_command in sever_commands:

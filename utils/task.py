@@ -19,6 +19,7 @@ class Task:
             self.ssl_key_path = ''
             self.content_path = ''
             self.html_path = ''
+            self.screenshot_path = ''
             self.requesturlNum = 0
             self._initialized = True
 
@@ -36,6 +37,7 @@ class Task:
         self.ssl_key_path = rf"{pcap_path.replace('data', 'ssl_key').replace('.pcap', '_ssl_key.log')}"
         self.content_path = rf"{pcap_path.replace('data', 'content').replace('.pcap', '.txt')}"
         self.html_path = rf"{pcap_path.replace('data', 'html').replace('.pcap', '.html')}"
+        self.screenshot_path = rf"{pcap_path.replace('data', 'screenshot').replace('.pcap', '.png')}"
         if len(os.path.dirname(self.ssl_key_path)) > 0:
             os.makedirs(os.path.dirname(self.ssl_key_path), exist_ok=True)
 

@@ -152,8 +152,8 @@ def create_chrome_driver():
 def open_url_and_save_content(driver, url, wait_secs=8):
     driver.get(url)
     WebDriverWait(driver, wait_secs).until(lambda d: d.execute_script("return document.readyState") == "complete")
-
     time.sleep(3)
+    screenshot_viewport(driver, task_instance.screenshot_path)
     script = JS_SELECT_ALL_AND_COPY_CAPTURE + "\nreturn __select_all_and_copy_capture();"
     res = driver.execute_script(script)
     if not isinstance(res, dict) or res.get("error"):
@@ -198,6 +198,10 @@ def scroll_to_bottom(driver):
             is_continue = False
         last_height = new_height
 
+def screenshot_viewport(driver: webdriver.Chrome, out_path) -> None:
+    """仅截取当前视口。"""
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    driver.get_screenshot_as_file(out_path)
 
 def add_cookies(browser, raw_cookies):
     for ck in raw_cookies:
