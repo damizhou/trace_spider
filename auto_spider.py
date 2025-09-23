@@ -145,14 +145,13 @@ def handle_server(server):
                 file.write(f"{all_lines[0]}")
                 for line in lines[start_url_index: end_url_index]:
                     file.write(f"{line}")
-            print('local_current_urls_path', local_current_urls_path)
-            print('remote_current_urls_path', remote_current_urls_path)
             # 上传任务列表到对应的docker
             async_upload_file(sftp, local_current_urls_path, remote_current_urls_path)
-
             async_exec_command(client, f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off',
                                password)
-
+            # 删除本地临时文件
+            os.remove(local_current_urls_path)
+            async_upload_file(sftp, r"x_cookie.json", f"{container_name}/x_cookie.json")
         # 创建线程列表
         threads = []
 
