@@ -1,3 +1,4 @@
+import math
 import re
 import time
 from selenium.webdriver.chrome.service import Service
@@ -7,6 +8,8 @@ import os
 from selenium.webdriver.support.ui import WebDriverWait  # 从selenium.webdriver.support.wait改为支持ui
 from tools.math_tool import generate_normal_random
 from utils.task import task_instance
+import base64
+from pathlib import Path
 
 JS_SELECT_ALL_AND_COPY_CAPTURE = r"""
 function __select_all_and_copy_capture(){
@@ -153,7 +156,7 @@ def open_url_and_save_content(driver, url, wait_secs=8):
     driver.get(url)
     WebDriverWait(driver, wait_secs).until(lambda d: d.execute_script("return document.readyState") == "complete")
     time.sleep(3)
-    screenshot_viewport(driver, task_instance.screenshot_path)
+    screenshot_full_page(driver, Path(task_instance.screenshot_path), dpr=2.0)
     script = JS_SELECT_ALL_AND_COPY_CAPTURE + "\nreturn __select_all_and_copy_capture();"
     res = driver.execute_script(script)
     if not isinstance(res, dict) or res.get("error"):
@@ -198,11 +201,42 @@ def scroll_to_bottom(driver):
             is_continue = False
         last_height = new_height
 
-def screenshot_viewport(driver: webdriver.Chrome, out_path) -> None:
-    """仅截取当前视口。"""
-    if not os.path.exists(os.path.dirname(out_path)):
-        os.makedirs(os.path.dirname(out_path))
-    driver.get_screenshot_as_file(out_path)
+def screenshot_full_page(driver: webdriver.Chrome, out_path: Path, dpr: float | None = None) -> None:
+    """整页长截图：通过 CDP 获取内容尺寸并原生捕获，不做滚动拼接。"""
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # 计算页面内容尺寸
+    metrics = driver.execute_cdp_cmd("Page.getLayoutMetrics", {})
+    # contentSize 比 visualViewport 更可靠，含整个文档内容区域
+    content_size = metrics.get("contentSize", {})
+    width = int(math.ceil(content_size.get("width", 0) or 0))
+    height = int(math.ceil(content_size.get("height", 0) or 0))
+    if width == 0 or height == 0:
+        # 退路：用 JS 获取 body 尺寸
+        width = int(driver.execute_script("return Math.ceil(document.documentElement.scrollWidth||document.body.scrollWidth||0);"))
+        height = int(driver.execute_script("return Math.ceil(document.documentElement.scrollHeight||document.body.scrollHeight||0);"))
+
+    device_scale = float(dpr) if dpr and dpr > 0 else 1.0
+
+    # 覆盖设备度量，扩大视窗到整页尺寸
+    driver.execute_cdp_cmd("Emulation.setDeviceMetricsOverride", {
+        "mobile": False,
+        "width": width,
+        "height": height,
+        "deviceScaleFactor": device_scale,
+        "screenOrientation": {"type": "landscapePrimary", "angle": 0},
+    })
+
+    # 捕获位图（b64）
+    data = driver.execute_cdp_cmd("Page.captureScreenshot", {
+        "fromSurface": True,
+        "captureBeyondViewport": True
+    })
+    png_b64 = data.get("data")
+    out_path.write_bytes(base64.b64decode(png_b64))
+
+    # 恢复度量，避免影响后续操作
+    driver.execute_cdp_cmd("Emulation.clearDeviceMetricsOverride", {})
 
 def add_cookies(browser, raw_cookies):
     for ck in raw_cookies:
