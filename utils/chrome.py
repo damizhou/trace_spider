@@ -1,4 +1,3 @@
-import json
 import re
 import time
 from selenium.webdriver.chrome.service import Service
@@ -200,10 +199,7 @@ def scroll_to_bottom(driver):
         last_height = new_height
 
 
-def add_cookies(browser):
-    with open("youtube_cookie.txt", "r", encoding="utf-8") as f:
-        raw_cookies = json.load(f)
-
+def add_cookies(browser, raw_cookies):
     for ck in raw_cookies:
         try:
             browser.add_cookie(sanitize(ck))

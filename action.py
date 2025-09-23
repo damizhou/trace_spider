@@ -1,7 +1,7 @@
-import os
+import json
 import subprocess
 from pathlib import Path
-from utils.chrome import create_chrome_driver, open_url_and_save_content
+from utils.chrome import create_chrome_driver, open_url_and_save_content, add_cookies
 from utils.logger import logger
 from utils.config import config
 import threading
@@ -47,18 +47,23 @@ def kill_tcpdump_processes():
 def _chown_r(path: Path, uid: int, gid: int):
     subprocess.run(["chown", "-R", f"{uid}:{gid}", str(path)], check=True)
 
-def start_task(session, current_id, current_url, year):
+def start_task(user, current_url):
     kill_chrome_processes()
     kill_tcpdump_processes()
     time.sleep(1)
 
     # 开流量收集
-    traffic_thread = threading.Thread(target=traffic, kwargs={"index": f"{session}_{current_id}_{year}"} )
+    traffic_thread = threading.Thread(target=traffic, kwargs={"index": f"{user}_"} )
     traffic_thread.start()
     time.sleep(1)
 
     logger.info(f"创建浏览器")
     browser = create_chrome_driver()
+    browser.get("https://x.com")
+    with open("x_cookie.json", "r", encoding="utf-8") as f:
+        raw_cookies = json.load(f)
+    add_cookies(browser, raw_cookies)
+
     # 保存网页内容
     open_url_and_save_content(browser, current_url)
 
@@ -77,32 +82,5 @@ def start_task(session, current_id, current_url, year):
 if __name__ == "__main__":
     for url in task_instance.urls:
         current_url = url.get('URL')
-        section = url.get('Section')
-        current_id = url.get('ID')
-        year = url.get('Year')
-        start_task(section, current_id, current_url, year)
-
-    time.sleep(60)
-    bases = {Path(task_instance.pcap_path).resolve().parent, Path(task_instance.ssl_key_path).resolve().parent,
-        Path(task_instance.html_path).resolve().parent, Path(task_instance.content_path).resolve().parent, }
-
-    uid = int(os.environ.get("HOST_UID", os.getuid()))
-    gid = int(os.environ.get("HOST_GID", os.getgid()))
-
-    # === 并发执行 ===
-    errors = []
-    max_workers = min(4, len(bases))  # 这四个目录通常互不重叠；机械盘可把 4 改小一点
-    with ThreadPoolExecutor(max_workers=max_workers) as ex:
-        futs = {ex.submit(_chown_r, b, uid, gid): b for b in bases}
-        for fut in as_completed(futs):
-            b = futs[fut]
-            try:
-                fut.result()
-            except subprocess.CalledProcessError as e:
-                errors.append((str(b), f"returncode={e.returncode}"))
-            except Exception as e:
-                errors.append((str(b), repr(e)))
-
-    if errors:
-        msg = "; ".join([f"{p}: {err}" for p, err in errors])
-        raise RuntimeError(f"chown 部分失败 -> {msg}")
+        user = url.get('User')
+        start_task(user, current_url)
