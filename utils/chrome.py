@@ -200,7 +200,8 @@ def scroll_to_bottom(driver):
 
 def screenshot_viewport(driver: webdriver.Chrome, out_path) -> None:
     """仅截取当前视口。"""
-    out_path.parent.mkdir(parents=True, exist_ok=True)
+    if not os.path.exists(os.path.dirname(out_path)):
+        os.makedirs(os.path.dirname(out_path))
     driver.get_screenshot_as_file(out_path)
 
 def add_cookies(browser, raw_cookies):

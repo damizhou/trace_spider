@@ -53,7 +53,7 @@ def start_task(user, current_url):
     time.sleep(1)
 
     # 开流量收集
-    traffic_thread = threading.Thread(target=traffic, kwargs={"index": f"{user}_"} )
+    traffic_thread = threading.Thread(target=traffic, kwargs={"index": f"{user}"} )
     traffic_thread.start()
     time.sleep(1)
 
