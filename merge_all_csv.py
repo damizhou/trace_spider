@@ -136,11 +136,11 @@ def merge_guardian_csvs_all_years(
 
 if __name__ == "__main__":
     # 默认参数可改
-    merged, csv_path = merge_guardian_csvs_all_years(
-        root_dir=ROOT_DIR_DEFAULT,
-        output_csv=OUTPUT_CSV_DEFAULT,
-    )
-
+    # merged, csv_path = merge_guardian_csvs_all_years(
+    #     root_dir=ROOT_DIR_DEFAULT,
+    #     output_csv=OUTPUT_CSV_DEFAULT,
+    # )
+    csv_path = r'/home/pcz/code/trace_spider/theguardian_records.csv'
     if hasattr(autospider, "CSV_PATH"):         autospider.CSV_PATH = f"{csv_path}"
     autospider.main()
     index = 0
