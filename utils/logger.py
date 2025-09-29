@@ -10,8 +10,8 @@ from utils.task import task_instance
 def setup_logging():
     logs_dir = os.path.join(project_path, "logs")
     os.makedirs(logs_dir, exist_ok=True)
-    udi = os.geteuid() or int(os.getenv('HOST_UID'))
-    gid = os.getegid() or int(os.getenv('HOST_GID'))
+    udi = os.geteuid() or int(os.getenv('HOST_UID') or 1002)
+    gid = os.getegid() or int(os.getenv('HOST_GID') or 1002)
     os.chown(logs_dir, udi, gid)
 
     # 获取当前时间
@@ -57,8 +57,8 @@ def setup_url_logger(traffic_name):
     log_file = traffic_name.replace(".pcap", ".log").replace("data", "url_logs")
     directory_path = os.path.dirname(log_file)
     os.makedirs(directory_path, exist_ok=True)
-    udi = os.geteuid() or int(os.getenv('HOST_UID'))
-    gid = os.getegid() or int(os.getenv('HOST_GID'))
+    udi = os.geteuid() or int(os.getenv('HOST_UID') or 1002)
+    gid = os.getegid() or int(os.getenv('HOST_GID') or 1002)
     os.chown(directory_path, udi, gid)
     allowed_domain = task_instance.current_allowed_domain
     # 创建一个logger
