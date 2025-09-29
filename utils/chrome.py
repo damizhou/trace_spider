@@ -5,9 +5,10 @@ from selenium.webdriver.chrome.service import Service
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import os
-from selenium.webdriver.support.ui import WebDriverWait  # 从selenium.webdriver.support.wait改为支持ui
 from tools.math_tool import generate_normal_random
 from utils.task import task_instance
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import TimeoutException, JavascriptException
 
 JS_SELECT_ALL_AND_COPY_CAPTURE = r"""
 function __select_all_and_copy_capture(){
@@ -150,25 +151,99 @@ def create_chrome_driver():
                             '''.strip()})
     return browser
 
-def open_url_and_save_content(driver, url, wait_secs=8):
-    driver.get(url)
-    WebDriverWait(driver, wait_secs).until(lambda d: d.execute_script("return document.readyState") == "complete")
+def open_url_and_save_content(driver, url, wait_secs=20):
+    """
+    1) 尝试进入 interactive/complete
+    2) 等待 DOM 短暂稳定
+    3) 若仍然超时，强制 stopLoading，尽力保存当前内容
+    """
+    # 可选：缩短脚本执行超时，避免挂死
+    driver.set_script_timeout(max(10, wait_secs))
 
-    time.sleep(3)
+    driver.get(url)
+
+    # 第一步：不强求 complete，先到 interactive/complete
+    try:
+        WebDriverWait(driver, max(5, wait_secs // 2)).until(
+            lambda d: d.execute_script("return document.readyState") in ("interactive", "complete")
+        )
+    except TimeoutException:
+        # 忽略，进入下一阶段稳定性等待
+        pass
+
+    # 第二步：等待 DOM 短暂稳定（文本长度不再增长）
+    state = wait_until_ready_or_stable(driver, max_wait=wait_secs, min_stable_time=1.0, poll=0.25)
+
+    # 若还是不行，第三步：强制停载，尽力保存
+    if state not in ("interactive", "complete"):
+        try:
+            driver.execute_cdp_cmd("Page.stopLoading", {})
+        except Exception:
+            pass
+
+    # 轻微喘口气，保证同步任务（如布局、微任务队列）落地
+    time.sleep(1.0)
+
+    # 之后与你原来的逻辑一致：执行全选复制 + 落盘
     script = JS_SELECT_ALL_AND_COPY_CAPTURE + "\nreturn __select_all_and_copy_capture();"
     res = driver.execute_script(script)
     if not isinstance(res, dict) or res.get("error"):
         raise RuntimeError(f"JS失败: {res}")
-    plain = re.sub(r'(?:[ \t\f\u00A0\u3000\u200B\u200C\u200D\uFEFF\u2060\u00AD\v]*\r?\n)+', '\n', res.get("plain", ""))
-    if not os.path.exists(os.path.dirname(task_instance.content_path)):
-        os.makedirs(os.path.dirname(task_instance.content_path))
+
+    plain = re.sub(
+        r'(?:[ \t\f\u00A0\u3000\u200B\u200C\u200D\uFEFF\u2060\u00AD\v]*\r?\n)+',
+        '\n',
+        res.get("plain", "")
+    )
+    os.makedirs(os.path.dirname(task_instance.content_path), exist_ok=True)
     with open(task_instance.content_path, "w", encoding="utf-8") as f:
         f.write(plain)
-    html = driver.page_source  # 此刻的 DOM（包含已渲染的动态内容）
-    if not os.path.exists(os.path.dirname(task_instance.html_path)):
-        os.makedirs(os.path.dirname(task_instance.html_path))
+
+    html = driver.page_source  # 当前 DOM（含动态渲染结果）
+    os.makedirs(os.path.dirname(task_instance.html_path), exist_ok=True)
     with open(task_instance.html_path, "w", encoding="utf-8") as f:
         f.write(html)
+
+def wait_until_ready_or_stable(driver, max_wait=25, min_stable_time=1.0, poll=0.25):
+    """
+    认为页面“可用”的条件：
+      1) readyState ∈ {interactive, complete}
+      2) body.innerText.length 在 min_stable_time 时间内保持稳定
+    这样能覆盖大量永不到 complete 的页面，也能等一等 SPA 首屏渲染。
+    """
+    deadline = time.time() + max_wait
+    last_len = None
+    stable_since = None
+    last_state = None
+
+    while time.time() < deadline:
+        try:
+            state = driver.execute_script("return document.readyState")
+        except JavascriptException:
+            state = None
+
+        try:
+            length = driver.execute_script(
+                "return (document.body && document.body.innerText) ? document.body.innerText.length : 0;"
+            )
+        except JavascriptException:
+            length = 0
+
+        if state in ("interactive", "complete"):
+            if last_len == length:
+                # 开始累计“稳定”时长
+                if stable_since is None:
+                    stable_since = time.time()
+                elif (time.time() - stable_since) >= min_stable_time:
+                    return state
+            else:
+                stable_since = None
+                last_len = length
+
+        last_state = state
+        time.sleep(poll)
+
+    return last_state  # 返回最后一次看到的状态，供上层决策
 
 # 定义一个函数来滚动页面
 def scroll_to_bottom(driver):
