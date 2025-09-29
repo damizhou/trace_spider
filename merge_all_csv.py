@@ -141,19 +141,19 @@ def main():
     #     root_dir=ROOT_DIR_DEFAULT,
     #     output_csv=OUTPUT_CSV_DEFAULT,
     # )
-    # csv_path = r'/home/pcz/code/trace_spider/theguardian_records.csv'
-    # if hasattr(autospider, "CSV_PATH"):         autospider.CSV_PATH = f"{csv_path}"
-    # autospider.main()
-    # index = 0
+    csv_path = r'/home/pcz/code/trace_spider/theguardian_records.csv'
+    if hasattr(autospider, "CSV_PATH"):         autospider.CSV_PATH = f"{csv_path}"
+    autospider.main()
+    index = 0
     if hasattr(autospider, "DEST_ROOT"):     runner.DEST_ROOT = ROOT_DIR_DEFAULT
     pipeline_runner_result = runner.main()
-    # while pipeline_runner_result:
-    #     index += 1
-    #     autospider.main()
-    #     pipeline_runner_result = runner.main()
-    #     if index >= 5:
-    #         print("超过5轮，停止。")
-    #         break
+    while pipeline_runner_result:
+        index += 1
+        autospider.main()
+        pipeline_runner_result = runner.main()
+        if index >= 5:
+            print("超过5轮，停止。")
+            break
 
 if __name__ == "__main__":
     main()

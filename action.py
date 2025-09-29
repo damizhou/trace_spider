@@ -60,15 +60,22 @@ def start_task(session, current_id, current_url, year):
     logger.info(f"创建浏览器")
     browser = create_chrome_driver()
     # 保存网页内容
-    open_url_and_save_content(browser, current_url)
+    is_finished = False
+    try:
+        open_url_and_save_content(browser, current_url)
+        logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面")
+        time.sleep(15)
+        is_finished = True
 
-    logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面")
-    time.sleep(15)
+    except Exception as e:
+        logger.error(f"爬取 {current_url} 失败: {e}")
     browser.close()
     logger.info(f"清理浏览器进程")
     kill_chrome_processes()
     logger.info(f"等待TCP结束挥手完成")
-    time.sleep(60)
+    if is_finished:
+        time.sleep(60)
+
 
     # 关流量收集
     logger.info(f"关流量收集")
