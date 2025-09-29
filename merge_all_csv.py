@@ -81,14 +81,17 @@ def merge_guardian_csvs_all_years(
 
     for ydir in year_dirs:
         year = ydir.name
+        if year in ("2000", "2001", "2002", "2024"):
+            continue
         # 跳过非数字年份目录
         if not year.isdigit():
             continue
-
-        # 你的要求：如果年份目录下存在 pcap/，这一年的 theguardian_all_reformat 直接跳过
-        if (ydir / "pcap").is_dir():
-            skipped_years.append(year)
-            continue
+        #
+        # # 你的要求：如果年份目录下存在 pcap/，这一年的 theguardian_all_reformat 直接跳过
+        # # if (ydir / "pcap").is_dir():
+        # #     skipped_years.append(year)
+        # #     continue
+        # if ydir
 
         reformat_dir = ydir / "theguardian_all_reformat"
         if not reformat_dir.is_dir():
@@ -112,16 +115,17 @@ def merge_guardian_csvs_all_years(
     merged = pd.concat(dfs, ignore_index=True)
 
     # 按 Section 重排 ID 从 1 开始；若缺失 Section 列，填 'unknown'
+    # 若缺失 Section 列，填 'unknown'；ID/URL 做个去空格
     if "Section" not in merged.columns:
         merged["Section"] = "unknown"
+    else:
+        merged["Section"] = merged["Section"].astype(str).str.strip()
 
-    # 分组编号
-    def _reindex_ids(grp: pd.DataFrame) -> pd.DataFrame:
-        grp = grp.copy()
-        grp["ID"] = range(1, len(grp) + 1)
-        return grp
+    if "ID" in merged.columns:
+        merged["ID"] = merged["ID"].astype(str).str.strip()
 
-    merged = merged.groupby("Section", sort=True, group_keys=False).apply(_reindex_ids)
+    if "URL" in merged.columns:
+        merged["URL"] = merged["URL"].astype(str).str.strip()
 
     # 列顺序固定
     merged = merged.reindex(columns=["Section", "ID", "URL", "Year"])
