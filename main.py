@@ -1,6 +1,6 @@
 import subprocess
 from action import kill_tcpdump_processes
-from utils.logger import setup_logging, logger
+from utils.logger import logger
 import threading
 from utils.task import task_instance
 

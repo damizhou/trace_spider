@@ -9,6 +9,7 @@ from tools.math_tool import generate_normal_random
 from utils.task import task_instance
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException, JavascriptException
+from utils.logger import logger
 
 JS_SELECT_ALL_AND_COPY_CAPTURE = r"""
 function __select_all_and_copy_capture(){
@@ -167,9 +168,9 @@ def open_url_and_save_content(driver, url, wait_secs=20):
         WebDriverWait(driver, max(5, wait_secs // 2)).until(
             lambda d: d.execute_script("return document.readyState") in ("interactive", "complete")
         )
-    except TimeoutException:
+    except TimeoutException as e:
         # 忽略，进入下一阶段稳定性等待
-        pass
+        logger.warning(f"等待 readyState 失败，进入下一阶段：{e}")
 
     # 第二步：等待 DOM 短暂稳定（文本长度不再增长）
     state = wait_until_ready_or_stable(driver, max_wait=wait_secs, min_stable_time=1.0, poll=0.25)
@@ -178,8 +179,8 @@ def open_url_and_save_content(driver, url, wait_secs=20):
     if state not in ("interactive", "complete"):
         try:
             driver.execute_cdp_cmd("Page.stopLoading", {})
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"强制 stopLoading 失败，继续保存：{e}")
 
     # 轻微喘口气，保证同步任务（如布局、微任务队列）落地
     time.sleep(1.0)

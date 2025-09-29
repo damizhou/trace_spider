@@ -149,7 +149,7 @@ def handle_server(server):
             print('remote_current_urls_path', remote_current_urls_path)
             # 上传任务列表到对应的docker
             async_upload_file(sftp, local_current_urls_path, remote_current_urls_path)
-
+            os.remove(local_current_urls_path)
             async_exec_command(client, f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off',
                                password)
 

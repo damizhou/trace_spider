@@ -6,6 +6,7 @@ import pandas as pd
 import csv
 import auto_spider as autospider
 import pcap_sslkey_tools.pipeline_runner as runner
+from utils.logger import logger
 
 ROOT_DIR_DEFAULT = "/netdisk/theguardian_with_ssl_key"
 OUTPUT_CSV_DEFAULT = "theguardian_records.csv"
@@ -128,10 +129,10 @@ def merge_guardian_csvs_all_years(
     # 保存
     out_path = Path(output_csv).resolve()
     merged.to_csv(out_path, index=False, encoding="utf-8")
-    print(f"[完成] 写入: {out_path}")
-    print(f"[统计] 参与年份: {sorted(set(used_years))}")
-    print(f"[统计] 跳过年份(存在 pcap): {sorted(set(skipped_years))}")
-    print(f"[统计] 读取文件数: {total_files}, 合并总行数: {len(merged)}")
+    logger.info(f"[完成] 写入: {out_path}")
+    logger.info(f"[统计] 参与年份: {sorted(set(used_years))}")
+    logger.info(f"[统计] 跳过年份(存在 pcap): {sorted(set(skipped_years))}")
+    logger.info(f"[统计] 读取文件数: {total_files}, 合并总行数: {len(merged)}")
     return merged, out_path
 
 def main():
