@@ -10,8 +10,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # ========= 只改这里 =========
 SOURCE_ROOT = r"/home/pcz/theguardian_trace_spider*"   # 源基础路径（支持通配）
-DEST_ROOT   = r"/netdisk/theguardian_with_temp/"     # 目的基础路径（pcap 在这里的 pcap 子目录）
-COPY_WORKERS = 8                                            # copy 并发进程数
+DEST_ROOT   = r"/netdisk/theguardian_with_temp"     # 目的基础路径（pcap 在这里的 pcap 子目录）
+COPY_WORKERS = 32                                            # copy 并发进程数
 # ========= 只改这里 =========
 def ensure_root_or_reexec():
     if hasattr(os, "geteuid") and os.geteuid() != 0:
@@ -32,6 +32,8 @@ def step_copy_guardian():
     if hasattr(cg, "SOURCE_ROOT"): cg.SOURCE_ROOT = SOURCE_ROOT
     if hasattr(cg, "DEST_ROOT"):   cg.DEST_ROOT   = DEST_ROOT
     if hasattr(cg, "WORKERS"):     cg.WORKERS     = COPY_WORKERS
+    if hasattr(cg, "DRY_RUN"):     cg.DRY_RUN     = False  # 演练：仅打印计划，不真实复制；正式跑改为 False
+    if hasattr(cg, "OVERRIDE_DATE"):     cg.OVERRIDE_DATE = None
 
     logging.info("[1/4] 开始 copy_guardian ...")
     cg.main()
@@ -77,7 +79,13 @@ def step_find_missing():
     logging.info("[4/4] find_missing_pcaps 完成。")
     return fmp_result
 
-def main() -> bool:
+def copy_temp_to_destination():
+    import copy_temp_to_destination as ctd
+    logging.info("执行 copy_temp_to_destination ...")
+    ctd.main()
+    logging.info("copy_temp_to_destination 完成。")
+
+def main():
     # ensure_root_or_reexec()
     setup_logger()
 
@@ -93,10 +101,13 @@ def main() -> bool:
     # 3) 清理不匹配
     step_cleanup_unmatched()
     # 4) 统计缺失
-    step_find_missing_result = step_find_missing()
+    # step_find_missing_result = step_find_missing()
+
+    # 4) 移动到最终位置
+    copy_temp_to_destination()
 
     logging.info("✅ 全流程完成。")
-    return step_find_missing_result
+    # return step_find_missing_result
 
 if __name__ == "__main__":
     main()
