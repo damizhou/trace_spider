@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # ========= 只改这里 =========
 SOURCE_ROOT = r"/home/pcz/theguardian_trace_spider*"   # 源基础路径（支持通配）
-DEST_ROOT   = r"/netdisk/theguardian_with_temp"     # 目的基础路径（pcap 在这里的 pcap 子目录）
+DEST_ROOT   = r"/temp_theguardian/theguardian_with_temp"     # 目的基础路径（pcap 在这里的 pcap 子目录）
 COPY_WORKERS = 32                                            # copy 并发进程数
 # ========= 只改这里 =========
 def ensure_root_or_reexec():
@@ -104,7 +104,7 @@ def main():
     # step_find_missing_result = step_find_missing()
 
     # 4) 移动到最终位置
-    copy_temp_to_destination()
+    # copy_temp_to_destination()
 
     logging.info("✅ 全流程完成。")
     # return step_find_missing_result

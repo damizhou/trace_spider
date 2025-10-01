@@ -27,7 +27,7 @@ SPIDER_ROOT_GLOBS: List[str] = [
     r"/home/pcz/theguardian_trace_spider*",
 ]
 
-DEST_ROOT: str = os.environ.get("DEST_ROOT", r"/netdisk/theguardian_with_temp")
+DEST_ROOT: str = os.environ.get("DEST_ROOT", r"/temp_theguardian/theguardian_with_temp")
 WORKERS: int = int(os.environ.get("COPY_WORKERS", "8"))
 DRY_RUN: bool = os.environ.get("DRY_RUN", "0").lower() in {"1", "true", "yes"}
 OVERRIDE_DATE: Optional[str] = os.environ.get("COPY_DATE")

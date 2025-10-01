@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Iterable, Tuple, Set, List
 from concurrent.futures import ProcessPoolExecutor, wait, FIRST_COMPLETED
 
-SOURCE_ROOT = Path("/netdisk/theguardian_with_temp")
+SOURCE_ROOT = Path("/temp_theguardian/theguardian_with_temp")
 DEST_ROOT   = Path("/netdisk/theguardian_with_ssl_key")
 SUBDIRS = ("content", "html", "pcap", "ssl_key")
 
@@ -141,7 +141,7 @@ def reset_year_dirs(dest_root: Path, years: Iterable[int], dry_run: bool) -> Non
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="多进程重置并复制（年份=文件名第3段；目标名去年份段）")
-    parser.add_argument("--source",   type=Path, default=SOURCE_ROOT, help="源根目录（默认：/netdisk/theguardian_with_temp）")
+    parser.add_argument("--source",   type=Path, default=SOURCE_ROOT, help="源根目录（默认：/temp_theguardian/theguardian_with_temp）")
     parser.add_argument("--dest",     type=Path, default=DEST_ROOT,   help="目标根目录（默认：/netdisk/theguardian_with_ssl_key）")
     parser.add_argument("--workers",  type=int,  default=32,          help="进程数（默认：32）")
     parser.add_argument("--overwrite", action="store_true",           help="允许覆盖已存在目标文件（默认不覆盖）")
