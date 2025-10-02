@@ -115,28 +115,6 @@ def collect_years_from_source(source_root: Path) -> Set[int]:
             pass
     return years
 
-
-def reset_year_dirs(dest_root: Path, years: Iterable[int], dry_run: bool) -> None:
-    """
-    对于给定年份集合，删除并重建 <dest_root>/<year>/{content,html,pcap,ssl_key}
-    """
-    for y in sorted(set(years)):
-        for sub in SUBDIRS:
-            d = dest_root / str(y) / sub
-            if d.exists():
-                if dry_run:
-                    print(f"[DRYRUN-RESET] 将删除目录: {d}", flush=True)
-                else:
-                    shutil.rmtree(d, ignore_errors=True)
-                    print(f"[RESET] 已删除目录: {d}", flush=True)
-            # 重建空目录
-            if dry_run:
-                print(f"[DRYRUN-RESET] 将创建目录: {d}", flush=True)
-            else:
-                d.mkdir(parents=True, exist_ok=True)
-                print(f"[RESET] 已创建目录: {d}", flush=True)
-
-
 # ========== 主流程 ==========
 
 def main() -> None:
@@ -151,8 +129,6 @@ def main() -> None:
 
     # 先收集将写入的年份，并按要求清理目标目录
     years = collect_years_from_source(args.source)
-    if not args.no_reset:
-        reset_year_dirs(args.dest, years, dry_run=args.dry_run)
 
     # 并行复制（实时打印）
     total = copied = skipped = dryrun = errors = 0

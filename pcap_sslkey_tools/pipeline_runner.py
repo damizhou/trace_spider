@@ -35,9 +35,9 @@ def step_copy_guardian():
     if hasattr(cg, "DRY_RUN"):     cg.DRY_RUN     = False  # 演练：仅打印计划，不真实复制；正式跑改为 False
     if hasattr(cg, "OVERRIDE_DATE"):     cg.OVERRIDE_DATE = None
 
-    logging.info("[1/4] 开始 copy_guardian ...")
+    logging.info("[1/5] 开始 copy_guardian ...")
     cg.main()
-    logging.info("[1/4] copy_guardian 完成。")
+    logging.info("[1/5] copy_guardian 完成。")
 
 # ---------- Step 2: filter 两个并发 ----------
 def _run_filter_pcap():
@@ -52,12 +52,12 @@ def _run_filter_ssl():
     return fso.main()
 
 def step_filters_parallel():
-    logging.info("[2/4] 并发执行 filter_pcap_outliers / filter_ssl_key_outliers ...")
+    logging.info("[2/5] 并发执行 filter_pcap_outliers / filter_ssl_key_outliers ...")
     with ThreadPoolExecutor(max_workers=2) as ex:
         futs = [ex.submit(_run_filter_pcap), ex.submit(_run_filter_ssl)]
         for fut in as_completed(futs):
             fut.result()
-    logging.info("[2/4] 两个过滤脚本完成。")
+    logging.info("[2/5] 两个过滤脚本完成。")
 
 # ---------- Step 3: cleanup_unmatched ----------
 def step_cleanup_unmatched():
@@ -66,24 +66,24 @@ def step_cleanup_unmatched():
     if hasattr(cu, "SSL_DIR_DEFAULT"): cu.SSL_DIR_DEFAULT           = f"{DEST_ROOT}/ssl_key"
     if hasattr(cu, "CONTENT_DIR_DEFAULT"): cu.CONTENT_DIR_DEFAULT   = f"{DEST_ROOT}/content"
     if hasattr(cu, "HTML_DIR_DEFAULT"): cu.HTML_DIR_DEFAULT     = f"{DEST_ROOT}/html"
-    logging.info("[3/4] 执行 cleanup_unmatched ...")
+    logging.info("[3/5] 执行 cleanup_unmatched ...")
     cu.main()
-    logging.info("[3/4] cleanup_unmatched 完成。")
+    logging.info("[3/5] cleanup_unmatched 完成。")
 
 # ---------- Step 4: find_missing_pcaps ----------
 def step_find_missing():
     import find_missing_pcaps as fmp
     if hasattr(fmp, "PCAP_DIR"): fmp.PCAP_DIR = f"{DEST_ROOT}/pcap"
-    logging.info("[4/4] 执行 find_missing_pcaps ...")
+    logging.info("[4/5] 执行 find_missing_pcaps ...")
     fmp_result = fmp.main()
-    logging.info("[4/4] find_missing_pcaps 完成。")
+    logging.info("[4/5] find_missing_pcaps 完成。")
     return fmp_result
 
 def copy_temp_to_destination():
     import copy_temp_to_destination as ctd
-    logging.info("执行 copy_temp_to_destination ...")
+    logging.info("[5/5] 执行 copy_temp_to_destination ...")
     ctd.main()
-    logging.info("copy_temp_to_destination 完成。")
+    logging.info("[5/5] copy_temp_to_destination 完成。")
 
 def main():
     # ensure_root_or_reexec()
@@ -101,13 +101,12 @@ def main():
     # 3) 清理不匹配
     step_cleanup_unmatched()
     # 4) 统计缺失
-    # step_find_missing_result = step_find_missing()
-
-    # 4) 移动到最终位置
-    # copy_temp_to_destination()
+    step_find_missing_result = step_find_missing()
+    # 5) 移动到最终位置
+    copy_temp_to_destination()
 
     logging.info("✅ 全流程完成。")
-    # return step_find_missing_result
+    return step_find_missing_result
 
 if __name__ == "__main__":
     main()
