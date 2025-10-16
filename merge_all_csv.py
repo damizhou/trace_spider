@@ -81,16 +81,16 @@ def merge_guardian_csvs_all_years(
 
     for ydir in year_dirs:
         year = ydir.name
-        if year in ("2000", "2001", "2002", "2024"):
-            continue
+        # if year in ("2000", "2001", "2002", "2024"):
+        #     continue
         # 跳过非数字年份目录
         if not year.isdigit():
             continue
         #
-        # # 你的要求：如果年份目录下存在 pcap/，这一年的 theguardian_all_reformat 直接跳过
-        # # if (ydir / "pcap").is_dir():
-        # #     skipped_years.append(year)
-        # #     continue
+        # 你的要求：如果年份目录下存在 pcap/，这一年的 theguardian_all_reformat 直接跳过
+        if (ydir / "pcap").is_dir():
+            skipped_years.append(year)
+            continue
         # if ydir
 
         reformat_dir = ydir / "theguardian_all_reformat"

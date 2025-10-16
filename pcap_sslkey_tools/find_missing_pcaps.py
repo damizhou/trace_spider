@@ -7,7 +7,7 @@ import sys
 
 # —— 配置 ——
 # .pcap 文件所在目录（一层）
-PCAP_DIR = "/netdisk/theguardian_with_ssl_key/2002/pcap"
+PCAP_DIR = "/temp_theguardian/theguardian_with_temp/pcap"
 # CSV 文件路径，包含 id 列
 CSV_FILE = "/home/pcz/code/trace_spider/theguardian_records.csv"
 # CSV_FILE = "../missing_records.csv"
@@ -29,15 +29,13 @@ def main() -> bool:
     pcap_ids = set()
     for fname in filenames:
         if fname.lower().endswith(".pcap"):
-            prefix = fname.split("_")[0]
-            # if prefix == "usnews":
-            #     prefix = "us-news"
-            if prefix == "tvandradio":
-                prefix = "tv-and-radio"
-            index = fname.split("_")[1]
-            target = f"{prefix}_{index}"
+            elements = fname.split("_")
+            prefix = elements[0]
+            index = elements[1]
+            year = elements[2]
+            target = f"{prefix}_{index}_{year}"
             if target in pcap_ids:
-                print(f"警告：发现重复的 .pcap 文件前缀 ID：{target}", file=sys.stderr)
+                print(f"警告：发现重复的 .pcap 文件前缀 ID：{target}, filename:{fname}", file=sys.stderr)
             pcap_ids.add(target)
         else:
             print(f"跳过非 .pcap 文件：{fname}")
@@ -65,7 +63,7 @@ def main() -> bool:
     # 3. 计算缺失的 ID
     missing = []
     for row in rows:
-        target = f"{row['Section']}_{row['ID']}"
+        target = f"{row['Section']}_{row['ID']}_{row['Year']}"
         if target in pcap_ids:
             pcap_ids.remove(target)  # 防止重复打印
             continue

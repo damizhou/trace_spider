@@ -6,7 +6,7 @@ import threading
 import paramiko
 import os
 from sever_info import servers_info
-CSV_PATH = f'theguardian_records.csv'
+CSV_PATH = f'/home/pcz/code/trace_spider/theguardian_records.csv'
 index = 0
 # 异步执行并监控命令输出
 def async_exec_command(client, command, password):
