@@ -3,8 +3,6 @@ from utils import project_path
 import logging
 import logging.handlers
 import os
-
-from utils.chrome import is_docker
 from utils.task import task_instance
 
 
@@ -12,8 +10,9 @@ from utils.task import task_instance
 def setup_logging():
     logs_dir = os.path.join(project_path, "logs")
     os.makedirs(logs_dir, exist_ok=True)
-    if is_docker():
-        os.chown(logs_dir, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
+    udi = os.geteuid() or int(os.getenv('HOST_UID') or 1002)
+    gid = os.getegid() or int(os.getenv('HOST_GID') or 1002)
+    os.chown(logs_dir, udi, gid)
 
     # 获取当前时间
     current_time = datetime.now()
@@ -58,8 +57,9 @@ def setup_url_logger(traffic_name):
     log_file = traffic_name.replace(".pcap", ".log").replace("data", "url_logs")
     directory_path = os.path.dirname(log_file)
     os.makedirs(directory_path, exist_ok=True)
-    if is_docker():
-        os.chown(directory_path, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
+    udi = os.geteuid() or int(os.getenv('HOST_UID') or 1002)
+    gid = os.getegid() or int(os.getenv('HOST_GID') or 1002)
+    os.chown(directory_path, udi, gid)
     allowed_domain = task_instance.current_allowed_domain
     # 创建一个logger
     logger = logging.getLogger(allowed_domain)

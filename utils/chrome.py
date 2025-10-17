@@ -1,13 +1,71 @@
 import json
+import re
 import time
 from selenium.webdriver.chrome.service import Service
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import os
-from selenium.webdriver.support.ui import WebDriverWait  # 从selenium.webdriver.support.wait改为支持ui
 from tools.math_tool import generate_normal_random
 from utils.task import task_instance
 
+JS_SELECT_ALL_AND_COPY_CAPTURE = r"""
+function __select_all_and_copy_capture(){
+  try{
+    const sel = window.getSelection();
+    // 备份原选区
+    const saved = [];
+    for (let i=0;i<sel.rangeCount;i++){ saved.push(sel.getRangeAt(i).cloneRange()); }
+    function restore(){
+      sel.removeAllRanges();
+      for (const r of saved) sel.addRange(r);
+    }
+    // Ctrl+A：全选 <body>（尽量贴近浏览器行为）
+    sel.removeAllRanges();
+    const root = document.body || document.documentElement;
+    const range = document.createRange();
+    range.selectNodeContents(root);
+    sel.addRange(range);
+
+    function selectionPlain(){ return sel.toString(); }
+    function selectionHTML(){
+      const box = document.createElement('div');
+      for (let i=0;i<sel.rangeCount;i++) box.appendChild(sel.getRangeAt(i).cloneContents());
+      return box.innerHTML;
+    }
+    const defaultPlain = selectionPlain();
+    const defaultHtml  = selectionHTML();
+
+    // 监听 copy，尽量捕获站点可能改写的内容（若站点在 copy 里 setData）
+    let copiedPlain = null, copiedHtml = null;
+    function onCopyCapture(e){ /* 预留 */ }
+    function onCopyBubble(e){
+      try{ copiedHtml  = e.clipboardData.getData('text/html')  || null; }catch(_){}
+      try{ copiedPlain = e.clipboardData.getData('text/plain') || null; }catch(_){}
+    }
+    document.addEventListener('copy', onCopyCapture, true);
+    document.addEventListener('copy', onCopyBubble, false);
+
+    let execOk = false;
+    try { execOk = document.execCommand('copy'); } catch(_){}
+
+    document.removeEventListener('copy', onCopyCapture, true);
+    document.removeEventListener('copy', onCopyBubble, false);
+    restore();
+
+    // 如果站点没改写，则 copied* 可能是空，就用默认选区内容兜底
+    return {
+      execOk,
+      plain: copiedPlain  != null && copiedPlain  !== '' ? copiedPlain  : defaultPlain,
+      html:  copiedHtml   != null && copiedHtml   !== '' ? copiedHtml   : defaultHtml,
+      // 也把默认的带上，便于对比
+      _defaultPlain: defaultPlain,
+      _defaultHtml:  defaultHtml
+    };
+  }catch(e){
+    return { error: String(e) };
+  }
+}
+"""
 
 def is_docker():
     # 检查cgroup文件
@@ -91,6 +149,23 @@ def create_chrome_driver():
                             '''.strip()})
     return browser
 
+def open_url_and_save_content(driver, url, wait_secs=8):
+    driver.get(url)
+    time.sleep(30)
+    script = JS_SELECT_ALL_AND_COPY_CAPTURE + "\nreturn __select_all_and_copy_capture();"
+    res = driver.execute_script(script)
+    if not isinstance(res, dict) or res.get("error"):
+        raise RuntimeError(f"JS失败: {res}")
+    plain = re.sub(r'(?:[ \t\f\u00A0\u3000\u200B\u200C\u200D\uFEFF\u2060\u00AD\v]*\r?\n)+', '\n', res.get("plain", ""))
+    if not os.path.exists(os.path.dirname(task_instance.content_path)):
+        os.makedirs(os.path.dirname(task_instance.content_path))
+    with open(task_instance.content_path, "w", encoding="utf-8") as f:
+        f.write(plain)
+    html = driver.page_source  # 此刻的 DOM（包含已渲染的动态内容）
+    if not os.path.exists(os.path.dirname(task_instance.html_path)):
+        os.makedirs(os.path.dirname(task_instance.html_path))
+    with open(task_instance.html_path, "w", encoding="utf-8") as f:
+        f.write(html)
 
 # 定义一个函数来滚动页面
 def scroll_to_bottom(driver):
