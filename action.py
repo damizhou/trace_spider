@@ -19,8 +19,8 @@ crawlers_timer = None
 def kill_chrome_processes():
     try:
         # Run the command to kill all processes containing 'chrome'
-        result = subprocess.run(['sudo', 'pkill', '-f', 'chrome'], check=True, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
+        subprocess.run(['pkill', '-f', 'chromedriver'], check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(['pkill', '-f', 'google-chrome'], check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
         print(f"Error occurred: {e.stderr.decode('utf-8')}")
 
@@ -69,13 +69,15 @@ def start_task(session, current_id, current_url, year):
 
     except Exception as e:
         logger.error(f"爬取 {current_url} 失败: {e}")
-    browser.close()
+    try:
+        browser.quit()
+    except Exception as e:
+        logger.warning(f"browser.quit() 异常: {e}")
     logger.info(f"清理浏览器进程")
     kill_chrome_processes()
     logger.info(f"等待TCP结束挥手完成")
     if is_finished:
         time.sleep(60)
-
 
     # 关流量收集
     logger.info(f"关流量收集")

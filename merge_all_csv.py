@@ -9,7 +9,7 @@ import pcap_sslkey_tools.pipeline_runner as runner
 from utils.logger import logger
 
 ROOT_DIR_DEFAULT = "/netdisk/theguardian_with_ssl_key"
-OUTPUT_CSV_DEFAULT = "theguardian_records.csv"
+OUTPUT_CSV_DEFAULT = "theguardian_records_all.csv"
 
 def _detect_delimiter(fp: Path, sample_size: int = 4096) -> str:
     """自动识别分隔符（逗号/制表符/分号/竖线）。"""
@@ -88,9 +88,9 @@ def merge_guardian_csvs_all_years(
             continue
         #
         # 你的要求：如果年份目录下存在 pcap/，这一年的 theguardian_all_reformat 直接跳过
-        if (ydir / "pcap").is_dir():
-            skipped_years.append(year)
-            continue
+        # if (ydir / "pcap").is_dir():
+        #     skipped_years.append(year)
+        #     continue
         # if ydir
 
         reformat_dir = ydir / "theguardian_all_reformat"
@@ -141,23 +141,23 @@ def merge_guardian_csvs_all_years(
 
 def main():
     # 默认参数可改
-    # merged, csv_path = merge_guardian_csvs_all_years(
-    #     root_dir=ROOT_DIR_DEFAULT,
-    #     output_csv=OUTPUT_CSV_DEFAULT,
-    # )
-    csv_path = r'/home/pcz/code/trace_spider/theguardian_records.csv'
-    if hasattr(autospider, "CSV_PATH"):         autospider.CSV_PATH = f"{csv_path}"
-    autospider.main()
-    index = 0
-    if hasattr(autospider, "DEST_ROOT"):     runner.DEST_ROOT = ROOT_DIR_DEFAULT
-    pipeline_runner_result = runner.main()
-    while pipeline_runner_result:
-        index += 1
-        autospider.main()
-        pipeline_runner_result = runner.main()
-        if index >= 5:
-            print("超过5轮，停止。")
-            break
+    merged, csv_path = merge_guardian_csvs_all_years(
+        root_dir=ROOT_DIR_DEFAULT,
+        output_csv=OUTPUT_CSV_DEFAULT,
+    )
+    # csv_path = r'/home/pcz/code/trace_spider/theguardian_records.csv'
+    # if hasattr(autospider, "CSV_PATH"):         autospider.CSV_PATH = f"{csv_path}"
+    # autospider.main()
+    # index = 0
+    # if hasattr(autospider, "DEST_ROOT"):     runner.DEST_ROOT = ROOT_DIR_DEFAULT
+    # pipeline_runner_result = runner.main()
+    # while pipeline_runner_result:
+    #     index += 1
+    #     autospider.main()
+    #     pipeline_runner_result = runner.main()
+    #     if index >= 5:
+    #         print("超过5轮，停止。")
+    #         break
 
 if __name__ == "__main__":
     main()
