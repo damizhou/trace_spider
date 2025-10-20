@@ -6,7 +6,7 @@ import threading
 import paramiko
 import os
 from sever_info import servers_info
-
+CSV_PATH = r'github_fcr_monitor.csv'
 index = 0
 # 异步执行并监控命令输出
 def async_exec_command(client, command, password):
@@ -49,7 +49,7 @@ def handle_server(server):
     username = os.environ.get('SERVER_USERNAME', server["username"])
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    base_path = f"theguardian_trace_spider"
+    base_path = f"github_trace_spider"
     try:
         # 连接服务器,并初始化服务器
         client.connect(hostname, username=username, password=password)
