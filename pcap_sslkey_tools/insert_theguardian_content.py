@@ -119,25 +119,52 @@ def sniff_csv_delimiter(sample_path: Path) -> str:
 
 def build_map_section_id_to_url(csv_dir: Path, year: int) -> Dict[Tuple[str, int], str]:
     """
-    读取该年的所有 guardian_*.csv，构建 (Section, ID) -> URL 映射。
-    CSV 预期列：Section, ID, URL（不区分大小写；会做 strip）。
+    读取该年的 guardian_*.csv，构建 (Section, ID) -> URL 映射。
+    兼容不同结束日期命名（如 2025-Jan-01_to_2025-Sep-17.csv）。
+    预期列：Section, ID, URL（大小写不敏感；会 strip）。
     """
     mapping: Dict[Tuple[str, int], str] = {}
-
     if not csv_dir.is_dir():
         return mapping
 
-    csv_files = sorted(csv_dir.glob("guardian_*_{}-Jan-01_to_{}-Dec-31.csv".format(year, year)))
+    # 1) 优先：严格匹配起止都在该年的 CSV
+    pattern = f"guardian_*_{year}-*_to_{year}-*.csv"            # 起止都在同一年内，任意日
+
+    seen: Set[Path] = set()
+    csv_files: List[Path] = []
+    for p in csv_dir.glob(pattern):
+        if p not in seen:
+            seen.add(p)
+            csv_files.append(p)
+
+    # 2) 兜底：只要是该年开头的 guardian_* CSV 都算
+    if not csv_files:
+        csv_files = sorted(csv_dir.glob(f"guardian_*_{year}-*.csv"))
+
+    csv_files.sort()
+
+    print(f"[DEBUG] {year} 在 {csv_dir} 匹配到 CSV {len(csv_files)} 个")
+    if not csv_files:
+        return mapping
+
     for csv_file in csv_files:
         delim = sniff_csv_delimiter(csv_file)
+        # 进一步兜底：若 Sniffer 失败导致逗号分隔不对，尝试简单启发式判断制表符
+        try:
+            with csv_file.open("r", encoding="utf-8", newline="") as fh:
+                head = fh.read(2048)
+            if "\t" in head and ",Section" not in head and ",ID" not in head:
+                delim = "\t"
+        except Exception:
+            pass
+
         with csv_file.open("r", encoding="utf-8", newline="") as f:
             reader = csv.DictReader(f, delimiter=delim)
-            # 兼容大小写/空白
-            # 标题标准化
+
             def norm(k: str) -> str:
                 return (k or "").strip().lower()
 
-            field_map = {norm(k): k for k in reader.fieldnames or []}
+            field_map = {norm(k): k for k in (reader.fieldnames or [])}
             for required in ("section", "id", "url"):
                 if required not in field_map:
                     raise ValueError(f"CSV 缺少列 {required}: {csv_file}")
@@ -150,12 +177,11 @@ def build_map_section_id_to_url(csv_dir: Path, year: int) -> Dict[Tuple[str, int
                     if not section or not id_str or not url:
                         continue
                     key = (section, int(id_str))
-                    # 若重复，后者覆盖前者（一般不会）
                     mapping[key] = url
                 except Exception:
-                    # 某行异常则跳过
                     continue
 
+    print(f"[DEBUG] {year} 映射条目数: {len(mapping)}")
     return mapping
 
 
@@ -246,6 +272,8 @@ def main():
         year_dirs = [p for p in sorted(BASE_DIR.iterdir()) if p.is_dir() and p.name.isdigit()]
         for year_dir in year_dirs:
             year = int(year_dir.name)
+            if year != 2025:
+                continue
             pcap_dir = year_dir / "pcap"
             if not pcap_dir.is_dir():
                 print(f"[SKIP] {year} 无 pcap/，整年跳过")

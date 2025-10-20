@@ -90,4 +90,3 @@ if __name__ == "__main__":
         current_id = url.get('ID')
         year = url.get('Year')
         start_task(section, current_id, current_url, year)
-        
