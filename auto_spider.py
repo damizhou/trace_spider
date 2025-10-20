@@ -60,16 +60,15 @@ def handle_server(server):
         sever_commands = [
             # f"echo '{password}' | sudo -S apt update",
             # f"echo '{password}' | sudo -S apt install -y docker.io",
-            f"docker stop $(docker ps -q -f \"name=^trace_spider\") | docker rm -f $(docker ps -aq -f \"name=^trace_spider\")",
-            f"echo '{password}' | sudo -S rm -rf trace_spider* spiderCode",
-            f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
-            f'git clone --branch ssl_key_csv_github https://github.com/damizhou/trace_spider.git spiderCode',
+            f"docker stop $(docker ps -q -f \"name=^{base_path}\") | docker rm -f $(docker ps -aq -f \"name=^{base_path}\")",
+            f"echo '{password}' | sudo -S rm -rf {base_path}* spiderCode",
+            # f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
+            # f'git clone --branch ssl_key_csv_github https://github.com/damizhou/trace_spider.git spiderCode',
             # f'git clone https://github.com/damizhou/clash-for-linux.git spiderCode/clash-for-linux',
         ]
         for sever_command in sever_commands:
             async_exec_command(client, sever_command, password)
         spider_commands = []  # 用于存储异步任务的列表
-
         # 获取务列表,并计算每个docker的任务数量
         with open(f"{CSV_PATH}", 'r', encoding='utf-8') as file:
             all_lines = file.readlines()
@@ -84,6 +83,7 @@ def handle_server(server):
                 current_index += 1
                 if current_index > len(lines):
                     break
+            each_docker_task_count = 2
             docker_index = vpn_info["docker_index"]
             container_name = base_path + str(docker_index)
             init_docker_commands = [

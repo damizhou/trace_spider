@@ -47,13 +47,13 @@ def kill_tcpdump_processes():
 def _chown_r(path: Path, uid: int, gid: int):
     subprocess.run(["chown", "-R", f"{uid}:{gid}", str(path)], check=True)
 
-def start_task(session, current_id, current_url, year):
+def start_task(current_id, current_url):
     kill_chrome_processes()
     kill_tcpdump_processes()
     time.sleep(1)
 
     # 开流量收集
-    traffic_thread = threading.Thread(target=traffic, kwargs={"index": f"{session}_{current_id}_{year}"} )
+    traffic_thread = threading.Thread(target=traffic, kwargs={"index": f"{current_id}"} )
     traffic_thread.start()
     time.sleep(1)
 
@@ -66,9 +66,9 @@ def start_task(session, current_id, current_url, year):
         logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面")
         time.sleep(15)
         is_finished = True
-
     except Exception as e:
         logger.error(f"爬取 {current_url} 失败: {e}")
+
     try:
         browser.quit()
     except Exception as e:
@@ -85,8 +85,6 @@ def start_task(session, current_id, current_url, year):
 
 if __name__ == "__main__":
     for url in task_instance.urls:
-        current_url = url.get('URL')
-        section = url.get('Section')
-        current_id = url.get('ID')
-        year = url.get('Year')
-        start_task(section, current_id, current_url, year)
+        current_url = url.get('html_url')
+        current_id = url.get('id')
+        start_task(current_id, current_url)
