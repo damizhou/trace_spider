@@ -49,130 +49,142 @@ def handle_server(server):
     hostname = server["hostname"]
     password = os.environ.get('SERVER_PASSWORD', server["password"])
     username = os.environ.get('SERVER_USERNAME', server["username"])
+
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    base_path = f"github_trace_spider"
+    base_path = "github_trace_spider"
+
+    sftp = None
     try:
-        # 连接服务器,并初始化服务器
+        # 连接服务器
         client.connect(hostname, username=username, password=password)
         sftp = client.open_sftp()
-        print(f"{hostname}连接成功")
-        # 执行 git clone 命令
+        print(f"{hostname} 连接成功")
 
-        sever_commands = [
-            # f"echo '{password}' | sudo -S apt update",
-            # f"echo '{password}' | sudo -S apt install -y docker.io",
-            f"docker stop $(docker ps -q -f \"name=^{base_path}\") | docker rm -f $(docker ps -aq -f \"name=^{base_path}\")",
+        # 清理旧容器与代码目录；用 || true 防止“空列表”造成脚本中断
+        server_commands = [
+            'docker stop $(docker ps -q -f "name=^github_trace_spider") || true',
+            'docker rm -f $(docker ps -aq -f "name=^github_trace_spider") || true',
             f"echo '{password}' | sudo -S rm -rf {base_path}* spiderCode",
-            # f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
-            f'git clone --branch ssl_key_csv_github https://github.com/damizhou/trace_spider.git spiderCode',
-            # f'git clone https://github.com/damizhou/clash-for-linux.git spiderCode/clash-for-linux',
+            'git clone --branch ssl_key_csv_github https://github.com/damizhou/trace_spider.git spiderCode',
+            # 如需单独克隆 clash-for-linux，可在此追加一条 git clone
         ]
-        for sever_command in sever_commands:
-            async_exec_command(client, sever_command, password)
-        spider_commands = []  # 用于存储异步任务的列表
-        # 获取务列表,并计算每个docker的任务数量
-        with open(f"{CSV_PATH}", 'r', encoding='utf-8') as file:
-            all_lines = file.readlines()
-            lines = all_lines[1:]
-        each_docker_task_count = int(len(lines) / len(server["vpn_infos"])) + 1
-        print(f"每个docker需要处理的URL数量：{each_docker_task_count}")
-        print("len(lines)", len(lines))
-        current_index = 0
-        # 初始化docker
-        for vpn_info in server["vpn_infos"]:
-            if each_docker_task_count == 1:
-                current_index += 1
-                if current_index > len(lines):
-                    break
-            each_docker_task_count = 2
-            docker_index = vpn_info["docker_index"]
-            container_name = base_path + str(docker_index)
+        for cmd in server_commands:
+            async_exec_command(client, cmd, password)
+
+        # 读取任务列表
+        with open(CSV_PATH, "r", encoding="utf-8") as f:
+            all_lines = f.readlines()
+        if not all_lines:
+            print("CSV 为空，跳过。")
+            return
+        header, lines = all_lines[0], all_lines[1:]
+        n = len(lines)
+
+        vpn_infos = server["vpn_infos"]
+        m = len(vpn_infos)
+        if m <= 0:
+            raise ValueError("server['vpn_infos'] 不能为空")
+
+        # 任务均匀切块
+        q, r = divmod(n, m)
+        print(f"任务总数: {n}，docker 数: {m} -> 前 {r} 个: {q+1} 条，其余 {m-r} 个: {q} 条")
+
+        spider_commands = []
+        offset = 0
+
+        for i, vpn_info in enumerate(vpn_infos):
+            docker_index = vpn_info["docker_index"]  # 保留你的命名规则
+            container_name = f"{base_path}{docker_index}"
+
+            # 初始化每个容器的挂载目录与容器本身
             init_docker_commands = [
-                f'cp -r spiderCode {container_name}',
+                f"cp -r spiderCode {container_name}",
+                f'docker run --volume ~/{container_name}:/app -e HOST_UID=$(id -u $USER) -e HOST_GID=$(id -g $USER) --privileged -itd --name {container_name} chuanzhoupan/trace_spider:250912 /bin/bash'
             ]
-            docker_run_command = (f'docker run --volume ~/{container_name}:/app -e HOST_UID=$(id -u $USER) '
-                                  f'-e HOST_GID=$(id -g $USER) --privileged -itd --name {container_name} '
-                                  f'chuanzhoupan/trace_spider:250912 /bin/bash')
+            for cmd in init_docker_commands:
+                async_exec_command(client, cmd, password)
 
-            main_commmand = f'docker exec {container_name} python /app/main.py {server["loaction"]} {server["os"]} '
-            init_docker_commands.append(docker_run_command)
+            # 组装 main 命令（保持你原来的参数与 key 名；注意 server["loaction"] 的拼写）
+            main_command = f'docker exec {container_name} python /app/main.py {server["loaction"]} {server["os"]}'
 
-            for init_docker_command in init_docker_commands:
-                async_exec_command(client, init_docker_command, password)
-
-            if vpn_info["vpn_yml_info"] == {}:
-                main_commmand += f'novpn'
-                spider_commands.append(main_commmand)
+            # VPN 配置
+            if not vpn_info.get("vpn_yml_info"):
+                main_command += "novpn"
             else:
-                # 获取vpn配置
-                vpn_info = vpn_info["vpn_yml_info"]
+                vcfg = vpn_info["vpn_yml_info"]
 
-                # 配置vpn
-                local_file = "./clash/config.yaml"
-                vpn_info_str = '- ' + json.dumps(vpn_info)
+                # 将本地 clash 配置模板替换并上传到宿主对应目录（容器内 /app 挂载可见）
+                local_tpl = "./clash/config.yaml"
+                with open(local_tpl, "r", encoding="utf-8") as f:
+                    yml_content = f.read()
+                vpn_info_str = "- " + json.dumps(vcfg, ensure_ascii=False)
                 pattern = r"- \{ name: 'vpnnodename'.*?\}"
-                with open(local_file, 'r', encoding='utf-8') as file:
-                    yml_content = file.read()
-                updated_yml_content = re.sub(pattern, vpn_info_str, yml_content)
-                updated_yml_content = updated_yml_content.replace('vpnnodename', vpn_info['name'])
-                # 将处理后的内容写入文件
+                updated = re.sub(pattern, vpn_info_str, yml_content)
+                updated = updated.replace("vpnnodename", vcfg["name"])
                 upload_file = "./clash/upload_config.yaml"
-                with open(upload_file, 'w', encoding='utf-8') as file:
-                    file.write(updated_yml_content)
+                with open(upload_file, "w", encoding="utf-8") as f:
+                    f.write(updated)
+
                 remote_file = f"{container_name}/clash-for-linux/conf/config.yaml"
-                # vpn配置上传到服务器
                 async_upload_file(sftp, upload_file, remote_file)
-                # time.sleep(5)
 
-                if vpn_info["udp"]:
-                    protocol = "udp"
-                else:
-                    protocol = "tcp"
+                protocol = "udp" if vcfg.get("udp") else "tcp"
+                main_command += f'{vcfg["name"]} {vcfg["type"]} {protocol}'
 
-                main_commmand += f'{vpn_info["name"]} {vpn_info["type"]} {protocol}'
+            spider_commands.append(main_command)
 
-                # 开启爬虫命令
-                # 收集任务而不是立即等待
-                spider_commands.append(main_commmand)
+            # ====== 均匀切块：为第 i 个容器切一段相邻任务 ======
+            size = q + 1 if i < r else q
+            start, end = offset, offset + size
+            offset = end  # 推进游标
 
-            # 拆分任务列表,并上传到对应的docker
-            start_url_index = docker_index * each_docker_task_count
-            end_url_index = start_url_index + each_docker_task_count
-            local_current_urls_path = f'{container_name}_url_list.csv'
+            # 写入并上传当前容器的 URL 列表（空任务时只含表头）
+            local_current_urls_path = f"{container_name}_url_list.csv"
             remote_current_urls_path = f"{container_name}/current_docker_url_list.csv"
-            with open(local_current_urls_path, 'w', encoding='utf-8') as file:
-                file.write(f"{all_lines[0]}")
-                for line in lines[start_url_index: end_url_index]:
-                    file.write(f"{line}")
-            print('local_current_urls_path', local_current_urls_path)
-            print('remote_current_urls_path', remote_current_urls_path)
-            # 上传任务列表到对应的docker
+            with open(local_current_urls_path, "w", encoding="utf-8") as f:
+                f.write(header)
+                for line in lines[start:end]:
+                    f.write(line)
+
+            print(
+                f"{container_name}: 分配 {size} 条（[{start}, {end})），"
+                f"目标: {remote_current_urls_path}"
+            )
+
             async_upload_file(sftp, local_current_urls_path, remote_current_urls_path)
             os.remove(local_current_urls_path)
-            async_exec_command(client, f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off',
-                               password)
 
-        # 创建线程列表
+            # 关闭 offload
+            async_exec_command(
+                client,
+                f"docker exec {container_name} ethtool -K eth0 tso off gso off gro off",
+                password,
+            )
+
+        # （可选）一致性检查
+        if n != 0:
+            assert offset == n, f"切片游标不一致: offset={offset}, n={n}"
+
+        # 并发启动爬虫
         threads = []
+        for cmd in spider_commands:
+            t = threading.Thread(target=run_command, args=(client, cmd))
+            time.sleep(1)  # 轻微错峰
+            t.start()
+            threads.append(t)
 
-        # 启动线程
-        for spider_command in spider_commands:
-            thread = threading.Thread(target=run_command, args=(client, spider_command))
-            time.sleep(1)
-            thread.start()
-            threads.append(thread)
-
-        # 等待所有线程完成
-        for thread in threads:
-            thread.join()
+        for t in threads:
+            t.join()
 
     except Exception as e:
         print(f"Error handling server {hostname}: {e}")
     finally:
-        sftp.close()
-        client.close()
-
+        try:
+            if sftp is not None:
+                sftp.close()
+        finally:
+            client.close()
 
 # 主函数：并行处理所有服务器
 async def auto_main():
