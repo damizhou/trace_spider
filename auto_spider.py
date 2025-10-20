@@ -6,6 +6,8 @@ import threading
 import paramiko
 import os
 from sever_info import servers_info
+from utils.task import task_instance
+
 CSV_PATH = r'github_fcr_monitor.csv'
 index = 0
 # 异步执行并监控命令输出
@@ -63,7 +65,7 @@ def handle_server(server):
             f"docker stop $(docker ps -q -f \"name=^{base_path}\") | docker rm -f $(docker ps -aq -f \"name=^{base_path}\")",
             f"echo '{password}' | sudo -S rm -rf {base_path}* spiderCode",
             # f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
-            # f'git clone --branch ssl_key_csv_github https://github.com/damizhou/trace_spider.git spiderCode',
+            f'git clone --branch ssl_key_csv_github https://github.com/damizhou/trace_spider.git spiderCode',
             # f'git clone https://github.com/damizhou/clash-for-linux.git spiderCode/clash-for-linux',
         ]
         for sever_command in sever_commands:

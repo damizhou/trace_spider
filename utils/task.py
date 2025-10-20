@@ -51,7 +51,7 @@ class Task:
 
     @property
     def current_allowed_domain(self):
-        return 'theguardian.com'
+        return 'github.com'
 
 
 
