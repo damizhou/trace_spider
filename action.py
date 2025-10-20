@@ -90,28 +90,4 @@ if __name__ == "__main__":
         current_id = url.get('ID')
         year = url.get('Year')
         start_task(section, current_id, current_url, year)
-
-    time.sleep(60)
-    bases = {Path(task_instance.pcap_path).resolve().parent, Path(task_instance.ssl_key_path).resolve().parent,
-        Path(task_instance.html_path).resolve().parent, Path(task_instance.content_path).resolve().parent, }
-
-    uid = int(os.environ.get("HOST_UID", os.getuid()))
-    gid = int(os.environ.get("HOST_GID", os.getgid()))
-
-    # === 并发执行 ===
-    errors = []
-    max_workers = min(4, len(bases))  # 这四个目录通常互不重叠；机械盘可把 4 改小一点
-    with ThreadPoolExecutor(max_workers=max_workers) as ex:
-        futs = {ex.submit(_chown_r, b, uid, gid): b for b in bases}
-        for fut in as_completed(futs):
-            b = futs[fut]
-            try:
-                fut.result()
-            except subprocess.CalledProcessError as e:
-                errors.append((str(b), f"returncode={e.returncode}"))
-            except Exception as e:
-                errors.append((str(b), repr(e)))
-
-    if errors:
-        msg = "; ".join([f"{p}: {err}" for p, err in errors])
-        raise RuntimeError(f"chown 部分失败 -> {msg}")
+        
