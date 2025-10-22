@@ -93,14 +93,15 @@ def ensure_dir(d: Path, uid: int, gid: int) -> None:
     except PermissionError:
         pass
 
-
 def same_file(src: Path, dst: Path) -> bool:
     """用 size+mtime 粗判是否相同，便于增量跳过。"""
     try:
-        s, d = src.stat()
-        return s.st_size == d.st_size and int(s.st_mtime) == int(d.st_mtime)
+        s = src.stat()
+        d = dst.stat()
     except FileNotFoundError:
         return False
+    # 用整数秒避免不同文件系统的亚秒级精度差异
+    return (s.st_size == d.st_size) and (int(s.st_mtime) == int(d.st_mtime))
 
 
 def copy_one(src: Path, dst_base: Path, uid: int, gid: int) -> Tuple[bool, str]:
