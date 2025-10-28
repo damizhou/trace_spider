@@ -7,10 +7,10 @@ from typing import Dict, List, Set, Tuple
 import stat
 
 # ===== 可被外部注入覆盖的默认目录 =====
-PCAP_DIR_DEFAULT    = "/netdisk/theguardian_with_ssl_key/pcap"
-SSL_DIR_DEFAULT     = "/netdisk/theguardian_with_ssl_key/ssl_key"
-CONTENT_DIR_DEFAULT = "/netdisk/theguardian_with_ssl_key/content"
-HTML_DIR_DEFAULT    = "/netdisk/theguardian_with_ssl_key/html"
+PCAP_DIR_DEFAULT    = "/netdisk/news_receiver/dailymail.co.uk/pcap"
+SSL_DIR_DEFAULT     = "/netdisk/news_receiver/dailymail.co.uk/ssl_key"
+CONTENT_DIR_DEFAULT = "/netdisk/news_receiver/dailymail.co.uk/content"
+HTML_DIR_DEFAULT    = "/netdisk/news_receiver/dailymail.co.uk/html"
 # =====================================
 
 def _list_by_suffix(dir_path: Path, suffix: str) -> Tuple[Dict[str, Path], List[Path]]:

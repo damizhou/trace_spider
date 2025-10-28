@@ -136,10 +136,6 @@ def create_chrome_driver():
     service = Service(executable_path="/usr/local/bin/chromedriver")
     browser = webdriver.Chrome(service=service, options=chrome_options)
     browser.execute_cdp_cmd('Network.enable', {})
-    # browser.execute_cdp_cmd('Network.setBlockedURLs',
-    #                         {
-    #                             'urls': ['*://plausible.io/*', '*://*.plausible.io/*']
-    #                         })
     browser.execute_cdp_cmd('Network.setExtraHTTPHeaders', {'headers': {'Accept-Language': _ACCEPT_LANGUAGE}})
     browser.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument',
                             {'source': '''
