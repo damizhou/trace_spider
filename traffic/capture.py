@@ -45,17 +45,26 @@ def capture(TASK_NAME, formatted_time, parsers):
 
 def stop_capture():
     global process
-    # 获取当前进程的PID
+    # 取输出文件路径
     pid = process.pid
-
-    # 使用 psutil 获取进程信息
     p = psutil.Process(pid)
-
-    # 获取进程的启动参数
     cmdline = p.cmdline()
     file_path = cmdline[-1]
     os.chown(file_path, int(os.getenv('HOST_UID')), int(os.getenv('HOST_GID')))
-    process.terminate()
+
+    # 先优雅终止，再等待；若不退出再 kill，并最终 wait()，确保不会留僵尸
+    try:
+        process.terminate()
+        process.wait(timeout=5)
+    except Exception:
+        try:
+            process.kill()
+        finally:
+            try:
+                process.wait(timeout=3)
+            except Exception:
+                pass
+    return file_path
 
 
 def move_log(log_path, dst_path):

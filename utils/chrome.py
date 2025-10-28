@@ -1,4 +1,4 @@
-import math
+import json
 import re
 import time
 from selenium.webdriver.chrome.service import Service
@@ -140,10 +140,6 @@ def create_chrome_driver():
     service = Service(executable_path="/usr/local/bin/chromedriver")
     browser = webdriver.Chrome(service=service, options=chrome_options)
     browser.execute_cdp_cmd('Network.enable', {})
-    # browser.execute_cdp_cmd('Network.setBlockedURLs',
-    #                         {
-    #                             'urls': ['*://plausible.io/*', '*://*.plausible.io/*']
-    #                         })
     browser.execute_cdp_cmd('Network.setExtraHTTPHeaders', {'headers': {'Accept-Language': _ACCEPT_LANGUAGE}})
     browser.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument',
                             {'source': '''
@@ -156,7 +152,7 @@ def create_chrome_driver():
 def open_url_and_save_content(driver, url, wait_secs=8):
     driver.get(url)
     WebDriverWait(driver, wait_secs).until(lambda d: d.execute_script("return document.readyState") == "complete")
-    time.sleep(3)
+    time.sleep(15)
     screenshot_full_page(driver, Path(task_instance.screenshot_path), dpr=2.0)
     script = JS_SELECT_ALL_AND_COPY_CAPTURE + "\nreturn __select_all_and_copy_capture();"
     res = driver.execute_script(script)
