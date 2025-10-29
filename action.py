@@ -90,16 +90,8 @@ def start_task(user, current_url):
     stop_capture()
 
 if __name__ == "__main__":
-    index = 0
     for url in task_instance.urls:
         print(url)
         user_key = url.get('user_key')
         current_url = 'https://x.com/' + user_key
-        print('current_url:', current_url)
-        print('user:', user_key)
-        index += 1
-        if index == 3:
-            break
-        # current_url = url.get('URL')
-        # user = url.get('User')
-        # start_task(user, current_url)
+        start_task(user_key, current_url)
