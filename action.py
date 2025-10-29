@@ -90,32 +90,16 @@ def start_task(user, current_url):
     stop_capture()
 
 if __name__ == "__main__":
+    index = 0
     for url in task_instance.urls:
-        current_url = url.get('URL')
-        user = url.get('User')
-        start_task(user, current_url)
-
-    time.sleep(60)
-    bases = {Path(task_instance.pcap_path).resolve().parent, Path(task_instance.ssl_key_path).resolve().parent,
-             Path(task_instance.html_path).resolve().parent, Path(task_instance.content_path).resolve().parent,
-             Path(task_instance.screenshot_path).resolve().parent, }
-
-    uid = int(os.environ.get("HOST_UID", os.getuid()))
-    gid = int(os.environ.get("HOST_GID", os.getgid()))
-
-    # === 并发执行 ===
-    errors = []
-    with ThreadPoolExecutor(max_workers=len(bases)) as ex:
-        futs = {ex.submit(_chown_r, b, uid, gid): b for b in bases}
-        for fut in as_completed(futs):
-            b = futs[fut]
-            try:
-                fut.result()
-            except subprocess.CalledProcessError as e:
-                errors.append((str(b), f"returncode={e.returncode}"))
-            except Exception as e:
-                errors.append((str(b), repr(e)))
-
-    if errors:
-        msg = "; ".join([f"{p}: {err}" for p, err in errors])
-        raise RuntimeError(f"chown 部分失败 -> {msg}")
+        print(url)
+        user_key = url.get('user_key')
+        current_url = 'https://x.com/' + user_key
+        print('current_url:', current_url)
+        print('user:', user_key)
+        index += 1
+        if index == 3:
+            break
+        # current_url = url.get('URL')
+        # user = url.get('User')
+        # start_task(user, current_url)
