@@ -60,10 +60,10 @@ def start_task(user, current_url):
 
     logger.info(f"创建浏览器")
     browser = create_chrome_driver()
-    browser.get("https://x.com")
-    with open("x_cookie.json", "r", encoding="utf-8") as f:
-        raw_cookies = json.load(f)
-    add_cookies(browser, raw_cookies)
+    # browser.get("https://x.com")
+    # with open("x_cookie.json", "r", encoding="utf-8") as f:
+    #     raw_cookies = json.load(f)
+    # add_cookies(browser, raw_cookies)
 
     # 保存网页内容
     is_finished = False
