@@ -46,7 +46,8 @@ def resolve_target_date(override: Optional[str]) -> str:
         if len(override) != 8 or not override.isdigit():
             raise SystemExit("日期必须为 YYYYMMDD，例如 20250929")
         return override
-    y = datetime.now() - timedelta(days=1)
+    # y = datetime.now() - timedelta(days=1)
+    y = datetime.now()
     return y.strftime("%Y%m%d")
 
 
