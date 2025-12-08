@@ -46,8 +46,8 @@ def resolve_target_date(override: Optional[str]) -> str:
         if len(override) != 8 or not override.isdigit():
             raise SystemExit("日期必须为 YYYYMMDD，例如 20250929")
         return override
-    # y = datetime.now() - timedelta(days=1)
-    y = datetime.now()
+    y = datetime.now() - timedelta(days=1)
+    # y = datetime.now()
     return y.strftime("%Y%m%d")
 
 
@@ -104,21 +104,28 @@ def build_tasks_for_date(roots: Sequence[str], ymd: str, dest_root: str) -> List
 
 def copy_one(src: str, dest_dir: str) -> Tuple[str, bool, str, Optional[str]]:
     """
-    复制单个文件。
+    复制单个文件，复制成功后删除原文件。
     返回: (源文件, 是否OK, 消息, 实际目标路径或None)
-      - 已存在：("exists, skipped", None)
-      - 成功复制：("", 目标路径)
+      - 已存在：("exists, skipped", None) - 同时删除原文件
+      - 成功复制：("", 目标路径) - 同时删除原文件
       - 失败：("错误信息", None)
     """
     try:
         dst_dir = Path(dest_dir)
         dst_dir.mkdir(parents=True, exist_ok=True)
         dst = dst_dir / Path(src).name
+        src_path = Path(src)
         if dst.exists():
             print(f"SKIP: {src} already exists at {dst}")
+            # 目标已存在，删除原文件
+            src_path.unlink()
+            print(f"DELETE: {src} (target already exists)")
             return (src, True, "exists, skipped", None)
         shutil.copy2(src, dst)
         print(f"COPY: {src} -> {dst}")
+        # 复制成功后删除原文件
+        src_path.unlink()
+        print(f"DELETE: {src}")
         return (src, True, "", str(dst))
     except Exception as e:
         return (src, False, str(e), None)
