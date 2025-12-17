@@ -50,7 +50,7 @@ def handle_server(server):
     username = os.environ.get('SERVER_USERNAME', server["username"])
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    base_path = f"x_trace_spider"
+    base_path = f"trace_spider"
     try:
         # 连接服务器,并初始化服务器
         client.connect(hostname, username=username, password=password)
