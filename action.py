@@ -34,7 +34,7 @@ def traffic():
     # 格式化输出
     formatted_time = current_time.strftime("%Y%m%d_%H_%M_%S")
     allowed_domain = task_instance.current_allowed_domain
-    capture(allowed_domain, formatted_time)
+    capture(allowed_domain, formatted_time, '1')
 
 # 清理流量捕获进程
 def kill_tcpdump_processes():
