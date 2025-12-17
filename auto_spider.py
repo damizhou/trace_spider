@@ -5,8 +5,9 @@ import time
 import threading
 import paramiko
 import os
+import math
 from sever_info import servers_info
-CSV_PATH = f'x_user_last.csv'
+TASK_LIST_PATH = f'url_list.txt'
 index = 0
 # 异步执行并监控命令输出
 def async_exec_command(client, command, password):
@@ -58,25 +59,19 @@ def handle_server(server):
         # 执行 git clone 命令
 
         sever_commands = [
-            # f"echo '{password}' | sudo -S apt update",
-            # f"echo '{password}' | sudo -S apt install -y docker.io",
             f"docker stop $(docker ps -q -f \"name=^{base_path}\") | docker rm -f $(docker ps -aq -f \"name=^{base_path}\")",
             f"echo '{password}' | sudo -S rm -rf {base_path}* spiderCode",
-            # f"echo '{password}' | sudo -S rm -rf {base_path}*",
-            # f"echo '{password}' | sudo -S rm -rf trace_spider*",
             f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
             f'git clone --branch skc_x.com https://github.com/damizhou/trace_spider.git spiderCode',
-            # f'git clone https://github.com/damizhou/clash-for-linux.git spiderCode/clash-for-linux',
         ]
         for sever_command in sever_commands:
             async_exec_command(client, sever_command, password)
         spider_commands = []  # 用于存储异步任务的列表
 
         # 获取务列表,并计算每个docker的任务数量
-        with open(f"{CSV_PATH}", 'r', encoding='utf-8') as file:
-            all_lines = file.readlines()
-            lines = all_lines[1:]
-        each_docker_task_count = int(len(lines) / len(server["vpn_infos"])) + 1
+        with open(f"{TASK_LIST_PATH}", 'r', encoding='utf-8') as file:
+            lines = file.readlines()
+        each_docker_task_count = math.ceil(len(lines) / len(server["vpn_infos"]))
         print(f"每个docker需要处理的URL数量：{each_docker_task_count}")
         print("len(lines)", len(lines))
         current_index = 0
@@ -101,48 +96,15 @@ def handle_server(server):
             for init_docker_command in init_docker_commands:
                 async_exec_command(client, init_docker_command, password)
 
-            if vpn_info["vpn_yml_info"] == {}:
-                main_commmand += f'novpn'
-                spider_commands.append(main_commmand)
-            else:
-                # 获取vpn配置
-                vpn_info = vpn_info["vpn_yml_info"]
-
-                # 配置vpn
-                local_file = "./clash/config.yaml"
-                vpn_info_str = '- ' + json.dumps(vpn_info)
-                pattern = r"- \{ name: 'vpnnodename'.*?\}"
-                with open(local_file, 'r', encoding='utf-8') as file:
-                    yml_content = file.read()
-                updated_yml_content = re.sub(pattern, vpn_info_str, yml_content)
-                updated_yml_content = updated_yml_content.replace('vpnnodename', vpn_info['name'])
-                # 将处理后的内容写入文件
-                upload_file = "./clash/upload_config.yaml"
-                with open(upload_file, 'w', encoding='utf-8') as file:
-                    file.write(updated_yml_content)
-                remote_file = f"{container_name}/clash-for-linux/conf/config.yaml"
-                # vpn配置上传到服务器
-                async_upload_file(sftp, upload_file, remote_file)
-                # time.sleep(5)
-
-                if vpn_info["udp"]:
-                    protocol = "udp"
-                else:
-                    protocol = "tcp"
-
-                main_commmand += f'{vpn_info["name"]} {vpn_info["type"]} {protocol}'
-
-                # 开启爬虫命令
-                # 收集任务而不是立即等待
-                spider_commands.append(main_commmand)
+            main_commmand += f'novpn'
+            spider_commands.append(main_commmand)
 
             # 拆分任务列表,并上传到对应的docker
             start_url_index = docker_index * each_docker_task_count
             end_url_index = start_url_index + each_docker_task_count
-            local_current_urls_path = f'{container_name}_url_list.csv'
-            remote_current_urls_path = f"{container_name}/current_docker_url_list.csv"
+            local_current_urls_path = f'{container_name}_url_list.txt'
+            remote_current_urls_path = f"{container_name}/current_docker_url_list.txt"
             with open(local_current_urls_path, 'w', encoding='utf-8') as file:
-                file.write(f"{all_lines[0]}")
                 for line in lines[start_url_index: end_url_index]:
                     file.write(f"{line}")
             # 上传任务列表到对应的docker
@@ -150,8 +112,7 @@ def handle_server(server):
             async_exec_command(client, f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off',
                                password)
             # 删除本地临时文件
-            os.remove(local_current_urls_path)
-            async_upload_file(sftp, r"x_cookie.json", f"{container_name}/x_cookie.json")
+            # os.remove(local_current_urls_path)
         # 创建线程列表
         threads = []
 
