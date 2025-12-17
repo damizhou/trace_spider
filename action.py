@@ -53,30 +53,12 @@ def stop_crawlers():
         crawler.stop()
     crawlers_timer = None
 
-
-# 启动定时器
-def stop_crawlers_after_delay():
-    global crawlers_timer
-    crawlers_timer = threading.Timer(duration, stop_crawlers)
-    crawlers_timer.start()
-
-
-# 取消定时器
-def cancel_timer():
-    global crawlers_timer
-    if crawlers_timer is not None:
-        logger.info(f"爬虫提前结束，关闭定时器")
-        crawlers_timer.cancel()
-
-
 # 启动爬虫
 def start_spider():
     # 添加你要运行的爬虫
     process.crawl(TraceSpider)
 
     logger.info(f"开始爬取数据")
-    # 开启定时器
-    stop_crawlers_after_delay()
     # 启动爬虫
     process.start()
 
@@ -104,7 +86,6 @@ def start_task():
     stop_capture()
 
     logger.info(f"{task_instance.current_start_url}流量收集结束，共爬取{task_instance.requesturlNum}个页面")
-    cancel_timer()
 
 
 if __name__ == "__main__":
