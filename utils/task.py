@@ -1,5 +1,5 @@
 import json
-
+import os
 
 class Task:
     _instance = None
@@ -14,6 +14,11 @@ class Task:
         if not self._initialized:
             self.file_path = 'current_docker_url_list.txt'
             self.urls = self.read_file()
+            self._pcap_path = ''
+            self.ssl_key_path = ''
+            self.content_path = ''
+            self.html_path = ''
+            self.screenshot_path = ''
             self.requesturlNum = 0
             with open('./utils/running.json', 'r') as f:
                 params = json.load(f)
@@ -21,6 +26,26 @@ class Task:
             with open('exclude_keywords', 'r') as f:
                 self.exclude_keywords = [s.replace('\n', ' ') for s in f.readlines()]
             self._initialized = True
+
+    @property
+    def pcap_path(self) -> str:
+        return self._pcap_path
+
+    @pcap_path.setter
+    def pcap_path(self, pcap_path):
+        if pcap_path in (None, ""):
+            self._pcap_path = ""
+            self.ssl_key_path = ""
+            self.html_path = ""
+            self.screenshot_path = ""
+            return
+        self._pcap_path = pcap_path
+        self.ssl_key_path = rf"{pcap_path.replace('data', 'ssl_key').replace('.pcap', '_ssl_key.log')}"
+        self.content_path = rf"{pcap_path.replace('data', 'content').replace('.pcap', '.txt')}"
+        self.html_path = rf"{pcap_path.replace('data', 'html').replace('.pcap', '.html')}"
+        self.screenshot_path = rf"{pcap_path.replace('data', 'screenshot').replace('.pcap', '.png')}"
+        if len(os.path.dirname(self.ssl_key_path)) > 0:
+            os.makedirs(os.path.dirname(self.ssl_key_path), exist_ok=True)
 
     def read_file(self):
         with open(self.file_path, 'r') as file:

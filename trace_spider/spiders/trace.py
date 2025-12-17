@@ -6,12 +6,6 @@ class TraceSpider(scrapy.Spider):
     name = "trace"
     allowed_domains = [task_instance.current_allowed_domain]
     start_urls = task_instance.urls
-    # start_urls = ["https://zh.wikipedia.org/wiki/Linux",
-    #               "https://zh.wikipedia.org/wiki/Google_Chrome",
-    #               "https://zh.wikipedia.org/wiki/Android"]
-    # start_urls = ["https://zh.wikipedia.org/wiki/(1,1%27-%E5%8F%8C("
-    #               "%E4%BA%8C%E8%8B%AF%E5%9F%BA%E8%86%A6)%E4%BA%8C%E8%8C%82%E9%93%81)%E4%BA%8C%E6%B0%AF%E5%8C%96%E9%92"
-    #               "%AF"]
 
     def parse(self, response, **kwargs):
         a_links = response.css('a::attr(href)').getall()

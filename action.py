@@ -36,6 +36,14 @@ def traffic():
     allowed_domain = task_instance.current_allowed_domain
     capture(allowed_domain, formatted_time)
 
+# 清理流量捕获进程
+def kill_tcpdump_processes():
+    try:
+        # Run the command to kill all processes containing 'chrome'
+        logger.info(f"清理流量捕获进程")
+        subprocess.run(['sudo', 'pkill', '-f', 'tcpdump'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred: {e.stderr.decode('utf-8')}")
 
 # 停止爬虫
 def stop_crawlers():
@@ -76,6 +84,7 @@ def start_spider():
 def start_task():
     logger.info(f"清理浏览器进程")
     kill_chrome_processes()
+    kill_tcpdump_processes()
     # 开流量收集
     traffic_thread = threading.Thread(target=traffic)
 

@@ -1,6 +1,5 @@
-from utils.logger import logger, setup_url_logger
+from utils.logger import logger
 import os
-import time
 import shutil
 from utils import project_path
 import subprocess
@@ -25,7 +24,6 @@ def capture(TASK_NAME, formatted_time, parsers):
     filename = f'{parsers}_'
 
     traffic_name = os.path.join(traffic_dir, f"{filename}{formatted_time}_{TASK_NAME}.pcap")
-    task_instance.url_logger = setup_url_logger(traffic_name)
     task_instance.pcap_path = traffic_name
     # 设置tcpdump命令的参数
     tcpdump_command = [
