@@ -5,7 +5,7 @@ from utils.task import task_instance
 class TraceSpider(scrapy.Spider):
     name = "trace"
     allowed_domains = [task_instance.current_allowed_domain]
-    start_urls = task_instance.urls
+    start_urls = [task_instance.current_start_url]
 
     def parse(self, response, **kwargs):
         a_links = response.css('a::attr(href)').getall()

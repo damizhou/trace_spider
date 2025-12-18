@@ -9,8 +9,6 @@ from datetime import datetime
 from utils.task import task_instance
 
 should_stop_capture = False
-process = None
-
 
 def capture(TASK_NAME, formatted_time, parsers):
     current_time = datetime.now()
@@ -44,9 +42,6 @@ def capture(TASK_NAME, formatted_time, parsers):
 
 def stop_capture():
     global process
-    if process is None:
-        logger.warning("capture 未启动，无需停止")
-        return None
     # 取输出文件路径
     pid = process.pid
     p = psutil.Process(pid)
@@ -67,10 +62,4 @@ def stop_capture():
             except Exception:
                 pass
     return file_path
-
-
-def move_log(log_path, dst_path):
-    if not os.path.exists(os.path.dirname(dst_path)):
-        os.makedirs(os.path.dirname(dst_path))
-    shutil.move(log_path, dst_path)
 

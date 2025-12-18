@@ -105,7 +105,7 @@ class TraceSpiderDownloaderMiddleware:
         task_instance.requesturlNum += 1
         if task_instance.requesturlNum > 10:
             return
-        with open('url_list.txt', 'a') as f:
+        with open('request_url_list.txt', 'a') as f:
             f.write(f"{task_instance.requesturlNum},{request.url}")
         self.browser.get(request.url)
         if 'youtube' in task_instance.current_allowed_domain:
