@@ -102,18 +102,16 @@ class TraceSpiderDownloaderMiddleware:
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
         # 打印页面内容
-        logger.info(f"requestURL:{request.url}")
-        task_instance.requesturlNum += 1
         if task_instance.requesturlNum > 10:
             raise IgnoreRequest(f"超过10个页面限制，忽略: {request.url}")
         with open('request_url_list.txt', 'a') as f:
-            f.write(f"{task_instance.requesturlNum},{request.url}")
+            f.write(f"{task_instance.requesturlNum},{request.url}\n")
         # self.browser.get(request.url)
         try:
+            task_instance.requesturlNum += 1
             open_url_and_save_content(self.browser, request.url)
-            logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面")
+            logger.info(f"requestURL:{request.url}")
             time.sleep(15)
-            is_finished = True
         except Exception as e:
             logger.error(f"爬取 {request.url} 失败: {e}")
 
