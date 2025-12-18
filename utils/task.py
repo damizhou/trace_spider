@@ -55,9 +55,7 @@ class Task:
 
     @property
     def current_start_url(self):
-        current_start_url = 'https://' + self.urls[self.current_index]
-        print('current_start_url', current_start_url)
-        return current_start_url
+        return 'https://' + self.urls[self.current_index]
 
     @property
     def current_allowed_domain(self):
