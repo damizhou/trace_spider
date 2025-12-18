@@ -104,7 +104,7 @@ class TraceSpiderDownloaderMiddleware:
         # 打印页面内容
         if task_instance.requesturlNum > 10:
             raise IgnoreRequest(f"超过10个页面限制，忽略: {request.url}")
-        with open(f'{task_instance.current_allowed_domain}_request_url_list.txt', 'a') as f:
+        with open(f'request_url_list_{task_instance.current_allowed_domain}.txt', 'a') as f:
             f.write("index,domain,url\n")
         if task_instance.requesturlNum != 0:
             with open('request_url_list.txt', 'a') as f:
