@@ -5,10 +5,11 @@
 import time
 from scrapy import signals
 from scrapy.http import HtmlResponse
+from scrapy.exceptions import IgnoreRequest
 from selenium.webdriver.common.by import By
 from tools.math_tool import generate_normal_random
 from utils.logger import logger
-from utils.chrome import create_chrome_driver, scroll_to_bottom, add_cookies
+from utils.chrome import create_chrome_driver, scroll_to_bottom, add_cookies, open_url_and_save_content
 import json
 from utils.task import task_instance
 import utils.archive as archive
@@ -104,10 +105,18 @@ class TraceSpiderDownloaderMiddleware:
         logger.info(f"requestURL:{request.url}")
         task_instance.requesturlNum += 1
         if task_instance.requesturlNum > 10:
-            return
+            raise IgnoreRequest(f"超过10个页面限制，忽略: {request.url}")
         with open('request_url_list.txt', 'a') as f:
             f.write(f"{task_instance.requesturlNum},{request.url}")
-        self.browser.get(request.url)
+        # self.browser.get(request.url)
+        try:
+            open_url_and_save_content(self.browser, request.url)
+            logger.info(f"爬取数据结束, 等待10秒.让浏览器加载完所有已请求的页面")
+            time.sleep(15)
+            is_finished = True
+        except Exception as e:
+            logger.error(f"爬取 {request.url} 失败: {e}")
+
         if 'youtube' in task_instance.current_allowed_domain:
             if 'watch' in request.url:
                 video_element = self.browser.find_element(By.TAG_NAME, "video")
