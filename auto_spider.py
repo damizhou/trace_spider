@@ -7,7 +7,7 @@ import paramiko
 import os
 import math
 from sever_info import servers_info
-TASK_LIST_PATH = f'url_list.txt'
+TASK_LIST_PATH = f'test.csv'
 index = 0
 # 异步执行并监控命令输出
 def async_exec_command(client, command, password):
@@ -106,7 +106,7 @@ def handle_server(server):
             remote_current_urls_path = f"{container_name}/current_docker_url_list.txt"
             with open(local_current_urls_path, 'w', encoding='utf-8') as file:
                 for line in lines[start_url_index: end_url_index]:
-                    file.write(f"{line}")
+                    file.write(f"{line.split(",")[1]}")
             # 上传任务列表到对应的docker
             async_upload_file(sftp, local_current_urls_path, remote_current_urls_path)
             async_exec_command(client, f'docker exec {container_name} ethtool -K eth0 tso off gso off gro off',
