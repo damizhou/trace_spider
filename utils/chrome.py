@@ -169,6 +169,10 @@ def open_url_and_save_content(driver, url, wait_secs=8):
     with open(task_instance.html_path, "w", encoding="utf-8") as f:
         f.write(html)
 
+    if task_instance.requesturlNum != 0:
+        with open('request_url_list.txt', 'a') as f:
+            f.write(f"{task_instance.requesturlNum},{task_instance.current_allowed_domain},{driver.current_url}\n")
+
 # 定义一个函数来滚动页面
 def scroll_to_bottom(driver):
     times = 0

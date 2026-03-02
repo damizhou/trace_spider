@@ -62,7 +62,7 @@ def handle_server(server):
             f"docker stop $(docker ps -q -f \"name=^{base_path}\") | docker rm -f $(docker ps -aq -f \"name=^{base_path}\")",
             f"echo '{password}' | sudo -S rm -rf {base_path}* spiderCode",
             f"echo '{password}' | sudo -S ethtool -K docker0 tso off gso off gro off",
-            f'git clone --branch novpn https://github.com/damizhou/trace_spider.git spiderCode',
+            f'git clone --branch url_list https://github.com/damizhou/trace_spider.git spiderCode',
         ]
         for sever_command in sever_commands:
             async_exec_command(client, sever_command, password)
