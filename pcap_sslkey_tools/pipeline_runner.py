@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os
 import sys
 import logging
 import subprocess
@@ -13,15 +12,6 @@ SOURCE_ROOT = r"/home/pcz/x_trace_spider*"      # 源基础路径（支持通配
 DEST_ROOT   = r"/netdisk/x_with_ssl_key/collection_without_login"    # 目的基础路径（pcap 在这里的 pcap 子目录）
 COPY_WORKERS = 32                               # copy 并发进程数
 # ========= 只改这里 =========
-def ensure_root_or_reexec():
-    if hasattr(os, "geteuid") and os.geteuid() != 0:
-        # 以同一解释器重新执行当前脚本，保留环境变量（-E）
-        os.execvp("sudo", ["sudo", "-E", sys.executable] + sys.argv)
-
-def ensure_root():
-    if hasattr(os, "geteuid") and os.geteuid() != 0:
-        raise SystemExit("必须以 root 运行。示例：sudo python3 pipeline_runner.py")
-
 def setup_logger():
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
@@ -42,7 +32,6 @@ def step_copy_guardian():
 
 
 def main():
-    # ensure_root_or_reexec()
     setup_logger()
 
     # 确保同目录可 import 那五个脚本

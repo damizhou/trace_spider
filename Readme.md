@@ -1,73 +1,63 @@
-# 流量收集
+# 站内 URL 采集
 
-用来收集流量
+最后更新：2026-07-14 20:19:56
 
-## 部署步骤
-1. 克隆项目
-```
-git clone https://github.com/damizhou/trace_spider.git
-```
-2. 修改配置文件**config.ini**文件，主要修改其中单个URL爬取时间。
-3. 下载Dokcer镜像
-```
-docker pull chuanzhoupan/trace_spider:0527
-```
-4. 运行docker, 根据自己的实际情况修改`--volume`参数，`your_code_path`为克隆项目的路径。挂载部分包含脚本代码，不挂载脚本无法正常运行。和`--name`参数，`your_container_name`是容器名称
-  - windows
-    ```
-    docker run --volume your_code_path:/app --privileged -itd --name your_container_name chuanzhoupan/trace_spider:250912 /bin/bash
-    ```
-  - linux
-    ```
-    docker run --volume your_code_path:/app -e HOST_UID=$(id -u $USER) -e HOST_GID=$(id -g $USER) --privileged -itd --name your_container_name chuanzhoupan/trace_spider:250912 /bin/bash
-    ```
-5. 关闭物理机网卡合并包，要找到自己的docker和对应的物理机桥接网卡
-```
-sudo ethtool -K docker0 tso off gso off gro off
-```
-6. 进入容器
-```
-docker exec -it your_container_name /bin/bash  
-```
-7. 关闭docker网卡合并包
-```
-sudo ethtool -K eth0 tso off gso off gro off
-```
-8. 修改url_list.txt中的需要爬取的URL列表
-9. 运行程序，在`app`下执行
-   - 对于novpn的采集
-    ```
-    python main.py sever_location sever_os novpn
-    ```
-    sever_location 是采集物理设备位置
-    sever_os       是采集物理设备
-10. 系统
-    例如
-    ```
-    python /app/main.py hz ubuntu24.04 novpn
-    ```
-    - 对于使用vpn的采集
-    ```
-    python main.py sever_location sever_os vpn_loaction vpn_type udp/tpc
-    ```
-    sever_location 是采集物理设备位置
-    sever_os       是采集物理设备系统
-    vpn_loaction   是vpn节点位置
-    vpn_type       是vpn节点协议
-    udp/tpc        是指clash配置中是否使用udp，没有类似配置默认就是tcp
-    例如
-    ```
-    python main.py hz ubuntu24.04 jpn trojan udp
-    ```
-10. `logs`目录下是日志，日志以日期分割。例如`20240528.log`、`20240529.log`
+本项目在本机通过 Docker 并行采集站内页面 URL。每个去重后的目标域名启动一个独立容器，每个域名最多收集 1000 条 URL，并分别输出独立 CSV 文件。
 
-## 注意事项
+## 配置
 
-1. 数据储存在`data`目录下，不同的URL分别有一个文件夹保存。
-	- 数据文件命名格式为**采集物理设备时间_URL.pacp**。pcap命名规则：收集设备物理位置_收集设备系统_vpn位置_vpn协议_tcp/udp_时间_网址
-      - 例如**usa_ubuntu24.04_novpn_20241119_043213_comdirect.de.pcap**为位于**usa**系统为**ubuntu24.04**的物理设备**直接**收集的**2024年11月19日04点32分13秒**开始采集的**comdirect.de**流量。
-      - 例如**hz_ubuntu24.04_sgp_trojan_udp_20241119_084114_07pbc.cc.pcap**为位于**hz**系统为**ubuntu24.04**的物理设备通过协议是**trojan**，节点在**sgp**的**vpn**收集的**2024年11月19日08点41分14秒**开始采集的**07pbc.cc**流量。
-2. `analyze`目录下是流量分析脚本
-   - `flows_packets`需要修改代码中的本机IP，改为实际的本机IP
-3. 关闭网卡合并包，每次启动linux都要重新运行。包括物理机和docker
+在 auto_spider.py 文件顶部修改以下 CONFIG_* 配置：
 
+- CONFIG_DOMAINS：目标域名列表，重复域名会自动去重。
+- CONFIG_URLS_PER_DOMAIN：每个域名最多采集的 URL 数量，默认 1000。
+- CONFIG_CSV_BATCH_SIZE：增量写入批次大小，默认每 50 条写入并同步到磁盘。
+- CONFIG_MAX_CANDIDATES_PER_DOMAIN：单域名最多检查的候选 URL 数量，默认 10000。
+- CONFIG_REVALIDATE_EXISTING_URLS：断点续采前是否重新验证已有 URL，默认关闭，避免每次代理重试重复复检。
+- CONFIG_DOMAIN_OUTPUT_DIR：各域名结果目录，默认 domain_url_results/。
+- CONFIG_DOCKER_IMAGE：采集容器使用的镜像，默认 chuanzhoupan/trace_spider_chrome_149:260611。
+- CONFIG_DOCKER_NETWORK_NAME：专用 Docker bridge 网络名称，默认 trace_spider_172_20。
+- CONFIG_DOCKER_NETWORK_SUBNET：容器子网，默认 172.20.0.0/24。
+- CONFIG_DOCKER_NETWORK_GATEWAY：容器网关，默认 172.20.0.1。
+- CONFIG_RETRIES_PER_SOURCE_IP：每个源 IP 的最大尝试次数，默认 3。
+- CONFIG_PROXY_ATTEMPT_TIMEOUT_SECONDS：单次代理尝试的硬超时，默认 120 秒。
+- CONFIG_PROXY_ROUTES：38 组源 IP 与代理节点对应关系。
+
+## 运行
+
+本机需要已安装 Docker，并且当前用户可以直接执行 Docker 命令。
+
+    python auto_spider.py
+
+也可以通过兼容入口运行：
+
+    python main.py
+
+调度器会完成以下工作：
+
+1. 对 CONFIG_DOMAINS 去重。
+2. 自动创建 172.20.0.0/24 专用 bridge 网络，并从 172.20.0.2 开始按域名顺序分配固定容器 IP。
+3. 每个域名创建一个带 init、特权模式和交互终端的后台 Docker 容器。
+4. 容器优先从站点地图(Sitemap)获取候选 URL，再通过页面链接补充候选。
+5. 只有实际请求成功、最终地址仍属于目标域名且响应为 HTML/XHTML 的 URL 才写入 CSV；电子书、文档、图片、音视频、压缩包和其他下载资源会被排除。
+6. 每个域名单独输出 domain_url_results/域名.csv。
+7. 再次运行时直接读取已有 CSV，从尚未完成的数量继续采集；达到 1000 条的域名直接跳过。
+8. 容器任务结束后由宿主机删除对应容器，专用网络保留供下次运行复用。
+
+如果某次容器执行没有新增任何通过校验的 HTML/XHTML 页面 URL，则判定当前代理节点获取失败。同一个源 IP 总共尝试 3 次，之后切换到下一个不同代理节点，直到成功或 19 个不同节点都尝试完。38 个源 IP 是 19 个代理节点的两组映射；单个域名重试时不会重复尝试同名节点。首轮域名任务并行执行，换节点重试阶段按域名串行执行，避免固定 IP 冲突。
+
+每次代理尝试最多运行 120 秒。超时前如果 CSV 已新增有效 URL，则保留结果并把该节点视为可用；超时且零新增时才记为失败并进入重试或换节点。
+
+首轮并发容器的 120 秒从各自实际启动时间计算，不会因为宿主机按顺序等待而额外延长后续容器的运行时间。
+
+换节点重试前会先请求目标域名根页面进行预检。根页面无法正常返回 HTML/XHTML 时立即判定该节点失败；预检通过后才执行完整 URL 续采，避免在明显不可访问的节点上长时间遍历候选 URL。
+
+## CSV 格式
+
+    id,url,domain
+    1,https://bsky.app/profile/atproto.com,bsky.app
+
+每个域名的 CSV 位于 domain_url_results/，例如 domain_url_results/mit.edu.csv。每个文件中的 id 都从 1 开始连续编号。
+
+采集期间每累计 50 条 URL 就会追加写入 CSV；正常结束、异常或手动中断时，不足 50 条的尾批次也会写入。因此重新运行程序即可从已有 CSV 断点续采，无需额外进度文件。
+
+新 URL 在写入前已经验证为可访问的 HTML/XHTML 页面，因此断点续采默认信任已有 CSV，不再逐条重复复检。只有手动把 CONFIG_REVALIDATE_EXISTING_URLS 改为 True 时，才会重新验证已有记录。

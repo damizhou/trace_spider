@@ -21,3 +21,5 @@ url_logs/
 pcap_sslkey_tools/db_config.ini
 temp/
 archive.zip
+venv/
+0
