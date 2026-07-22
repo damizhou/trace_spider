@@ -5,6 +5,8 @@ logs/
 data/
 utils/running.json
 *.csv
+*.crawl_state.sqlite3
+*.csv.lock
 cookie.txt
 *.pcap
 *.json
